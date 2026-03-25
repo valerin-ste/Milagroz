@@ -1,0 +1,43 @@
+﻿TABLE: seguridad_salud_trabajo
+------------------
+TABLE: etapa_contractual
+------------------
+TABLE: etapa_precontractual
+stdClass Object
+(
+    [Field] => estado
+    [Type] => enum('en_proceso','aprobado','rechazado')
+    [Null] => YES
+    [Key] => 
+    [Default] => en_proceso
+    [Extra] => 
+)
+------------------
+TABLE: areas
+stdClass Object
+(
+    [Field] => estado
+    [Type] => tinyint(1)
+    [Null] => NO
+    [Key] => 
+    [Default] => 1
+    [Extra] => 
+)
+------------------
+TABLE: sedes
+------------------
+TABLE: roles
+------------------
+TABLE: personas
+------------------
+TABLE: empleados
+stdClass Object
+(
+    [Field] => estado
+    [Type] => enum('activo','inactivo')
+    [Null] => YES
+    [Key] => 
+    [Default] => activo
+    [Extra] => 
+)
+------------------

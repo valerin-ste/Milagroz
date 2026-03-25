@@ -3,20 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Empleado extends Model
 {
-    protected $fillable = [
-    'persona_id',
-    'area_id',
-    'sede_id',
-    'rol_id',
-    'cargo',
-    'fecha_ingreso',
-    'estado'
-];
+    use SoftDeletes;
 
-    // RELACIONES
+    protected $fillable = [
+        'persona_id',
+        'area_id',
+        'sede_id',
+        'rol_id',
+        'cargo',
+        'fecha_ingreso',
+        'estado'
+    ];
+
     public function persona()
     {
         return $this->belongsTo(Persona::class);
@@ -34,6 +36,35 @@ class Empleado extends Model
 
     public function rol()
     {
-        return $this->belongsTo(Role::class); 
+        return $this->belongsTo(Role::class); // ✅ CORREGIDO
+    }
+
+    public function etapaPrecontractuales()
+    {
+        return $this->hasMany(
+            EtapaPrecontractual::class,
+            'persona_id',     // FK en la tabla etapa_precontractual
+            'persona_id'      // FK en empleados
+        );
+    }
+
+    public function etapaContractuales()
+    {
+        return $this->hasMany(EtapaContractual::class, 'empleado_id');
+    }
+
+    public function seguridadSaludTrabajo()
+    {
+        return $this->hasMany(SeguridadSaludTrabajo::class, 'empleado_id');
+    }
+
+    public function evaluacionesDesempeno()
+    {
+        return $this->hasMany(EvaluacionDesempeno::class, 'empleado_id');
+    }
+
+    public function formaciones()
+    {
+        return $this->hasMany(Formacion::class);
     }
 }

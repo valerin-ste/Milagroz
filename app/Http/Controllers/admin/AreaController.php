@@ -55,20 +55,46 @@ public function store(Request $request)
 
 public function edit(Area $area)
 {
+    if ($area->estado != 1) {
+        return redirect()->route('admin.areas.index')->with('error', 'No se puede editar un área que está inactiva.');
+    }
     $sedes = Sede::all();
     return view('admin.areas.edit', compact('area', 'sedes'));
 }
 
 public function update(Request $request, Area $area)
 {
+    if ($area->estado != 1) {
+        return redirect()->route('admin.areas.index')->with('error', 'No se puede actualizar un área que está inactiva.');
+    }
+
+    $request->validate([
+        'nombre' => 'required|string|max:100',
+        'sede_id' => 'required|exists:sedes,id',
+    ]);
+
     $area->update([
         'nombre' => $request->nombre,
         'descripcion' => $request->descripcion,
         'sede_id' => $request->sede_id,
-        'estado' => $request->estado ?? 0 // 🔥
     ]);
 
-    return redirect()->route('admin.areas.index')
-        ->with('success');
+    return redirect()->route('admin.areas.index')->with('success', 'Área actualizada correctamente.');
+}
+
+public function destroy(Area $area)
+{
+    $area->update(['estado' => 0]);
+    return back()->with('success', 'El área ha sido desactivada correctamente.');
+}
+
+public function toggleStatus($id)
+{
+    $area = Area::findOrFail($id);
+    $nuevoEstado = $area->estado == 1 ? 0 : 1;
+    $area->update(['estado' => $nuevoEstado]);
+
+    $mensaje = $nuevoEstado == 1 ? 'activada' : 'desactivada';
+    return back()->with('success', "El área ha sido $mensaje correctamente.");
 }
 }

@@ -69,6 +69,11 @@ class SedeController extends Controller
     public function edit($id)
     {
         $sede = Sede::with('areas')->findOrFail($id);
+        
+        if ($sede->estado != 1) {
+            return redirect()->route('admin.sedes.index')->with('error', 'No se puede editar una sede que está inactiva.');
+        }
+
         $areas = Area::all();
         return view('admin.sedes.edit', compact('sede', 'areas'));
     }
@@ -78,20 +83,20 @@ class SedeController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $sede = Sede::findOrFail($id);
+
+        if ($sede->estado != 1) {
+            return redirect()->route('admin.sedes.index')->with('error', 'No se puede actualizar una sede que está inactiva.');
+        }
+
         $request->validate([
-
-
             'nombre' => 'required|string|max:100',
             'direccion' => 'nullable|string|max:150',
-
-            
             'ciudad' => 'nullable|string|max:100',
             'telefono' => 'nullable|string|max:20',
             'areas' => 'nullable|array',
             'areas.*' => 'exists:areas,id'
         ]);
-
-        $sede = Sede::findOrFail($id);
 
         // Actualizar datos de la sede
         $sede->update($request->only(['nombre', 'direccion', 'ciudad', 'telefono']));
@@ -111,7 +116,7 @@ class SedeController extends Controller
         }
 
         return redirect()->route('admin.sedes.index')
-                         ->with('success');
+                         ->with('success', 'Sede actualizada correctamente.');
     }
 
     /**
@@ -120,13 +125,20 @@ class SedeController extends Controller
     public function destroy($id)
     {
         $sede = Sede::findOrFail($id);
-
-        // Antes de eliminar, desvincular áreas
-        Area::where('sede_id', $sede->id)->update(['sede_id' => null]);
-
-        $sede->delete();
+        $sede->update(['estado' => 0]);
 
         return redirect()->route('admin.sedes.index')
-                         ->with('success');
+                         ->with('success', 'La sede ha sido desactivada correctamente.');
+    }
+
+    public function toggleStatus($id)
+    {
+        $sede = Sede::findOrFail($id);
+        $nuevoEstado = $sede->estado == 1 ? 0 : 1;
+        $sede->update(['estado' => $nuevoEstado]);
+
+        $mensaje = $nuevoEstado == 1 ? 'activada' : 'desactivada';
+        return redirect()->route('admin.sedes.index')
+                         ->with('success', "La sede ha sido $mensaje correctamente.");
     }
 }

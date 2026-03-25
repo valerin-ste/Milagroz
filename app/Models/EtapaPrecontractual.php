@@ -26,4 +26,9 @@ class EtapaPrecontractual extends Model
     {
         return $this->belongsTo(Persona::class);
     }
+
+    public function documentos()
+    {
+        return $this->morphMany(\App\Models\Documento::class, 'documentable');
+    }
 }

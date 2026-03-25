@@ -11,35 +11,54 @@ class EtapaPrecontractualService
     /**
      * Handle the file upload and store the record.
      */
-    public function store(array $data, UploadedFile $file): EtapaPrecontractual
+    public function store(array $data, ?array $files = null): EtapaPrecontractual
     {
-        if ($file) {
-            $path = $file->store('etapa_precontractual', 'public');
-            $data['archivo'] = $path;
-        }
-
         $data['fecha_registro'] = $data['fecha_registro'] ?? now()->toDateString();
         $data['estado'] = $data['estado'] ?? 'en_proceso';
 
-        return EtapaPrecontractual::create($data);
+        $etapa = EtapaPrecontractual::create($data);
+
+        if ($files) {
+            foreach ($files as $file) {
+                $etapa->documentos()->create([
+                    'nombre_original' => $file->getClientOriginalName(),
+                    'ruta' => $file->store('documentos', 'public'),
+                ]);
+            }
+        }
+
+        return $etapa;
     }
 
     /**
      * Handle the update of the record, replacing the file if a new one is provided.
      */
-    public function update(EtapaPrecontractual $etapaPrecontractual, array $data, ?UploadedFile $file = null): bool
+    public function update(EtapaPrecontractual $etapaPrecontractual, array $data, ?array $files = null): bool
     {
-        if ($file) {
-            // Delete old file if exists
-            if ($etapaPrecontractual->archivo && Storage::disk('public')->exists($etapaPrecontractual->archivo)) {
-                Storage::disk('public')->delete($etapaPrecontractual->archivo);
-            }
+        $updated = $etapaPrecontractual->update($data);
 
-            $path = $file->store('etapa_precontractual', 'public');
-            $data['archivo'] = $path;
+        if (isset($data['eliminar_documentos'])) {
+            foreach ($data['eliminar_documentos'] as $docId) {
+                $doc = $etapaPrecontractual->documentos()->find($docId);
+                if ($doc) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($doc->ruta)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($doc->ruta);
+                    }
+                    $doc->delete();
+                }
+            }
         }
 
-        return $etapaPrecontractual->update($data);
+        if ($files) {
+            foreach ($files as $file) {
+                $etapaPrecontractual->documentos()->create([
+                    'nombre_original' => $file->getClientOriginalName(),
+                    'ruta' => $file->store('documentos', 'public'),
+                ]);
+            }
+        }
+
+        return $updated;
     }
     
     /**
@@ -47,8 +66,11 @@ class EtapaPrecontractualService
      */
     public function delete(EtapaPrecontractual $etapaPrecontractual): bool
     {
-        if ($etapaPrecontractual->archivo && Storage::disk('public')->exists($etapaPrecontractual->archivo)) {
-            Storage::disk('public')->delete($etapaPrecontractual->archivo);
+        foreach ($etapaPrecontractual->documentos as $doc) {
+            if (Storage::disk('public')->exists($doc->ruta)) {
+                Storage::disk('public')->delete($doc->ruta);
+            }
+            $doc->delete();
         }
 
         return $etapaPrecontractual->delete();

@@ -79,37 +79,52 @@
 
                         {{-- ESTADO --}}
                         <td>
-                            @if($sede->estado ?? 1)
+                            @if($sede->estado == 1)
                                 <span class="badge bg-success px-3 py-2">
-                                    Activa
+                                    <i class="fas fa-check-circle me-1"></i> Activa
                                 </span>
                             @else
                                 <span class="badge bg-danger px-3 py-2">
-                                    Inactiva
+                                    <i class="fas fa-times-circle me-1"></i> Inactiva
                                 </span>
                             @endif
                         </td>
 
                         {{-- ACCIONES --}}
                         <td class="text-end pr-3">
+                            @if($sede->estado == 1)
+                                <a href="{{ route('admin.sedes.edit', $sede) }}" 
+                                   class="btn btn-light btn-sm mr-1 shadow-sm" title="Editar Sede">
+                                    <i class="fas fa-pen text-primary"></i>
+                                </a>
 
-                            <a href="{{ route('admin.sedes.edit', $sede) }}" 
-                               class="btn btn-light btn-sm mr-1">
-                                ✏️
-                            </a>
+                                <form action="{{ route('admin.sedes.destroy', $sede) }}" 
+                                      method="POST" 
+                                      class="d-inline"
+                                      title="Desactivar">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-light btn-sm text-danger shadow-sm"
+                                            onclick="return confirm('¿Confirma que desea DESACTIVAR esta sede? No podrá ser editada mientras esté inactiva.')">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <a href="javascript:void(0)" class="btn btn-light btn-sm mr-1 disabled opacity-50" title="No se puede editar registro inactivo">
+                                    <i class="fas fa-pen text-muted"></i>
+                                </a>
 
-                            <form action="{{ route('admin.sedes.destroy', $sede) }}" 
-                                  method="POST" 
-                                  class="d-inline">
-                                @csrf
-                                @method('DELETE')
-
-                                <button class="btn btn-light btn-sm text-danger"
-                                        onclick="return confirm('¿Eliminar sede?')">
-                                    🗑
-                                </button>
-                            </form>
-
+                                <form action="{{ route('admin.sedes.toggle', $sede->id) }}" 
+                                      method="POST" 
+                                      class="d-inline"
+                                      title="Reactivar Sede">
+                                    @csrf
+                                    <button class="btn btn-light btn-sm text-success shadow-sm"
+                                            onclick="return confirm('¿Desea ACTIVAR esta sede nuevamente?')">
+                                        <i class="fas fa-check-circle"></i> Activar
+                                    </button>
+                                </form>
+                            @endif
                         </td>
 
                     </tr>

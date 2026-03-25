@@ -22,8 +22,8 @@ class UpdateEtapaPrecontractualRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'archivo' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'estado' => 'required|in:en_proceso,aprobado,rechazado',
+            'documentos.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ];
     }
 }

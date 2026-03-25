@@ -23,8 +23,8 @@ class StoreEtapaPrecontractualRequest extends FormRequest
     {
         return [
             'persona_id' => 'required|exists:personas,id',
-            'archivo' => 'required|file|mimes:pdf,doc,docx|max:5120', // Max 5MB
-            'estado' => 'nullable|in:en_proceso,aprobado,rechazado',
+            'estado' => 'required|in:en_proceso,aprobado,rechazado',
+            'documentos.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'fecha_registro' => 'nullable|date',
         ];
     }

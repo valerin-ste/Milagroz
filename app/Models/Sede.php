@@ -11,6 +11,7 @@ class Sede extends Model
         'direccion',
         'ciudad',
         'telefono',
+        'estado'
     ];
 
     // Relación: una sede tiene muchas áreas

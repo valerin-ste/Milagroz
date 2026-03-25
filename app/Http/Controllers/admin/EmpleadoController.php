@@ -7,102 +7,135 @@ use App\Models\Empleado;
 use App\Models\Persona;
 use App\Models\Area;
 use App\Models\Sede;
-use App\Models\Role; // ✅ CORRECTO
+use App\Models\Role;
+use App\Http\Requests\Admin\StoreEmpleadoRequest;
+use App\Http\Requests\Admin\UpdateEmpleadoRequest;
 use Illuminate\Http\Request;
 
 class EmpleadoController extends Controller
 {
     public function index()
     {
-        $empleados = Empleado::with(['persona','area','sede','rol'])
+        $empleados = Empleado::with(['persona', 'area', 'sede', 'rol'])
             ->latest()
             ->paginate(10);
 
         return view('admin.empleados.index', compact('empleados'));
     }
 
-    public function create()
+    public function show(Empleado $empleado)
     {
-        $personas = Persona::all();
-        $areas = Area::all();
-        $sedes = Sede::all();
-        $roles = Role::all(); // ✅ CORRECTO
+        $empleado->load([
+        'persona',
+        'area',
+        'sede',
+        'rol',
+        'etapaPrecontractuales.documentos',
+        'etapaContractuales.documentos',    
+        'seguridadSaludTrabajo.documentos',
+        'evaluacionesDesempeno.documentos',
+        'formaciones.documentos' // 🔥 FALTA ESTO
+    ]);
 
-        return view('admin.empleados.create', compact('personas','areas','sedes','roles'));
+        return view('admin.empleados.show', compact('empleado'));
     }
 
-    public function store(Request $request)
-{
-    // 1. Crear persona
-    $persona = Persona::create([
-        'tipo_documento' => $request->tipo_documento,
-        'numero_documento' => $request->numero_documento,
-        'nombres' => $request->nombres,
-        'apellidos' => $request->apellidos,
-        'telefono' => $request->telefono,
-        'correo' => $request->correo,
-        'direccion' => $request->direccion,
-        'fecha_nacimiento' => $request->fecha_nacimiento,
-    ]);
+    public function create()
+    {
+        // Optimizando memoria extrayendo solo columnas necesarias
+        $personas = Persona::select('id', 'nombres', 'apellidos', 'numero_documento')->get();
+        $areas = Area::select('id', 'nombre')->get();
+        $sedes = Sede::select('id', 'nombre')->get();
+        $roles = Role::select('id', 'nombre')->get();
 
-    // 2. Crear empleado
-    Empleado::create([
-        'persona_id' => $persona->id,
-        'area_id' => $request->area_id,
-        'sede_id' => $request->sede_id,
-        'rol_id' => $request->rol_id,
-        'cargo' => $request->cargo,
-        'fecha_ingreso' => $request->fecha_ingreso,
-        'estado' => $request->estado,
-    ]);
+        return view('admin.empleados.create', compact('personas', 'areas', 'sedes', 'roles'));
+    }
 
-    return redirect()->route('admin.empleados.index')
-        ->with('success');
-}
+    public function store(StoreEmpleadoRequest $request)
+    {
+        $validated = $request->validated();
+
+        // 1. Crear persona
+        $persona = Persona::create([
+            'tipo_documento' => $validated['tipo_documento'],
+            'numero_documento' => $validated['numero_documento'],
+            'nombres' => $validated['nombres'],
+            'apellidos' => $validated['apellidos'],
+            'telefono' => $validated['telefono'] ?? null,
+            'correo' => $validated['correo'] ?? null,
+            'direccion' => $validated['direccion'] ?? null,
+            'fecha_nacimiento' => $validated['fecha_nacimiento'] ?? null,
+        ]);
+
+        // 2. Crear empleado
+        Empleado::create([
+            'persona_id' => $persona->id,
+            'area_id' => $validated['area_id'],
+            'sede_id' => $validated['sede_id'],
+            'rol_id' => $validated['rol_id'],
+            'cargo' => $validated['cargo'],
+            'fecha_ingreso' => $validated['fecha_ingreso'],
+            'estado' => $validated['estado'],
+        ]);
+
+        return redirect()->route('admin.empleados.index')
+            ->with('success', 'Empleado registrado correctamente.');
+    }
 
     public function edit(Empleado $empleado)
-{
-    $empleado->load('persona'); // importante
+    {
+        $empleado->load('persona');
 
-    $areas = Area::all();
-    $sedes = Sede::all();
-    $roles = Role::all();
+        $areas = Area::select('id', 'nombre')->get();
+        $sedes = Sede::select('id', 'nombre')->get();
+        $roles = Role::select('id', 'nombre')->get();
 
-    return view('admin.empleados.edit', compact('empleado','areas','sedes','roles'));
-}
+        return view('admin.empleados.edit', compact('empleado', 'areas', 'sedes', 'roles'));
+    }
 
-    public function update(Request $request, Empleado $empleado)
-{
-    // 🔹 ACTUALIZAR PERSONA
-    $empleado->persona->update([
-        'tipo_documento' => $request->tipo_documento,
-        'numero_documento' => $request->numero_documento,
-        'nombres' => $request->nombres,
-        'apellidos' => $request->apellidos,
-        'telefono' => $request->telefono,
-        'correo' => $request->correo,
-        'direccion' => $request->direccion,
-        'fecha_nacimiento' => $request->fecha_nacimiento,
-    ]);
+    public function update(UpdateEmpleadoRequest $request, Empleado $empleado)
+    {
+        $validated = $request->validated();
 
-    // 🔹 ACTUALIZAR EMPLEADO
-    $empleado->update([
-        'area_id' => $request->area_id,
-        'sede_id' => $request->sede_id,
-        'rol_id' => $request->rol_id,
-        'cargo' => $request->cargo,
-        'fecha_ingreso' => $request->fecha_ingreso,
-        'estado' => $request->estado,
-    ]);
+        // 🔹 ACTUALIZAR PERSONA
+        $empleado->persona->update([
+            'tipo_documento' => $validated['tipo_documento'],
+            'numero_documento' => $validated['numero_documento'],
+            'nombres' => $validated['nombres'],
+            'apellidos' => $validated['apellidos'],
+            'telefono' => $validated['telefono'] ?? null,
+            'correo' => $validated['correo'] ?? null,
+            'direccion' => $validated['direccion'] ?? null,
+            'fecha_nacimiento' => $validated['fecha_nacimiento'] ?? null,
+        ]);
 
-    return redirect()->route('admin.empleados.index')
-        ->with('success');
-}
+        // 🔹 ACTUALIZAR EMPLEADO
+        $empleado->update([
+            'area_id' => $validated['area_id'],
+            'sede_id' => $validated['sede_id'],
+            'rol_id' => $validated['rol_id'],
+            'cargo' => $validated['cargo'],
+            'fecha_ingreso' => $validated['fecha_ingreso'],
+            'estado' => $validated['estado'],
+        ]);
+
+        return redirect()->route('admin.empleados.index')
+            ->with('success', 'Empleado actualizado correctamente.');
+    }
 
     public function destroy(Empleado $empleado)
     {
-        $empleado->delete();
+        $empleado->update(['estado' => 0]);
+        return back()->with('success', 'El empleado ha sido desactivado correctamente.');
+    }
 
-        return back()->with('success');
+    public function toggleStatus($id)
+    {
+        $empleado = Empleado::findOrFail($id);
+        $nuevoEstado = $empleado->estado == 1 ? 0 : 1;
+        $empleado->update(['estado' => $nuevoEstado]);
+
+        $mensaje = $nuevoEstado == 1 ? 'activado' : 'desactivado';
+        return back()->with('success', "El empleado ha sido $mensaje correctamente.");
     }
 }

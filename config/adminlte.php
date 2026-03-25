@@ -196,9 +196,9 @@ return [
     'classes_content_wrapper' => '',
     'classes_content_header' => '',
     'classes_content' => '',
-    'classes_sidebar' => 'sidebar-dark-primary elevation-4',
+    'classes_sidebar' => 'sidebar-light-primary elevation-1',
     'classes_sidebar_nav' => '',
-    'classes_topnav' => 'navbar-white navbar-light',
+    'classes_topnav' => 'navbar-white navbar-light border-bottom-0',
     'classes_topnav_nav' => 'navbar-expand',
     'classes_topnav_container' => 'container',
 
@@ -311,23 +311,27 @@ return [
             ],
             [
                 'text' => 'Etapa Precontractual',
-                'url' => 'admin/etapa_precontractual',
-                'icon' => 'fas fa-file-upload',
+                'url'  => 'admin/etapa_precontractual',
+                'icon' => 'fas fa-fw fa-file-contract',
+                'active' => ['admin/etapa_precontractual*'],
             ],
             [
                 'text' => 'Etapa Contractual',
-                'url' => '#',
-                'icon' => 'fas fa-file-contract',
+                'url'  => 'admin/etapa_contractual',
+                'icon' => 'fas fa-fw fa-handshake',
+                'active' => ['admin/etapa_contractual*'],
             ],
             [
                 'text' => 'Seguridad y Salud en el Trabajo',
-                'url' => '#',
+                'url' => 'admin/seguridad_salud_trabajo',
                 'icon' => 'fas fa-heartbeat',
+                'active' => ['admin/seguridad_salud_trabajo*'],
             ],
             [
-                'text' => 'Comunicadores',
-                'url' => '#',
+                'text' => 'Comunicaciones',
+                'url' => 'admin/comunicaciones',
                 'icon' => 'fas fa-bullhorn',
+                'active' => ['admin/comunicaciones*'],
             ],
             [
                 'text' => 'Solicitudes',
@@ -336,13 +340,15 @@ return [
             ],
             [
                 'text' => 'Evaluación de Desempeño',
-                'url' => '#',
+                'url' => 'admin/evaluaciones_desempeno',
                 'icon' => 'fas fa-chart-line',
+                'active' => ['admin/evaluaciones_desempeno*'],
             ],
             [
                 'text' => 'Formación',
-                'url' => '#',
+                'url' => 'admin/formaciones',
                 'icon' => 'fas fa-graduation-cap',
+                'active' => ['admin/formaciones*'],
             ],
         ],
     ],
@@ -406,6 +412,16 @@ return [
     */
 
     'plugins' => [
+        'CustomCSS' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/custom.css',
+                ],
+            ],
+        ],
         'Datatables' => [
             'active' => false,
             'files' => [

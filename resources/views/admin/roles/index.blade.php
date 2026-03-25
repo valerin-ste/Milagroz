@@ -64,37 +64,54 @@
                                 {{ $role->descripcion ?? 'Sin descripción' }}
                             </td>
 
-                            {{-- ESTADO (PUEDES HACERLO DINÁMICO LUEGO) --}}
+                            {{-- ESTADO --}}
                             <td class="px-4 py-3">
-                                <span class="badge px-3 py-2"
-                                      style="background:#dcfce7; color:#15803d;">
-                                    ● Activo
-                                </span>
+                                @if($role->estado == 1)
+                                    <span class="badge px-3 py-2" style="background:#dcfce7; color:#15803d;">
+                                        ● Activo
+                                    </span>
+                                @else
+                                    <span class="badge px-3 py-2" style="background:#fee2e2; color:#dc2626;">
+                                        ● Inactivo
+                                    </span>
+                                @endif
                             </td>
 
                             {{-- ACCIONES --}}
                             <td class="px-4 py-3 text-center">
                                 <div class="d-flex justify-content-center gap-2">
+                                    @if($role->estado == 1)
+                                        <a href="{{ route('admin.roles.edit', $role) }}"
+                                           class="btn btn-sm"
+                                           style="background:#eef2ff; color:#4338ca;" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
 
-                                    <a href="{{ route('admin.roles.edit', $role) }}"
-                                       class="btn btn-sm"
-                                       style="background:#eef2ff; color:#4338ca;">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                        <form action="{{ route('admin.roles.destroy', $role) }}" 
+                                              method="POST" 
+                                              title="Desactivar">
+                                            @csrf
+                                            @method('DELETE')
 
-                                    <form action="{{ route('admin.roles.destroy', $role) }}" 
-                                          method="POST">
-                                        @csrf
-                                        @method('DELETE')
-
-                                        <button type="submit"
-                                                class="btn btn-sm"
-                                                style="background:#fee2e2; color:#dc2626;"
-                                                onclick="return confirm">
-                                            <i class="fas fa-trash"></i>
+                                            <button type="submit"
+                                                    class="btn btn-sm"
+                                                    style="background:#fee2e2; color:#dc2626;"
+                                                    onclick="return confirm('¿Confirma que desea DESACTIVAR este rol?');">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button class="btn btn-sm opacity-50" style="background:#f1f5f9; cursor:not-allowed;" title="Inactivo - No editable">
+                                            <i class="fas fa-edit text-muted"></i>
                                         </button>
-                                    </form>
 
+                                        <form action="{{ route('admin.roles.toggle', $role->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm shadow-sm" style="background:#dcfce7; color:#15803d;" title="Reactivar">
+                                                <i class="fas fa-check-circle"></i> Activar
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
 
