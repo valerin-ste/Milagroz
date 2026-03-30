@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasStatusAlerts;
 use Illuminate\Database\Eloquent\Model;
 
 class SeguridadSaludTrabajo extends Model
 {
+    use HasStatusAlerts;
     protected $table = 'seguridad_salud_trabajo';
     public $timestamps = false;
 

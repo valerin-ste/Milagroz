@@ -69,7 +69,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Número Documento <span class="text-danger">*</span></label>
-                                <input type="text" name="numero_documento" class="form-control" value="{{ old('numero_documento', $empleado->persona->numero_documento) }}" required>
+                                <input type="text" name="numero_documento" class="form-control" value="{{ old('numero_documento', $empleado->persona->numero_documento) }}" required inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
 
                             <div class="col-md-6">
@@ -79,7 +79,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Teléfono</label>
-                                <input type="tel" name="telefono" class="form-control" value="{{ old('telefono', $empleado->persona->telefono) }}">
+                                <input type="text" name="telefono" class="form-control" value="{{ old('telefono', $empleado->persona->telefono) }}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
 
                             <div class="col-12">

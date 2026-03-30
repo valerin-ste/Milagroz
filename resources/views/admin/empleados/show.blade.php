@@ -80,20 +80,26 @@
 
                     {{-- SECCIÓN: ETAPA PRECONTRACTUAL --}}
                     <div class="mb-5">
+
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">1</div>
-                            <h5 class="fw-bold mb-0" style="color: #334155;">📌 Etapa Precontractual</h5>
+                            <h5 class="fw-bold mb-0" style="color: #334155;">
+                                Etapa Precontractual
+                            </h5>
                         </div>
-                        
+
                         <div class="row g-3">
                             @forelse($empleado->persona->etapaPrecontractuales as $ep)
                                 <div class="col-12">
                                     <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-info">
                                         <div class="card-body p-3">
+
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span class="badge bg-soft-info text-info px-3">Registro del {{ \Carbon\Carbon::parse($ep->fecha_registro)->format('d/m/Y') }}</span>
+                                                <span class="badge bg-soft-info text-info px-3">
+                                                    Registro del {{ \Carbon\Carbon::parse($ep->fecha_registro)->format('d/m/Y') }}
+                                                </span>
                                                 <small class="text-muted">ID: #{{ $ep->id }}</small>
                                             </div>
+
                                             <div class="table-responsive">
                                                 <table class="table table-sm table-borderless align-middle mb-0">
                                                     <thead class="text-muted small text-uppercase">
@@ -106,17 +112,22 @@
                                                         @foreach($ep->documentos as $doc)
                                                             <tr class="border-top">
                                                                 <td class="py-2">
-                                                                    <i class="fas fa-file-pdf text-danger me-2"></i> {{ $doc->nombre_original }}
+                                                                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                                    {{ $doc->nombre_original }}
                                                                 </td>
                                                                 <td class="text-end py-2">
                                                                     <div class="d-flex justify-content-end gap-2">
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-light border shadow-sm" title="Ver archivo">
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Ver archivo">
                                                                             <i class="fas fa-eye text-primary"></i>
                                                                         </a>
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}" class="btn btn-sm btn-light border shadow-sm" title="Descargar">
+
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Descargar">
                                                                             <i class="fas fa-download text-success"></i>
                                                                         </a>
-                                                                        
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -124,6 +135,7 @@
                                                     </tbody>
                                                 </table>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -135,24 +147,37 @@
                         </div>
                     </div>
 
-                    {{-- SECCIÓN: ETAPA CONTRACTUAL --}}
+                   {{-- SECCIÓN: ETAPA CONTRACTUAL --}}
                     <div class="mb-5">
+
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">2</div>
-                            <h5 class="fw-bold mb-0" style="color: #334155;">📌 Etapa Contractual</h5>
+                            <h5 class="fw-bold mb-0" style="color: #334155;">
+                                Etapa Contractual
+                            </h5>
                         </div>
-                        
+
                         <div class="row g-3">
                             @forelse($empleado->etapaContractuales as $c)
                                 <div class="col-12">
                                     <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-success">
                                         <div class="card-body p-3">
+
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <h6 class="fw-bold text-success mb-0">{{ $c->tipo_contrato }}</h6>
-                                                <span class="badge bg-light text-dark">Sueldo: ${{ number_format($c->salario) }}</span>
+                                                <span class="badge bg-light text-dark">
+                                                    Sueldo: ${{ number_format($c->salario) }}
+                                                </span>
                                             </div>
-                                            <small class="text-muted d-block mb-3">Vigencia: {{ \Carbon\Carbon::parse($c->fecha_inicio)->format('d/m/Y') }} @if($c->fecha_fin) al {{ \Carbon\Carbon::parse($c->fecha_fin)->format('d/m/Y') }} @else (Indefinido) @endif</small>
-                                            
+
+                                            <small class="text-muted d-block mb-3">
+                                                Vigencia: {{ \Carbon\Carbon::parse($c->fecha_inicio)->format('d/m/Y') }}
+                                                @if($c->fecha_fin)
+                                                    al {{ \Carbon\Carbon::parse($c->fecha_fin)->format('d/m/Y') }}
+                                                @else
+                                                    (Indefinido)
+                                                @endif
+                                            </small>
+
                                             <div class="table-responsive">
                                                 <table class="table table-sm table-borderless align-middle mb-0">
                                                     <thead class="text-muted small text-uppercase">
@@ -165,23 +190,22 @@
                                                         @foreach($c->documentos as $doc)
                                                             <tr class="border-top">
                                                                 <td class="py-2">
-                                                                    <i class="fas fa-file-contract text-success me-2"></i> {{ $doc->nombre_original }}
+                                                                    <i class="fas fa-file-contract text-success me-2"></i>
+                                                                    {{ $doc->nombre_original }}
                                                                 </td>
                                                                 <td class="text-end py-2">
                                                                     <div class="d-flex justify-content-end gap-2">
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-light border shadow-sm" title="Ver archivo">
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Ver archivo">
                                                                             <i class="fas fa-eye text-primary"></i>
                                                                         </a>
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}" class="btn btn-sm btn-light border shadow-sm" title="Descargar">
+
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Descargar">
                                                                             <i class="fas fa-download text-success"></i>
                                                                         </a>
-                                                                        
-                                                                        <form action="{{ route('admin.documentos.destroy', $doc->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar archivo permanentemente?');">
-                                                                            @csrf @method('DELETE')
-                                                                            <button type="submit" class="btn btn-sm btn-light border shadow-sm" title="Eliminar">
-                                                                                <i class="fas fa-trash-alt text-danger"></i>
-                                                                            </button>
-                                                                        </form>
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -189,6 +213,7 @@
                                                     </tbody>
                                                 </table>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -202,42 +227,46 @@
 
                     {{-- SECCIÓN: SEGURIDAD Y SALUD --}}
                     <div>
+
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-orange text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">3</div>
-                            <h5 class="fw-bold mb-0" style="color: #334155;">📌 Seguridad y Salud en el Trabajo</h5>
+                            <h5 class="fw-bold mb-0" style="color: #334155;">
+                                Seguridad y Salud en el Trabajo
+                            </h5>
                         </div>
-                        
+
                         <div class="row g-3">
                             @forelse($empleado->seguridadSaludTrabajo as $sst)
                                 <div class="col-12">
                                     <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-warning">
                                         <div class="card-body p-3">
+
                                             <h6 class="fw-bold mb-1">{{ $sst->tipo_documento }}</h6>
-                                            <small class="text-muted d-block mb-3">Emitido el: {{ \Carbon\Carbon::parse($sst->fecha)->format('d/m/Y') }}</small>
-                                            
+                                            <small class="text-muted d-block mb-3">
+                                                Emitido el: {{ \Carbon\Carbon::parse($sst->fecha)->format('d/m/Y') }}
+                                            </small>
+
                                             <div class="table-responsive">
                                                 <table class="table table-sm table-borderless align-middle mb-0">
                                                     <tbody>
                                                         @foreach($sst->documentos as $doc)
                                                             <tr class="border-top">
                                                                 <td class="py-2">
-                                                                    <i class="fas fa-heartbeat text-danger me-2"></i> {{ $doc->nombre_original }}
+                                                                    <i class="fas fa-heartbeat text-danger me-2"></i>
+                                                                    {{ $doc->nombre_original }}
                                                                 </td>
                                                                 <td class="text-end py-2">
                                                                     <div class="d-flex justify-content-end gap-2">
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-light border shadow-sm" title="Ver archivo">
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Ver archivo">
                                                                             <i class="fas fa-eye text-primary"></i>
                                                                         </a>
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}" class="btn btn-sm btn-light border shadow-sm" title="Descargar">
+
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Descargar">
                                                                             <i class="fas fa-download text-success"></i>
                                                                         </a>
-                                                                        
-                                                                        <form action="{{ route('admin.documentos.destroy', $doc->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar archivo permanentemente?');">
-                                                                            @csrf @method('DELETE')
-                                                                            <button type="submit" class="btn btn-sm btn-light border shadow-sm" title="Eliminar">
-                                                                                <i class="fas fa-trash-alt text-danger"></i>
-                                                                            </button>
-                                                                        </form>
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -245,6 +274,7 @@
                                                     </tbody>
                                                 </table>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -258,72 +288,90 @@
 
                     {{-- SECCIÓN: EVALUACIONES DE DESEMPEÑO --}}
                     <div class="mt-5">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">4</div>
-                            <h5 class="fw-bold mb-0" style="color: #334155;">📌 Evaluaciones de Desempeño</h5>
-                        </div>
-                        
-                        <div class="row g-3">
-                            @forelse($empleado->evaluacionesDesempeno->where('estado', 1) as $ev)
-                                <div class="col-12">
-                                    <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-info">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <h6 class="fw-bold text-info mb-0">Calificación: {{ $ev->calificacion }}/10</h6>
-                                                <span class="badge bg-soft-secondary text-muted px-3">Fecha: {{ \Carbon\Carbon::parse($ev->fecha)->format('d/m/Y') }}</span>
-                                            </div>
-                                            @if($ev->observaciones)
-                                                <p class="small text-muted mb-3 italic">"{{ $ev->observaciones }}"</p>
-                                            @endif
-                                            
-                                            <div class="table-responsive">
-                                                <table class="table table-sm table-borderless align-middle mb-0">
-                                                    <tbody>
-                                                        @foreach($ev->documentos as $doc)
-                                                            <tr class="border-top">
-                                                                <td class="py-2">
-                                                                    <i class="fas fa-chart-line text-info me-2"></i> {{ $doc->nombre_original }}
-                                                                </td>
-                                                                <td class="text-end py-2">
-                                                                    <div class="d-flex justify-content-end gap-2">
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-light border shadow-sm" title="Ver archivo">
-                                                                            <i class="fas fa-eye text-primary"></i>
-                                                                        </a>
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}" class="btn btn-sm btn-light border shadow-sm" title="Descargar">
-                                                                            <i class="fas fa-download text-success"></i>
-                                                                        </a>
-                                                                        
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
+
+                    <div class="d-flex align-items-center mb-3">
+                        <h5 class="fw-bold mb-0" style="color: #334155;">
+                            Evaluaciones de Desempeño
+                        </h5>
+                    </div>
+
+                    <div class="row g-3">
+                        @forelse($empleado->evaluacionesDesempeno->where('estado', 1) as $ev)
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-info">
+                                    <div class="card-body p-3">
+
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="fw-bold text-info mb-0">
+                                                Calificación: {{ $ev->calificacion }}/10
+                                            </h6>
+                                            <span class="badge bg-soft-secondary text-muted px-3">
+                                                Fecha: {{ \Carbon\Carbon::parse($ev->fecha)->format('d/m/Y') }}
+                                            </span>
                                         </div>
+
+                                        @if($ev->observaciones)
+                                            <p class="small text-muted mb-3 italic">
+                                                "{{ $ev->observaciones }}"
+                                            </p>
+                                        @endif
+
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-borderless align-middle mb-0">
+                                                <tbody>
+                                                    @foreach($ev->documentos as $doc)
+                                                        <tr class="border-top">
+                                                            <td class="py-2">
+                                                                <i class="fas fa-chart-line text-info me-2"></i>
+                                                                {{ $doc->nombre_original }}
+                                                            </td>
+                                                            <td class="text-end py-2">
+                                                                <div class="d-flex justify-content-end gap-2">
+                                                                    <a href="{{ Storage::url($doc->ruta) }}" target="_blank"
+                                                                    class="btn btn-sm btn-light border shadow-sm"
+                                                                    title="Ver archivo">
+                                                                        <i class="fas fa-eye text-primary"></i>
+                                                                    </a>
+
+                                                                    <a href="{{ Storage::url($doc->ruta) }}" download="{{ $doc->nombre_original }}"
+                                                                    class="btn btn-sm btn-light border shadow-sm"
+                                                                    title="Descargar">
+                                                                        <i class="fas fa-download text-success"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+
                                     </div>
                                 </div>
-                            @empty
-                                <div class="col-12 text-center py-4 bg-white rounded-lg shadow-sm">
-                                    <p class="text-muted mb-0">No se han registrado evaluaciones de desempeño.</p>
-                                </div>
-                            @endforelse
-                        </div>
+                            </div>
+                        @empty
+                            <div class="col-12 text-center py-4 bg-white rounded-lg shadow-sm">
+                                <p class="text-muted mb-0">No se han registrado evaluaciones de desempeño.</p>
+                            </div>
+                        @endforelse
                     </div>
+                </div>
 
                     {{-- SECCIÓN: FORMACIÓN --}}
                     <div class="mt-5">
+
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-weight: bold;">5</div>
-                            <h5 class="fw-bold mb-0" style="color: #334155;">📌 Formación y Certificaciones</h5>
+                            <h5 class="fw-bold mb-0" style="color: #334155;">
+                                Formación y Certificaciones
+                            </h5>
                         </div>
-                        
+
                         <div class="row g-3">
                             @forelse($empleado->formaciones as $f)
                                 <div class="col-12">
                                     <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-secondary">
                                         <div class="card-body p-3">
-                                            
+
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <h6 class="fw-bold text-secondary mb-0">{{ $f->nombre_curso }}</h6>
                                                 <span class="badge bg-light text-dark">{{ $f->institucion }}</span>
@@ -342,14 +390,18 @@
                                                         @forelse($f->documentos as $doc)
                                                             <tr class="border-top">
                                                                 <td class="py-2">
-                                                                    <i class="fas fa-graduation-cap text-secondary me-2"></i> {{ $doc->nombre_original }}
+                                                                    <i class="fas fa-graduation-cap text-secondary me-2"></i>
+                                                                    {{ $doc->nombre_original }}
                                                                 </td>
                                                                 <td class="text-end py-2">
                                                                     <div class="d-flex justify-content-end gap-2">
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-light border shadow-sm">
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" target="_blank"
+                                                                        class="btn btn-sm btn-light border shadow-sm">
                                                                             <i class="fas fa-eye text-primary"></i>
                                                                         </a>
-                                                                        <a href="{{ Storage::url($doc->ruta) }}" download class="btn btn-sm btn-light border shadow-sm">
+
+                                                                        <a href="{{ Storage::url($doc->ruta) }}" download
+                                                                        class="btn btn-sm btn-light border shadow-sm">
                                                                             <i class="fas fa-download text-success"></i>
                                                                         </a>
                                                                     </div>
@@ -374,6 +426,198 @@
                             @endforelse
                         </div>
                     </div>
+
+                    {{-- SECCIÓN: COMUNICACIONES --}}
+                    <div class="mb-5">
+
+                        <div class="d-flex align-items-center mb-3">
+                            <h5 class="fw-bold mb-0" style="color: #334155;">
+                                Comunicaciones
+                            </h5>
+                        </div>
+
+                        <div class="row g-3">
+
+                            @forelse($empleado->comunicaciones as $com)
+                                <div class="col-12">
+                                    <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-info">
+
+                                        <div class="card-body p-3">
+
+                                            {{-- HEADER --}}
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="fw-bold text-info mb-0">
+                                                    {{ $com->asunto }}
+                                                </h6>
+
+                                                <span class="badge bg-light text-dark">
+                                                    {{ \Carbon\Carbon::parse($com->fecha)->format('d/m/Y') }}
+                                                </span>
+                                            </div>
+
+                                            {{-- MENSAJE --}}
+                                            <p class="text-muted small mb-3">
+                                                {{ $com->mensaje }}
+                                            </p>
+
+                                            {{-- ARCHIVOS --}}
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-borderless align-middle mb-0">
+                                                    <tbody>
+                                                        @forelse($com->documentos as $doc)
+                                                            <tr class="border-top">
+                                            <td class="py-2">
+                                                <i class="fas fa-envelope-open-text text-info me-2"></i>
+                                                {{ $doc->nombre_original }}
+                                            </td>
+
+                                            <td class="text-end py-2">
+                                                <div class="d-flex justify-content-end gap-2">
+
+                                                    {{-- VER --}}
+                                                    <a href="{{ Storage::url($doc->ruta) }}"
+                                                       target="_blank"
+                                                       class="btn btn-sm btn-light border shadow-sm"
+                                                       title="Ver archivo">
+                                                        <i class="fas fa-eye text-primary"></i>
+                                                    </a>
+
+                                                    {{-- DESCARGAR --}}
+                                                    <a href="{{ Storage::url($doc->ruta) }}"
+                                                       download="{{ $doc->nombre_original }}"
+                                                       class="btn btn-sm btn-light border shadow-sm"
+                                                       title="Descargar">
+                                                        <i class="fas fa-download text-success"></i>
+                                                    </a>
+
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="2" class="text-muted py-2">
+                                                Sin archivos adjuntos
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            @empty
+            <div class="col-12 text-center py-4 bg-white rounded-lg shadow-sm">
+                <p class="text-muted mb-0">No hay comunicaciones registradas.</p>
+            </div>
+        @endforelse
+
+    </div>
+</div>
+                    {{-- SECCIÓN: SOLICITUDES --}}
+                    <div class="mb-5">
+
+                        <div class="d-flex align-items-center mb-3">
+                            <h5 class="fw-bold mb-0" style="color: #334155;">
+                                Solicitudes
+                            </h5>
+                        </div>
+
+                        <div class="row g-3">
+                            @forelse($empleado->solicitudes as $sol)
+
+                                <div class="col-12">
+                                    <div class="card border-0 shadow-sm rounded-lg overflow-hidden border-start border-4 border-primary">
+
+                                        <div class="card-body p-3">
+
+                                            {{-- HEADER --}}
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                                                <span class="badge bg-soft-primary text-primary px-3">
+                                                    {{ ucfirst($sol->tipo) }}
+                                                </span>
+
+                                                <small class="text-muted">
+                                                    {{ \Carbon\Carbon::parse($sol->fecha)->format('d/m/Y') }}
+                                                </small>
+                                            </div>
+
+                                            {{-- TABLA --}}
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-borderless align-middle mb-0">
+
+                                                    <thead class="text-muted small text-uppercase">
+                                                        <tr>
+                                                            <th>Archivo</th>
+                                                            <th class="text-end">Acción</th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+
+                                                        @if($sol->archivo)
+                                                            <tr class="border-top">
+
+                                                                {{-- NOMBRE --}}
+                                                                <td class="py-2">
+                                                                    <i class="fas fa-file text-primary me-2"></i>
+                                                                    {{ $sol->nombre_archivo }}
+                                                                </td>
+
+                                                                {{-- ACCIONES --}}
+                                                                <td class="text-end py-2">
+                                                                    <div class="d-flex justify-content-end gap-2">
+
+                                                                        {{-- VER --}}
+                                                                        <a href="{{ Storage::url($sol->archivo) }}"
+                                                                        target="_blank"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Ver archivo">
+                                                                            <i class="fas fa-eye text-primary"></i>
+                                                                        </a>
+
+                                                                        {{-- DESCARGAR --}}
+                                                                        <a href="{{ Storage::url($sol->archivo) }}"
+                                                                        download="{{ $sol->nombre_archivo }}"
+                                                                        class="btn btn-sm btn-light border shadow-sm"
+                                                                        title="Descargar">
+                                                                            <i class="fas fa-download text-success"></i>
+                                                                        </a>
+
+                                                                    </div>
+                                                                </td>
+
+                                                            </tr>
+                                                        @else
+                                                            <tr>
+                                                                <td colspan="2" class="text-center text-muted py-2">
+                                                                    Sin archivo
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+
+                                                    </tbody>
+
+                                                </table>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            @empty
+                                <div class="col-12 text-center py-4 bg-white rounded-lg shadow-sm">
+                                    <p class="text-muted mb-0 italic">
+                                        No se encontraron solicitudes.
+                                    </p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
                                     </div>
                                 </div>
                             </div>

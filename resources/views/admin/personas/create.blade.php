@@ -36,7 +36,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label>Número Documento</label>
-                        <input type="text" name="numero_documento" class="form-control">
+                        <input type="text" name="numero_documento" class="form-control" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -51,7 +51,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label>Teléfono</label>
-                        <input type="text" name="telefono" class="form-control">
+                        <input type="text" name="telefono" class="form-control" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
 
                     <div class="col-md-6 mb-3">

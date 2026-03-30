@@ -16,10 +16,10 @@ class StoreEmpleadoRequest extends FormRequest
         return [
             // Persona
             'tipo_documento' => 'required|string|max:10',
-            'numero_documento' => 'required|string|max:50|unique:personas,numero_documento',
+            'numero_documento' => 'required|numeric|digits_between:5,20|unique:personas,numero_documento',
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
-            'telefono' => 'nullable|string|max:20',
+            'telefono' => 'nullable|numeric|digits_between:7,15',
             'correo' => 'nullable|email|max:150|unique:personas,correo',
             'direccion' => 'nullable|string|max:255',
             'fecha_nacimiento' => 'nullable|date',

@@ -33,13 +33,13 @@ class UpdateEmpleadoRequest extends FormRequest
             'tipo_documento' => 'required|string|max:10',
             'numero_documento' => [
                 'required',
-                'string',
-                'max:50',
+                'numeric',
+                'digits_between:5,20',
                 Rule::unique('personas', 'numero_documento')->ignore($personaId)
             ],
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
-            'telefono' => 'nullable|string|max:20',
+            'telefono' => 'nullable|numeric|digits_between:7,15',
             'correo' => [
                 'nullable',
                 'email',

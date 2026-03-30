@@ -67,4 +67,16 @@ class Empleado extends Model
     {
         return $this->hasMany(Formacion::class);
     }
+
+    public function comunicaciones()
+    {
+        return $this->hasMany(Comunicacion::class);
+    }   
+
+    public function solicitudes()
+    {
+        return $this->hasMany(Solicitud::class);
+    }
+
+   
 }

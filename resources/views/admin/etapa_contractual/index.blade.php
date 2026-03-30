@@ -15,12 +15,48 @@
 @section('content')
 <div class="container-fluid px-2">
 
-    @if(session('success'))
-        <div class="alert alert-success d-flex align-items-center" style="background-color: #ecfdf5; color: #047857; border: none; border-radius: var(--radius-md);">
-            <i class="fas fa-check-circle fa-lg me-3"></i>
-            <div>{{ session('success') }}</div>
+    <form method="GET" action="{{ route('admin.etapa_contractual.index') }}" class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-muted mb-1">Buscar Empleado</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre o apellido..." value="{{ request('buscar') }}">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
+                    <select name="estado" class="form-control border-light bg-light shadow-none">
+                        <option value="">-- Todos --</option>
+                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
+                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="small font-weight-bold text-muted mb-1">Rango de Vigencia (Inicio - Fin)</label>
+                    <div class="input-group">
+                        <input type="date" name="desde" value="{{ request('desde') }}" class="form-control border-light bg-light shadow-none">
+                        <span class="input-group-text bg-transparent border-0 small">a</span>
+                        <input type="date" name="hasta" value="{{ request('hasta') }}" class="form-control border-light bg-light shadow-none">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
+                            <i class="fas fa-filter mr-1"></i> Filtrar
+                        </button>
+                        <a href="{{ route('admin.etapa_contractual.index') }}" class="btn btn-light border flex-grow-1 shadow-xs">
+                            <i class="fas fa-undo mr-1"></i> Limpiar
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    @endif
+    </form>
 
     <div class="card border-0">
         <div class="card-body p-0">
@@ -72,19 +108,14 @@
                             </td>
 
                             <td>
-                                @php
-                                    $vencido = false;
-                                    if ($c->fecha_fin && \Carbon\Carbon::parse($c->fecha_fin)->isPast()) {
-                                        $vencido = true;
-                                    }
-                                @endphp
+                                @php $badge = $c->getStatusBadge($c->fecha_fin); @endphp
                                 
                                 @if($c->estado == 0)
-                                    <span class="badge-soft-danger"><i class="fas fa-times-circle"></i> Inactivo</span>
-                                @elseif($vencido)
-                                    <span class="badge-soft-danger"><i class="fas fa-exclamation-triangle"></i> Vencido</span>
+                                    <span class="badge-soft-danger"><i class="fas fa-ban"></i> Inactivo</span>
                                 @else
-                                    <span class="badge-soft-success"><i class="fas fa-check-circle"></i> Vigente</span>
+                                    <span class="{{ $badge['class'] }}">
+                                        <i class="{{ $badge['icon'] }}"></i> {{ $badge['label'] }}
+                                    </span>
                                 @endif
                             </td>
 
@@ -103,28 +134,28 @@
                             </td>
 
                             <td class="text-center pe-4">
-                                <div class="d-flex justify-content-center gap-2">
+                                <div class="action-container">
                                     @if($c->estado == 1)
-                                        <a href="{{ route('admin.etapa_contractual.edit', $c) }}" class="btn btn-sm btn-light-custom px-3" title="Editar Contrato">
-                                            <i class="fas fa-pen text-muted"></i>
+                                        <a href="{{ route('admin.etapa_contractual.edit', $c) }}" class="btn-table-action" title="Editar">
+                                            <i class="fas fa-pen"></i>
                                         </a>
 
                                         <form action="{{ route('admin.etapa_contractual.destroy', $c) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm btn-light-custom px-3" title="Desactivar Contrato" onclick="return confirm('¿Confirma que desea DESACTIVAR este contrato?');">
-                                                <i class="fas fa-ban text-danger"></i>
+                                            <button class="btn-table-action" title="Desactivar" onclick="return confirm('¿Confirma que desea DESACTIVAR este contrato?');">
+                                                <i class="fas fa-ban"></i>
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50" title="Registro inactivo" style="cursor:not-allowed;">
-                                            <i class="fas fa-pen text-muted"></i>
+                                        <button class="btn-table-action opacity-50" title="Editar (Inactivo)" style="cursor:not-allowed;">
+                                            <i class="fas fa-pen"></i>
                                         </button>
 
                                         <form action="{{ route('admin.etapa_contractual.toggle', $c->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success shadow-sm" title="Reactivar">
-                                                <i class="fas fa-check-circle"></i> Activar
+                                            <button type="submit" class="btn-table-action" title="Reactivar">
+                                                <i class="fas fa-check-circle"></i>
                                             </button>
                                         </form>
                                     @endif

@@ -63,12 +63,12 @@ return [
     |
     */
 
-    'logo' => '<b>Milagroz</b>',
-    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-    'logo_img_class' => 'brand-image img-circle elevation-3',
+    'logo' => 'Milagroz',
+    'logo_img' => 'images/logo_ips.jpg',
+    'logo_img_class' => 'brand-image img-circle elevation-2',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Admin Logo',
+    'logo_img_alt' => 'IPS Milagroz Logo',
 
     /*
     |--------------------------------------------------------------------------
@@ -257,7 +257,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'dashboard_url' => 'admin/dashboard',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -299,55 +299,75 @@ return [
     */
 
     'menu' => [
+        [
+            'text'        => 'Panel de Control',
+            'url'         => 'admin/dashboard',
+            'icon'        => 'fas fa-tachometer-alt text-soft-blue',
+            'active'      => ['admin/dashboard*'],
+        ],
+
+        [
+            'header' => 'MÓDULOS DE GESTIÓN',
+        ],
 
     [
         'text' => 'Talento Humano',
-        'icon' => 'fas fa-users-cog',
+        'icon' => 'fas fa-users-cog text-primary',
+        'classes' => 'text-primary',
         'submenu' => [
             [
                 'text' => 'Empleados',
                 'url' => 'admin/empleados',
-                'icon' => 'fas fa-user',
+                'icon' => 'fas fa-user text-info',
+                'classes' => 'text-info',
             ],
             [
                 'text' => 'Etapa Precontractual',
                 'url'  => 'admin/etapa_precontractual',
-                'icon' => 'fas fa-fw fa-file-contract',
+                'icon' => 'fas fa-fw fa-file-contract text-warning',
+                'classes' => 'text-warning',
                 'active' => ['admin/etapa_precontractual*'],
             ],
             [
                 'text' => 'Etapa Contractual',
                 'url'  => 'admin/etapa_contractual',
-                'icon' => 'fas fa-fw fa-handshake',
+                'icon' => 'fas fa-fw fa-handshake text-success',
+                'classes' => 'text-success',
                 'active' => ['admin/etapa_contractual*'],
             ],
             [
                 'text' => 'Seguridad y Salud en el Trabajo',
                 'url' => 'admin/seguridad_salud_trabajo',
-                'icon' => 'fas fa-heartbeat',
+                'icon' => 'fas fa-heartbeat text-danger',
+                'classes' => 'text-danger',
                 'active' => ['admin/seguridad_salud_trabajo*'],
             ],
             [
                 'text' => 'Comunicaciones',
                 'url' => 'admin/comunicaciones',
-                'icon' => 'fas fa-bullhorn',
+                'icon' => 'fas fa-bullhorn text-secondary',
+                'classes' => 'text-secondary',
                 'active' => ['admin/comunicaciones*'],
-            ],
+            ],  
             [
                 'text' => 'Solicitudes',
-                'url' => '#',
-                'icon' => 'fas fa-envelope-open-text',
+                'url' => 'admin/solicitudes',
+                'icon' => 'fas fa-envelope-open-text text-primary',
+                'classes' => 'text-primary',
+                'active' => ['admin/solicitudes*'],
             ],
             [
                 'text' => 'Evaluación de Desempeño',
                 'url' => 'admin/evaluaciones_desempeno',
-                'icon' => 'fas fa-chart-line',
+                'icon' => 'fas fa-chart-line text-info',
+                'classes' => 'text-info',
                 'active' => ['admin/evaluaciones_desempeno*'],
             ],
             [
                 'text' => 'Formación',
                 'url' => 'admin/formaciones',
-                'icon' => 'fas fa-graduation-cap',
+                'icon' => 'fas fa-graduation-cap text-success',
+                'classes' => 'text-success',
                 'active' => ['admin/formaciones*'],
             ],
         ],
@@ -355,22 +375,38 @@ return [
 
     [
         'text' => 'Configuración',
-        'icon' => 'fas fa-cogs',
+        'icon' => 'fas fa-cogs text-dark',
+        'classes' => 'text-dark',
         'submenu' => [
+            [
+                'text' => 'Usuarios del Sistema',
+                'url' => 'admin/users',
+                'icon' => 'fas fa-users text-purple',
+                'classes' => 'text-purple',
+            ],
+            [
+                'text' => 'Roles y Accesos',
+                'url' => 'admin/system_roles',
+                'icon' => 'fas fa-key text-success',
+                'classes' => 'text-success',
+            ],
             [
                 'text' => 'Sedes',
                 'url' => 'admin/sedes',
-                'icon' => 'fas fa-hospital',
+                'icon' => 'fas fa-hospital text-danger',
+                'classes' => 'text-danger',
             ],
             [
                 'text' => 'Áreas',
                 'url' => 'admin/areas',
-                'icon' => 'fas fa-sitemap',
+                'icon' => 'fas fa-sitemap text-primary',
+                'classes' => 'text-primary',
             ],
             [
-                'text' => 'Roles',
+                'text' => 'Perfiles de Cargo',
                 'url' => 'admin/roles',
-                'icon' => 'fas fa-user-shield',
+                'icon' => 'fas fa-user-tie text-warning',
+                'classes' => 'text-warning',
             ],
         ],
     ],

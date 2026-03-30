@@ -26,7 +26,32 @@
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+
+    /* Soft Palette */
+    --soft-blue: #f0f9ff;
+    --soft-blue-text: #0369a1;
+    --soft-green: #f0fdf4;
+    --soft-green-text: #15803d;
+    --soft-yellow: #fffbeb;
+    --soft-yellow-text: #a16207;
+    --soft-red: #fef2f2;
+    --soft-red-text: #b91c1c;
+    --soft-slate: #f1f5f9;
+    --soft-slate-text: #475569;
 }
+
+/* Soft Color Utilities */
+.bg-soft-blue { background-color: var(--soft-blue) !important; color: var(--soft-blue-text) !important; border: 1px solid #bae6fd !important; }
+.bg-soft-green { background-color: var(--soft-green) !important; color: var(--soft-green-text) !important; border: 1px solid #bbf7d0 !important; }
+.bg-soft-yellow { background-color: var(--soft-yellow) !important; color: var(--soft-yellow-text) !important; border: 1px solid #fef3c7 !important; }
+.bg-soft-red { background-color: var(--soft-red) !important; color: var(--soft-red-text) !important; border: 1px solid #fecaca !important; }
+.bg-soft-slate { background-color: var(--soft-slate) !important; color: var(--soft-slate-text) !important; border: 1px solid #e2e8f0 !important; }
+
+.text-soft-blue { color: var(--soft-blue-text) !important; }
+.text-soft-green { color: var(--soft-green-text) !important; }
+.text-soft-yellow { color: var(--soft-yellow-text) !important; }
+.text-soft-red { color: var(--soft-red-text) !important; }
+.text-soft-slate { color: var(--soft-slate-text) !important; }
 
 /* Typography & Base */
 body, h1, h2, h3, h4, h5, h6, .brand-text, .nav-link, p, span, div {
@@ -66,6 +91,29 @@ body {
 .brand-link .brand-text {
     font-weight: 700;
     letter-spacing: -0.5px;
+    margin-left: 0.5rem;
+}
+
+/* Logo specific styling */
+.brand-link {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.8rem 1rem !important;
+}
+
+.brand-link .brand-image {
+    float: none !important;
+    line-height: .8;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-height: 33px !important;
+    width: auto !important;
+    object-fit: contain;
+}
+
+/* Sidebar collapsed logo center */
+.sidebar-mini.sidebar-collapse .brand-link .brand-image {
+    margin-left: 0.5rem !important;
 }
 
 .nav-sidebar .nav-item .nav-link {
@@ -106,6 +154,11 @@ body {
 .nav-sidebar .nav-item .nav-link.active i {
     color: var(--primary-blue) !important;
     font-weight: 600;
+}
+
+/* Sidebar Icon Colors Override: Allow color classes on icons */
+.nav-sidebar .nav-item .nav-link i[class*="text-"] {
+    color: inherit !important;
 }
 
 /* Cards Premium */
@@ -427,3 +480,88 @@ input[type="file"].form-control {
     color: #ef4444;
     background-color: #fef2f2;
 }
+
+/* =========================================================================
+   TABLE ACTION BUTTONS CONSISTENCY
+   ========================================================================= */
+.btn-table-action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    border-radius: var(--radius-md) !important;
+    background-color: #ffffff !important;
+    border: 1px solid var(--border-input) !important;
+    transition: all 0.2s ease !important;
+    color: var(--text-muted) !important;
+}
+
+.btn-table-action:hover {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-xs);
+}
+
+.btn-table-action i {
+    font-size: 0.875rem !important;
+}
+
+/* Special icons colors inside common actions */
+.btn-table-action .fa-eye { color: var(--primary-blue) !important; }
+.btn-table-action .fa-pen { color: #64748b !important; }
+.btn-table-action .fa-ban, .btn-table-action .fa-trash, .btn-table-action .fa-user-slash { color: #ef4444 !important; }
+.btn-table-action .fa-check-circle, .btn-table-action .fa-check { color: #10b981 !important; }
+
+.action-container {
+    display: flex !important;
+    gap: 0.4rem !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* =========================================================================
+   SIDEBAR USER PANEL & NAVBAR USER MENU
+   ========================================================================= */
+.user-panel-sidebar {
+    transition: all 0.3s ease;
+    background-color: #fafbfc;
+}
+
+.sidebar-collapse .user-panel-sidebar {
+    display: none !important;
+}
+
+.user-initial-avatar {
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease;
+}
+
+.user-panel-sidebar:hover .user-initial-avatar,
+.user-panel-sidebar:hover img {
+    transform: scale(1.05);
+}
+
+.user-menu .dropdown-menu {
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-md) !important;
+    padding: 0;
+    overflow: hidden;
+    margin-top: 10px !important;
+}
+
+.user-footer {
+    background-color: #f8fafc !important;
+    padding: 1rem !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.bg-soft-blue {
+    background-color: rgba(19, 182, 236, 0.1) !important;
+    color: var(--primary-blue) !important;
+}
+
+

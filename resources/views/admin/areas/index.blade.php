@@ -122,28 +122,6 @@
         @endif
     </div>
 
-    {{-- CARDS DE RESUMEN --}}
-    <div class="row mt-4 g-3">
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 text-center p-3">
-                <h6 class="text-muted">TOTAL ÁREAS</h6>
-                <h3 class="fw-bold">{{ $totalAreas }}</h3>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 text-center p-3">
-                <h6 class="text-muted">ÁREAS ACTIVAS</h6>
-                <h3 class="fw-bold text-success">{{ $areasActivas }}</h3>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 text-center p-3">
-                <h6 class="text-muted">ÁREAS INACTIVAS</h6>
-                <h3 class="fw-bold text-danger">{{ $areasInactivas }}</h3>
-            </div>
-        </div>
-    </div>
-
 </div>
 @endsection
 

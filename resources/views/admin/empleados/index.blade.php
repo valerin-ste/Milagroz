@@ -22,6 +22,60 @@
         </div>
     @endif
 
+    <form method="GET" action="{{ route('admin.empleados.index') }}" class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-muted mb-1">Búsqueda General</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre, apellido o documento..." value="{{ request('buscar') }}">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
+                    <select name="estado" class="form-control border-light bg-light shadow-none">
+                        <option value="">-- Todos --</option>
+                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
+                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small font-weight-bold text-muted mb-1">Área</label>
+                    <select name="area_id" class="form-control border-light bg-light shadow-none text-truncate">
+                        <option value="">-- Todas --</option>
+                        @foreach($areas as $area)
+                            <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>{{ $area->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small font-weight-bold text-muted mb-1">Sede</label>
+                    <select name="sede_id" class="form-control border-light bg-light shadow-none">
+                        <option value="">-- Todas --</option>
+                        @foreach($sedes as $sede)
+                            <option value="{{ $sede->id }}" {{ request('sede_id') == $sede->id ? 'selected' : '' }}>{{ $sede->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
+                            <i class="fas fa-filter mr-1"></i> Filtrar
+                        </button>
+                        <a href="{{ route('admin.empleados.index') }}" class="btn btn-light border flex-grow-1 shadow-xs">
+                            <i class="fas fa-undo mr-1"></i> Limpiar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
     <div class="card border-0">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -68,39 +122,44 @@
 
                             <td>
                                 @if($e->estado == 1)
-                                    <span class="badge-soft-success">● Activo</span>
+                                    <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                                        style="background-color: #ecfdf5; color: #047857; font-size: 0.8rem;">
+                                        <i class="fas fa-check-circle me-1"></i> Activo
+                                    </span>
                                 @else
-                                    <span class="badge-soft-danger">● Inactivo</span>
+                                    <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                                        style="background-color: #fef2f2; color: #b91c1c; font-size: 0.8rem;">
+                                        <i class="fas fa-times-circle me-1"></i> Inactivo
+                                    </span>
                                 @endif
                             </td>
 
                             <td class="text-center pe-4">
-                                <div class="d-flex justify-content-center gap-2">
-                                    <a href="{{ route('admin.empleados.show', $e) }}" class="btn btn-sm btn-light-custom px-3" title="Ver Perfil">
+                                <div class="action-container">
+                                    <a href="{{ route('admin.empleados.show', $e) }}" class="btn-table-action" title="Ver Perfil">
                                         <i class="fas fa-eye text-primary"></i>
                                     </a>
 
                                     @if($e->estado == 1)
-                                        <a href="{{ route('admin.empleados.edit', $e) }}" class="btn btn-sm btn-light-custom px-3" title="Editar">
+                                        <a href="{{ route('admin.empleados.edit', $e) }}" class="btn-table-action" title="Editar">
                                             <i class="fas fa-pen text-muted"></i>
                                         </a>
 
                                         <form action="{{ route('admin.empleados.destroy', $e) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm btn-light-custom px-3" title="Desactivar" onclick="return confirm('¿Confirma que desea DESACTIVAR a este empleado?');">
+                                            <button class="btn-table-action" title="Desactivar" onclick="return confirm('¿Confirma que desea DESACTIVAR a este empleado?');">
                                                 <i class="fas fa-user-slash text-danger"></i>
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50" title="No editable (Inactivo)" style="cursor:not-allowed;">
+                                        <button class="btn-table-action opacity-50" title="No editable (Inactivo)" style="cursor:not-allowed;">
                                             <i class="fas fa-pen text-muted"></i>
                                         </button>
-
                                         <form action="{{ route('admin.empleados.toggle', $e->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button class="btn btn-sm btn-light-custom px-3 text-success" title="Reactivar Empleado">
-                                                <i class="fas fa-check-circle"></i> Activar
+                                            <button type="submit" class="btn-table-action" title="Activar">
+                                                <i class="fas fa-check-circle text-success"></i>
                                             </button>
                                         </form>
                                     @endif

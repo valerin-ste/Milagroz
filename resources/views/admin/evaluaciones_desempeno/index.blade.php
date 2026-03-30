@@ -32,22 +32,39 @@
     @endif
 
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3 border-light">
-            <form method="GET" action="{{ route('admin.evaluaciones_desempeno.index') }}" class="row g-3 align-items-center">
-                <div class="col-md-4">
+    <form method="GET" action="{{ route('admin.evaluaciones_desempeno.index') }}" class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-muted mb-1">Buscar Empleado</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
-                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Buscar por empleado..." value="{{ request('buscar') }}">
+                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre o apellido..." value="{{ request('buscar') }}">
                     </div>
                 </div>
+
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-info text-white w-100">Filtrar</button>
+                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
+                    <select name="estado" class="form-control border-light bg-light shadow-none">
+                        <option value="">-- Todos --</option>
+                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Vigente</option>
+                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactiva</option>
+                    </select>
                 </div>
-                <div class="col-md-2">
-                    <a href="{{ route('admin.evaluaciones_desempeno.index') }}" class="btn btn-light w-100 border">Limpiar</a>
+
+                <div class="col-md-5">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
+                            <i class="fas fa-filter mr-1"></i> Filtrar
+                        </button>
+                        <a href="{{ route('admin.evaluaciones_desempeno.index') }}" class="btn btn-light border flex-grow-1 shadow-xs">
+                            <i class="fas fa-undo mr-1"></i> Limpiar
+                        </a>
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
+    </form>
 
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -109,10 +126,14 @@
                             </td>
 
                             <td>
-                                @if($e->estado == 1)
-                                    <span class="badge bg-success px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">Vigente</span>
+                                @php $badge = $e->getStatusBadge($e->fecha); @endphp
+
+                                @if($e->estado == 0)
+                                    <span class="badge-soft-danger px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">Inactiva</span>
                                 @else
-                                    <span class="badge bg-danger px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">Inactiva</span>
+                                    <span class="{{ $badge['class'] }} px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">
+                                        <i class="{{ $badge['icon'] }} me-1"></i> {{ $badge['label'] }}
+                                    </span>
                                 @endif
                             </td>
 

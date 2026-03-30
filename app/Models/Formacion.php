@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasStatusAlerts;
 use Illuminate\Database\Eloquent\Model;
 
 class Formacion extends Model
 {
+    use HasStatusAlerts;
     protected $table = 'formaciones';
 
     protected $fillable = [

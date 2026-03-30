@@ -21,17 +21,7 @@ public function index(Request $request)
         ->paginate(10)
         ->withQueryString();
 
-    // 🔥 CONTADORES REALES
-    $totalAreas = Area::count();
-    $areasActivas = Area::where('estado', 1)->count();
-    $areasInactivas = Area::where('estado', 0)->count();
-
-    return view('admin.areas.index', compact(
-        'areas',
-        'totalAreas',
-        'areasActivas',
-        'areasInactivas'
-    ));
+    return view('admin.areas.index', compact('areas'));
 }
 
 public function create()

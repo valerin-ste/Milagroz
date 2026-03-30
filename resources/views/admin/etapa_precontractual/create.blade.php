@@ -1,206 +1,269 @@
 @extends('adminlte::page')
 
+@section('title', 'Nueva Etapa Precontractual')
+
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
     <div>
-        <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem; letter-spacing: -0.5px;">Nueva Etapa Precontractual</h2>
-        <p class="text-muted mb-0" style="font-size: 0.95rem;">Registra y anexa múltiples documentos al candidato.</p>
+        <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem;">
+            Nueva Etapa Precontractual
+        </h2>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">
+            Registro de candidato y documentos
+        </p>
     </div>
+
     <a href="{{ route('admin.etapa_precontractual.index') }}" class="btn btn-light-custom px-4">
-        <i class="fas fa-arrow-left me-2"></i> Volver al listado
+        <i class="fas fa-arrow-left me-2"></i> Volver
     </a>
 </div>
 @stop
 
 @section('content')
-<div class="container-fluid px-2">
 
-    @if ($errors->any())
-        <div class="alert alert-danger" style="border-radius: var(--radius-md); border: none; background-color: #fef2f2; color: #991b1b;">
-            <div class="d-flex align-items-center border-bottom pb-2 mb-2" style="border-color: #fecaca !important;">
-                <i class="fas fa-exclamation-circle fa-lg me-2"></i> 
-                <strong>Revise los siguientes errores:</strong>
-            </div>
-            <ul class="mb-0 mt-2 ps-3">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+<div class="container-fluid px-2">
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-            <form action="{{ route('admin.etapa_precontractual.store') }}" method="POST" enctype="multipart/form-data">
+
+            @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+            <form id="formEtapa"
+                  action="{{ route('admin.etapa_precontractual.store') }}"
+                  method="POST"
+                  enctype="multipart/form-data">
+
                 @csrf
 
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <label for="persona_id" class="form-label">Candidato (Persona) <span class="text-danger">*</span></label>
-                        <select name="persona_id" id="persona_id" class="form-select" required>
-                            <option value="" disabled selected>Seleccione un candidato</option>
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Candidato</label>
+
+                        <select name="persona_id"
+                                id="persona_id"
+                                class="form-control input-style select2"
+                                required>
+                            <option value="">Buscar candidato...</option>
+
                             @foreach($personas as $persona)
-                                <option value="{{ $persona->id }}" {{ old('persona_id') == $persona->id ? 'selected' : '' }}>
-                                    {{ $persona->nombres }} {{ $persona->apellidos }} - {{ $persona->numero_documento }}
+                                <option value="{{ $persona->id }}">
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div class="col-md-4">
-                        <label for="fecha_registro" class="form-label">Fecha de Registro</label>
-                        <input type="date" name="fecha_registro" id="fecha_registro" class="form-control" value="{{ old('fecha_registro', now()->toDateString()) }}">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Fecha Registro</label>
+
+                        <input type="date"
+                               name="fecha_registro"
+                               class="form-control input-style"
+                               value="{{ now()->toDateString() }}">
                     </div>
 
                     <div class="col-md-4">
-                        <label for="estado" class="form-label">Estado de la Revisión <span class="text-danger">*</span></label>
-                        <select name="estado" id="estado" class="form-select" required>
+                        <label class="form-label fw-bold">Estado Revisión</label>
+
+                        <select name="estado"
+                                class="form-control input-style"
+                                required>
                             <option value="0">En Proceso</option>
                             <option value="1">Aprobado</option>
                             <option value="2">Rechazado</option>
                         </select>
                     </div>
 
-                    {{-- FILE UPLOAD DRAG & DROP --}}
-                    <div class="col-12 mt-5">
-                        <h5 class="fw-bold mb-3" style="color: var(--text-main);">
-                            <i class="fas fa-folder-open text-primary me-2"></i> Anexar Documentos de Soporte
+                </div>
+
+                {{-- DOCUMENTOS --}}
+                <div class="mt-4">
+
+                    <label class="form-label fw-bold mb-2">
+                        Documentos de Soporte
+                    </label>
+
+                    <div class="file-drop-area" id="dropArea">
+
+                        <i class="fas fa-cloud-upload-alt file-drop-icon"></i>
+
+                        <h5 class="mt-2 mb-1 fw-bold">
+                            Arrastra y suelta tus archivos aquí
                         </h5>
-                        <p class="text-muted mb-4 small">
-                            Puede seleccionar o arrastrar múltiples archivos a la vez (por ejemplo: Cédula, Hoja de vida, Certificados).
-                            <br><strong>Formatos aceptados:</strong> PDF, Word, JPG, PNG. Max: 10MB por archivo.
+
+                        <p class="text-muted mb-2">
+                            o haz clic para seleccionar
                         </p>
 
-                        <div class="file-drop-area" id="dropArea">
-                            <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
-                            <span class="file-drop-area-text">Arrastra y suelta tus archivos aquí</span>
-                            <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
-                            <!-- Input array -->
-                            <input type="file" name="documentos[]" id="fileInput" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                        </div>
+                        <small class="text-muted">
+                            PDF, Word, JPG, PNG - Máx 10MB
+                        </small>
 
-                        <!-- Contenedor donde se listarán los archivos seleccionados -->
-                        <div class="file-list" id="fileList"></div>
+                        <input type="file"
+                               name="documentos[]"
+                               id="fileInput"
+                               class="file-input-hidden"
+                               multiple
+                               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                     </div>
+
+                    <div class="file-list mt-3" id="fileList"></div>
+
                 </div>
 
                 <div class="mt-5 text-end border-top pt-4">
-                    <button type="submit" class="btn btn-orange px-5" onclick="document.querySelector('form').submit();">
-                        <i class="fas fa-save me-2"></i> Guardar Registro y Archivos
+                    <button type="submit" class="btn btn-orange px-5">
+                        <i class="fas fa-save me-2"></i> Guardar Registro
                     </button>
                 </div>
+
             </form>
+
         </div>
     </div>
+
 </div>
-@endsection
+
+@stop
+
+@section('css')
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+.input-style {
+    height: 42px !important;
+    border-radius: 6px !important;
+    font-size: 14px;
+}
+
+.select2-container .select2-selection--single {
+    height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 6px !important;
+}
+
+.file-drop-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8fafc;
+}
+
+.file-drop-icon {
+    font-size: 42px;
+    color: #13b6ec;
+}
+
+.file-input-hidden {
+    display: none;
+}
+
+.file-card {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background: #fff;
+}
+</style>
+
+@stop
 
 @section('js')
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const dropArea = document.getElementById("dropArea");
-        const fileInput = document.getElementById("fileInput");
-        const fileList = document.getElementById("fileList");
-        let selectedFiles = new DataTransfer();
+$(document).ready(function () {
 
-        // Evitar comportamientos por defecto
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        // Efectos visuales de drag & drop
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => {
-                dropArea.classList.add('dragover');
-            }, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => {
-                dropArea.classList.remove('dragover');
-            }, false);
-        });
-
-        // Manejar cuando se sueltan los archivos
-        dropArea.addEventListener('drop', function(e) {
-            let dt = e.dataTransfer;
-            let files = dt.files;
-            handleFiles(files);
-        }, false);
-
-        // Manejar cuando se hace clic y se seleccionan archivos por ventana
-        fileInput.addEventListener('change', function() {
-            handleFiles(this.files);
-        });
-
-        function handleFiles(files) {
-            [...files].forEach(file => {
-                // Validación básica de archivos
-                if(file.size > 10 * 1024 * 1024) {
-                    alert('El archivo ' + file.name + ' supera los 10MB permitidos.');
-                    return;
-                }
-                selectedFiles.items.add(file);
-            });
-            
-            // Actualizar el DOM y el input oculto
-            updateDOM();
-        }
-
-        function updateDOM() {
-            fileInput.files = selectedFiles.files;
-            fileList.innerHTML = '';
-            
-            [...selectedFiles.files].forEach((file, index) => {
-                const size = (file.size / 1024 / 1024).toFixed(2);
-                const fileExt = file.name.split('.').pop().toLowerCase();
-                
-                let iconClass = 'fa-file-alt text-secondary';
-                if (fileExt === 'pdf') {
-                    iconClass = 'fa-file-pdf text-danger';
-                } else if (['jpg', 'jpeg', 'png'].includes(fileExt)) {
-                    iconClass = 'fa-file-image text-primary';
-                } else if (['doc', 'docx'].includes(fileExt)) {
-                    iconClass = 'fa-file-word text-info';
-                }
-
-                const fileCard = document.createElement('div');
-                fileCard.className = 'file-card';
-                fileCard.innerHTML = `
-                    <div class="file-details">
-                        <i class="fas ${iconClass} file-icon"></i>
-                        <div class="file-info">
-                            <span class="file-name" title="${file.name}">${file.name}</span>
-                            <span class="file-size">${size} MB</span>
-                        </div>
-                    </div>
-                    <button type="button" class="file-remove" onclick="removeFile(${index})" title="Eliminar archivo">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                fileList.appendChild(fileCard);
-            });
-        }
-
-        // Función que se expone globalmente para eliminar archivos
-        window.removeFile = function (index) {
-            let newSelectedFiles = new DataTransfer();
-            let filesArray = Array.from(selectedFiles.files);
-            
-            // Eliminar el archivo seleccionado en ese índice
-            filesArray.splice(index, 1);
-            
-            // Re-agregar los restantes
-            filesArray.forEach(file => newSelectedFiles.items.add(file));
-            
-            selectedFiles = newSelectedFiles;
-            updateDOM();
-        };
+    $('#persona_id').select2({
+        placeholder: "Buscar candidato...",
+        width: '100%'
     });
+
+    const dropArea = document.getElementById("dropArea");
+    const fileInput = document.getElementById("fileInput");
+    const fileList = document.getElementById("fileList");
+
+    let selectedFiles = [];
+
+    dropArea.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", function () {
+        addFiles(this.files);
+        fileInput.value = "";
+    });
+
+    dropArea.addEventListener("dragover", e => e.preventDefault());
+
+    dropArea.addEventListener("drop", function (e) {
+        e.preventDefault();
+        addFiles(e.dataTransfer.files);
+    });
+
+    function addFiles(files) {
+        [...files].forEach(file => {
+            if (file.size > 10 * 1024 * 1024) {
+                alert(file.name + " supera 10MB");
+                return;
+            }
+            selectedFiles.push(file);
+        });
+
+        renderFiles();
+    }
+
+    function renderFiles() {
+        const dt = new DataTransfer();
+        fileList.innerHTML = "";
+
+        selectedFiles.forEach((file, i) => {
+            dt.items.add(file);
+
+            const div = document.createElement("div");
+            div.className = "file-card d-flex justify-content-between align-items-center p-2 border rounded mb-2";
+            div.innerHTML = `
+                <div class="small text-truncate" style="max-width: 80%;">
+                    <i class="fas fa-file-alt me-2 text-primary"></i>${file.name}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeFile(${i})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(div);
+        });
+
+        fileInput.files = dt.files;
+    }
+
+    // Asegurar sincronización al enviar
+    $('#formEtapa').on('submit', function() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+    });
+
+    window.removeFile = function (index) {
+        selectedFiles.splice(index, 1);
+        renderFiles();
+    };
+
+});
 </script>
-@endsection
+
+@stop

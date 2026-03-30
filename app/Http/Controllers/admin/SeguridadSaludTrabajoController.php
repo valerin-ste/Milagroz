@@ -17,13 +17,30 @@ class SeguridadSaludTrabajoController extends Controller
         $this->service = $service;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $documentos = SeguridadSaludTrabajo::with(['empleado.persona', 'documentos'])
-            ->orderByDesc('fecha')
-            ->paginate(10);
+        $busqueda = $request->buscar;
+        $tipo     = $request->tipo_documento;
+        $estado   = $request->estado;
 
-        return view('admin.seguridad_salud_trabajo.index', compact('documentos'));
+        $documentos = SeguridadSaludTrabajo::with(['empleado.persona', 'documentos'])
+            ->when($busqueda, function ($query, $busqueda) {
+                $query->whereHas('empleado.persona', function ($q) use ($busqueda) {
+                    $q->where('nombres', 'like', "%$busqueda%")
+                      ->orWhere('apellidos', 'like', "%$busqueda%");
+                });
+            })
+            ->when($tipo, function ($query, $tipo) {
+                $query->where('tipo_documento', 'like', "%$tipo%");
+            })
+            ->when($estado !== null && $estado !== '', function ($query) use ($estado) {
+                $query->where('estado', $estado);
+            })
+            ->orderByDesc('fecha')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.seguridad_salud_trabajo.index', compact('documentos', 'busqueda', 'tipo', 'estado'));
     }
 
     public function create()

@@ -18,13 +18,38 @@ class EtapaContractualController extends Controller
         $this->service = $service;
     }
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $contratos = EtapaContractual::with(['empleado.persona', 'documentos'])
-            ->orderByDesc('id')
-            ->paginate(10);
+        $busqueda = $request->buscar;
+        $estado   = $request->estado;
+        $tipo     = $request->tipo_contrato;
+        $desde    = $request->desde;
+        $hasta    = $request->hasta;
 
-        return view('admin.etapa_contractual.index', compact('contratos'));
+        $contratos = EtapaContractual::with(['empleado.persona', 'documentos'])
+            ->when($busqueda, function ($query, $busqueda) {
+                $query->whereHas('empleado.persona', function ($q) use ($busqueda) {
+                    $q->where('nombres', 'like', "%$busqueda%")
+                      ->orWhere('apellidos', 'like', "%$busqueda%");
+                });
+            })
+            ->when($estado !== null && $estado !== '', function ($query) use ($estado) {
+                $query->where('estado', $estado);
+            })
+            ->when($tipo, function ($query, $tipo) {
+                $query->where('tipo_contrato', 'like', "%$tipo%");
+            })
+            ->when($desde, function ($query, $desde) {
+                $query->whereDate('fecha_inicio', '>=', $desde);
+            })
+            ->when($hasta, function ($query, $hasta) {
+                $query->whereDate('fecha_fin', '<=', $hasta);
+            })
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.etapa_contractual.index', compact('contratos', 'busqueda', 'estado', 'tipo', 'desde', 'hasta'));
     }
 
     public function create()

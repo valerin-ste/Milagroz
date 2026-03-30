@@ -11,18 +11,26 @@ class EtapaPrecontractualService
     /**
      * Handle the file upload and store the record.
      */
-    public function store(array $data, ?array $files = null): EtapaPrecontractual
+    public function store($data, $files = null)
     {
-        $data['fecha_registro'] = $data['fecha_registro'] ?? now()->toDateString();
-        $data['estado'] = $data['estado'] ?? 'en_proceso';
+        if (!$data) {
+            throw new \Exception("Data vacío: validación falló");
+        }
 
-        $etapa = EtapaPrecontractual::create($data);
+        $etapa = EtapaPrecontractual::create([
+            'persona_id' => $data['persona_id'],
+            'fecha_registro' => $data['fecha_registro'],
+            'estado' => $data['estado'],
+        ]);
 
         if ($files) {
-            foreach ($files as $file) {
+            foreach ($files as $archivo) {
+
+                $ruta = $archivo->store('documentos', 'public');
+
                 $etapa->documentos()->create([
-                    'nombre_original' => $file->getClientOriginalName(),
-                    'ruta' => $file->store('documentos', 'public'),
+                    'archivo' => $ruta, // 🔥 NO "ruta"
+                    'nombre_original' => $archivo->getClientOriginalName(),
                 ]);
             }
         }

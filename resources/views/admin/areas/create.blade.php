@@ -3,16 +3,22 @@
 @section('content')
 <div class="container-fluid">
 
-    {{-- TITULO --}}
-    <div class="mb-4">
-        <h3 class="fw-bold">
-            {{ isset($area) ? 'Editar Área' : 'Crear Nueva Área' }}
-        </h3>
-        <small class="text-muted">
-            {{ isset($area) 
-                ? 'Modifique la información del área.' 
-                : 'Defina los parámetros para la nueva área.' }}
-        </small>
+    {{-- HEADER CON VOLVER --}}
+    <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+        <div>
+            <h3 class="fw-bold mb-1">
+                {{ isset($area) ? 'Editar Área' : 'Crear Nueva Área' }}
+            </h3>
+            <small class="text-muted">
+                {{ isset($area) 
+                    ? 'Modifique la información del área.' 
+                    : 'Defina los parámetros para la nueva área.' }}
+            </small>
+        </div>
+
+        <a href="{{ route('admin.areas.index') }}" class="btn btn-light px-4">
+            <i class="fas fa-arrow-left me-2"></i> Volver
+        </a>
     </div>
 
     {{-- ERRORES --}}
@@ -67,44 +73,29 @@
                                   placeholder="Breve descripción del área...">{{ old('descripcion', $area->descripcion ?? '') }}</textarea>
                     </div>
 
-                    {{-- ESTADO (VISUAL) --}}
+                    {{-- ESTADO --}}
                     <div class="col-md-12 mb-4">
-    <div class="p-3 border rounded">
+                        <div class="p-3 border rounded">
 
-        <label class="form-label fw-bold">Estado del Área</label>
-        <small class="text-muted d-block mb-2">
-            Seleccione si el área estará activa o inactiva
-        </small>
+                            <label class="form-label fw-bold">Estado del Área</label>
+                            <small class="text-muted d-block mb-2">
+                                Seleccione si el área estará activa o inactiva
+                            </small>
 
-        <select name="estado" class="form-control">
-            <option value="1" 
-                {{ old('estado', $area->estado ?? 1) == 1 ? 'selected' : '' }}>
-                Activa
-            </option>
+                            <select name="estado" class="form-control">
+                                <option value="1" 
+                                    {{ old('estado', $area->estado ?? 1) == 1 ? 'selected' : '' }}>
+                                    Activa
+                                </option>
 
-            <option value="0" 
-                {{ old('estado', $area->estado ?? 1) == 0 ? 'selected' : '' }}>
-                Inactiva
-            </option>
-        </select>
+                                <option value="0" 
+                                    {{ old('estado', $area->estado ?? 1) == 0 ? 'selected' : '' }}>
+                                    Inactiva
+                                </option>
+                            </select>
 
-    </div>
-</div>
-
-        <select name="estado" class="form-control">
-            <option value="1" 
-                {{ old('estado', $area->estado ?? 1) == 1 ? 'selected' : '' }}>
-                Activa
-            </option>
-
-            <option value="0" 
-                {{ old('estado', $area->estado ?? 1) == 0 ? 'selected' : '' }}>
-                Inactiva
-            </option>
-        </select>
-
-    </div>
-</div>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -116,7 +107,7 @@
                         Cancelar
                     </a>
 
-                   <button type="submit" 
+                    <button type="submit" 
                             class="btn text-white px-4"
                             style="background-color: #f97316; border: none;">
                         {{ isset($area) ? 'Actualizar Área' : 'Guardar Área' }}

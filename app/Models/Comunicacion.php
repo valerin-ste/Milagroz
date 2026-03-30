@@ -6,20 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Comunicacion extends Model
 {
-        protected $table = 'comunicaciones'; // 🔥 SOLUCIÓN
+    protected $table = 'comunicaciones';
 
-        protected $fillable = [
+    protected $fillable = [
         'empleado_id',
         'asunto',
         'mensaje',
-        'archivo',
-        'nombre_original', // 🔥 AGREGAR ESTO
         'fecha'
     ];
 
     public function empleado()
     {
-        return $this->belongsTo(\App\Models\Empleado::class);
+        return $this->belongsTo(Empleado::class);
     }
 
     public function documentos()

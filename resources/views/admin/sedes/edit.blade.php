@@ -3,9 +3,16 @@
 @section('content')
 <div class="container-fluid">
 
-    <div class="mb-4">
-        <h3 class="fw-bold">Editar Sede</h3>
-        <small class="text-muted">Modifique la información de la sede</small>
+    {{-- HEADER CON VOLVER --}}
+    <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+        <div>
+            <h3 class="fw-bold mb-1">Editar Sede</h3>
+            <small class="text-muted">Modifique la información de la sede</small>
+        </div>
+
+        <a href="{{ route('admin.sedes.index') }}" class="btn btn-light px-4">
+            <i class="fas fa-arrow-left me-2"></i> Volver
+        </a>
     </div>
 
     <div class="card shadow-sm border-0">

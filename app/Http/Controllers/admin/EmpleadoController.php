@@ -14,13 +14,38 @@ use Illuminate\Http\Request;
 
 class EmpleadoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $empleados = Empleado::with(['persona', 'area', 'sede', 'rol'])
-            ->latest()
-            ->paginate(10);
+        $busqueda = $request->buscar;
+        $estado   = $request->estado;
+        $area_id  = $request->area_id;
+        $sede_id  = $request->sede_id;
 
-        return view('admin.empleados.index', compact('empleados'));
+        $empleados = Empleado::with(['persona', 'area', 'sede'])
+            ->when($busqueda, function ($query, $busqueda) {
+                $query->whereHas('persona', function ($q) use ($busqueda) {
+                    $q->where('nombres', 'like', "%$busqueda%")
+                      ->orWhere('apellidos', 'like', "%$busqueda%")
+                      ->orWhere('numero_documento', 'like', "%$busqueda%");
+                });
+            })
+            ->when($estado !== null && $estado !== '', function ($query) use ($estado) {
+                $query->where('estado', $estado);
+            })
+            ->when($area_id, function ($query, $area_id) {
+                $query->where('area_id', $area_id);
+            })
+            ->when($sede_id, function ($query, $sede_id) {
+                $query->where('sede_id', $sede_id);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $areas = Area::select('id', 'nombre')->get();
+        $sedes = Sede::select('id', 'nombre')->get();
+
+        return view('admin.empleados.index', compact('empleados', 'busqueda', 'estado', 'area_id', 'sede_id', 'areas', 'sedes'));
     }
 
     public function show(Empleado $empleado)

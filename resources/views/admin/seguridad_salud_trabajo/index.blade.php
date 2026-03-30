@@ -17,12 +17,44 @@
 @section('content')
 <div class="container-fluid px-2">
 
-    @if(session('success'))
-        <div class="alert alert-success d-flex align-items-center" style="background-color: #ecfdf5; color: #047857; border: none; border-radius: var(--radius-md);">
-            <i class="fas fa-check-circle fa-lg me-3"></i>
-            <div>{{ session('success') }}</div>
+    <form method="GET" action="{{ route('admin.seguridad_salud_trabajo.index') }}" class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-muted mb-1">Buscar Empleado</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre o apellido..." value="{{ request('buscar') }}">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small font-weight-bold text-muted mb-1">Tipo Documento</label>
+                    <input type="text" name="tipo_documento" class="form-control border-light bg-light shadow-none" placeholder="Ej: RETHUS..." value="{{ request('tipo_documento') }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
+                    <select name="estado" class="form-control border-light bg-light shadow-none">
+                        <option value="">-- Todos --</option>
+                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Vigente</option>
+                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Vencido/Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
+                            <i class="fas fa-filter mr-1"></i> Filtrar
+                        </button>
+                        <a href="{{ route('admin.seguridad_salud_trabajo.index') }}" class="btn btn-light border flex-grow-1 shadow-xs">
+                            <i class="fas fa-undo mr-1"></i> Limpiar
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    @endif
+    </form>
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
@@ -79,13 +111,15 @@
                             </td>
 
                             <td>
-                                @if($doc->estado == 1)
-                                    <span class="badge bg-success px-3 py-2 shadow-sm" style="font-size: 0.8rem;">
-                                        <i class="fas fa-check-circle me-1"></i> Activo
+                                @php $badge = $doc->getStatusBadge($doc->fecha); @endphp
+
+                                @if($doc->estado == 0)
+                                    <span class="badge-soft-danger px-3 py-2 shadow-sm" style="font-size: 0.8rem;">
+                                        <i class="fas fa-ban me-1"></i> Inactivo
                                     </span>
                                 @else
-                                    <span class="badge bg-danger px-3 py-2 shadow-sm" style="font-size: 0.8rem;">
-                                        <i class="fas fa-times-circle me-1"></i> Inactivo
+                                    <span class="{{ $badge['class'] }} px-3 py-2 shadow-sm" style="font-size: 0.8rem;">
+                                        <i class="{{ $badge['icon'] }} me-1"></i> {{ $badge['label'] }}
                                     </span>
                                 @endif
                             </td>

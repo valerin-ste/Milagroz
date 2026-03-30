@@ -13,6 +13,8 @@ class EvaluacionDesempenoController extends Controller
     public function index(Request $request)
     {
         $buscar = $request->buscar;
+        $estado = $request->estado;
+
         $evaluaciones = EvaluacionDesempeno::with(['empleado.persona', 'documentos'])
             ->when($buscar, function($q) use ($buscar) {
                 $q->whereHas('empleado.persona', function($sq) use ($buscar) {
@@ -20,11 +22,14 @@ class EvaluacionDesempenoController extends Controller
                        ->orWhere('apellidos', 'like', "%$buscar%");
                 });
             })
+            ->when($estado !== null && $estado !== '', function($q) use ($estado) {
+                $q->where('estado', $estado);
+            })
             ->orderByDesc('fecha')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.evaluaciones_desempeno.index', compact('evaluaciones'));
+        return view('admin.evaluaciones_desempeno.index', compact('evaluaciones', 'buscar', 'estado'));
     }
 
     public function create()

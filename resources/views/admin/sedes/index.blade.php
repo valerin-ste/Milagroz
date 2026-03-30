@@ -13,9 +13,9 @@
         </div>
 
         <a href="{{ route('admin.sedes.create') }}" 
-           class="btn text-white px-4"
-           style="background-color:#0ea5e9;">
-            + Nueva Sede
+            class="btn text-white px-4"
+            style="background-color:#f97316;">
+            <i class="fas fa-plus me-2"></i> Nueva Sede
         </a>
     </div>
 

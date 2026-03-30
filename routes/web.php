@@ -1,11 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
+// Controllers Admin
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AreaController;
 use App\Http\Controllers\Admin\SedeController;
 use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\PersonaController; 
+use App\Http\Controllers\Admin\PersonaController;
 use App\Http\Controllers\Admin\EmpleadoController;
 use App\Http\Controllers\Admin\EtapaPrecontractualController;
 use App\Http\Controllers\Admin\EtapaContractualController;
@@ -14,17 +16,38 @@ use App\Http\Controllers\Admin\ComunicacionController;
 use App\Http\Controllers\Admin\EvaluacionDesempenoController;
 use App\Http\Controllers\Admin\FormacionController;
 use App\Http\Controllers\Admin\DocumentoController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SystemRoleController;
 
-// Redireccionar raíz a dashboard
+// 👇 Controller fuera de Admin
+use App\Http\Controllers\SolicitudController;
+
+
+// ----------------------
+// 🔹 REDIRECCIÓN RAÍZ
+// ----------------------
 Route::get('/', fn() => redirect()->route('admin.dashboard'));
 
-// Grupo admin
-Route::prefix('admin')->name('admin.')->group(function () {
+// ----------------------
+// 🔹 AUTHENTICATION (NO REGISTRO PÚBLICO)
+// ----------------------
+Auth::routes(['register' => false]);
 
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// ----------------------
+// 🔹 GRUPO ADMIN (PROTEGIDO)
+// ----------------------
+Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () {
 
-    // Toggles de estado
+    // ======================
+    // 🔥 DASHBOARD
+    // ======================
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+
+
+    // ======================
+    // 🔥 TOGGLES (UNIFICADOS 🔥)
+    // ======================
     $toggleRoutes = [
         'sedes' => SedeController::class,
         'areas' => AreaController::class,
@@ -38,10 +61,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
     ];
 
     foreach ($toggleRoutes as $uri => $controller) {
-        Route::post("$uri/{id}/toggle", [$controller, 'toggleStatus'])->name("$uri.toggle");
+        Route::match(['post', 'patch'], "$uri/{id}/toggle", [$controller, 'toggleStatus'])
+            ->name("$uri.toggle");
     }
 
-    // Recursos CRUD
+
+    // ======================
+    // 🔥 SOLICITUDES (TOGGLE 🔥)
+    // ======================
+    Route::match(['post', 'patch'], 'solicitudes/{id}/toggle', [SolicitudController::class, 'toggle'])
+        ->name('solicitudes.toggle');
+
+
+    // ======================
+    // 🔥 CAMBIAR ESTADO SOLICITUD
+    // ======================
+    Route::post('solicitudes/{id}/estado', [SolicitudController::class, 'cambiarEstado'])
+        ->name('solicitudes.estado');
+
+
+    // ======================
+    // 🔥 CRUD PRINCIPAL
+    // ======================
     Route::resource('sedes', SedeController::class);
     Route::resource('areas', AreaController::class);
     Route::resource('roles', RoleController::class);
@@ -53,12 +94,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('evaluaciones_desempeno', EvaluacionDesempenoController::class);
     Route::resource('formaciones', FormacionController::class);
 
-    // 🔹 Comunicaciones
     Route::resource('comunicaciones', ComunicacionController::class)
-        ->parameters(['comunicaciones' => 'comunicacion']);
+        ->parameters([
+            'comunicaciones' => 'comunicacion'
+        ]);
 
-    // 🔹 Eliminación de archivos individuales de comunicaciones
-    Route::delete('comunicaciones/archivo/{id}', [ComunicacionController::class, 'deleteArchivo'])
-        ->name('comunicaciones.deleteArchivo');
+    Route::resource('solicitudes', SolicitudController::class)
+        ->parameters([
+            'solicitudes' => 'solicitud'
+        ]);
+
+
+    // ======================
+    // 🔥 DOCUMENTOS
+    // ======================
+    Route::resource('documentos', DocumentoController::class);
+
+    // ======================
+    // 🔥 CONFIGURACIÓN / ACCESOS (SOLO ADMIN)
+    // ======================
+    Route::middleware(['role:Admin'])->group(function () {
+        Route::resource('users', UserController::class);
+        Route::resource('system_roles', SystemRoleController::class);
+    });
 
 });

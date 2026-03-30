@@ -19,13 +19,13 @@ class StoreEtapaPrecontractualRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules()
     {
         return [
             'persona_id' => 'required|exists:personas,id',
-            'estado' => 'required|in:en_proceso,aprobado,rechazado',
-            'documentos.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
-            'fecha_registro' => 'nullable|date',
+            'fecha_registro' => 'required|date',
+            'estado' => 'required|in:0,1,2',
+            'documentos.*' => 'file|max:10240',
         ];
     }
 }

@@ -13,17 +13,24 @@ class FormacionController extends Controller
     public function index(Request $request)
     {
         $buscar = $request->buscar;
+        $estado = $request->estado;
+
         $formaciones = Formacion::with(['empleado.persona', 'documentos'])
             ->when($buscar, function($query) use ($buscar) {
                 $query->whereHas('empleado.persona', function($q) use ($buscar) {
                     $q->where('nombres', 'LIKE', "%$buscar%")
                       ->orWhere('apellidos', 'LIKE', "%$buscar%");
-                })->orWhere('nombre_curso', 'LIKE', "%$buscar%");
+                })->orWhere('nombre_curso', 'LIKE', "%$buscar%")
+                  ->orWhere('institucion', 'LIKE', "%$buscar%");
+            })
+            ->when($estado !== null && $estado !== '', function($query) use ($estado) {
+                $query->where('estado', $estado);
             })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('admin.formaciones.index', compact('formaciones'));
+        return view('admin.formaciones.index', compact('formaciones', 'buscar', 'estado'));
     }
 
     public function create()

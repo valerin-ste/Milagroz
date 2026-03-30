@@ -5,9 +5,14 @@
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
     <div>
-        <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem; letter-spacing: -0.5px;">Registrar Documento</h2>
-        <p class="text-muted mb-0" style="font-size: 0.95rem;">Asocie un documento de Seguridad y Salud a un empleado.</p>
+        <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem; letter-spacing: -0.5px;">
+            Registrar Documento
+        </h2>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">
+            Asocie un documento de Seguridad y Salud a un empleado.
+        </p>
     </div>
+
     <a href="{{ route('admin.seguridad_salud_trabajo.index') }}" class="btn btn-light-custom px-4">
         <i class="fas fa-arrow-left me-2"></i> Volver al listado
     </a>
@@ -17,12 +22,17 @@
 @section('content')
 <div class="container-fluid px-2">
 
+    {{-- ERRORES --}}
     @if ($errors->any())
-        <div class="alert alert-danger shadow-sm border-0 mb-4" style="border-radius: var(--radius-md); background-color: #fef2f2; color: #991b1b;">
-            <div class="d-flex align-items-center border-bottom pb-2 mb-2" style="border-color: #fecaca !important;">
-                <i class="fas fa-exclamation-circle fa-lg me-2"></i> 
+        <div class="alert alert-danger shadow-sm border-0 mb-4"
+             style="border-radius: var(--radius-md); background-color: #fef2f2; color: #991b1b;">
+
+            <div class="d-flex align-items-center border-bottom pb-2 mb-2"
+                 style="border-color: #fecaca !important;">
+                <i class="fas fa-exclamation-circle fa-lg me-2"></i>
                 <strong>Revise los siguientes errores:</strong>
             </div>
+
             <ul class="mb-0 mt-2 ps-3 small">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -31,76 +41,103 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.seguridad_salud_trabajo.store') }}" method="POST" enctype="multipart/form-data">
+    {{-- FORM --}}
+    <form action="{{ route('admin.seguridad_salud_trabajo.store') }}"
+          method="POST"
+          enctype="multipart/form-data">
         @csrf
 
         <div class="row">
             <div class="col-lg-8 mx-auto">
-                <div class="card h-100 shadow-sm border-0 rounded-lg">
-                    <div class="card-header pt-4 px-4 pb-3 bg-white border-0">
-                        <h5 class="card-title fw-bold" style="color: var(--primary-blue);">
-                            <div class="d-inline-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(19, 182, 236, 0.1); border-radius: 10px;">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
+                <div class="card shadow-sm border-0 rounded-lg">
+
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-3">
+                        <h5 class="fw-bold" style="color: var(--primary-blue);">
+                            <i class="fas fa-shield-alt me-2"></i>
                             Detalles del Documento SST
                         </h5>
                     </div>
 
                     <div class="card-body px-4 pb-4 pt-2">
+
                         <div class="row g-4">
-                            <div class="col-md-12">
-                                <label class="form-label fw-semibold">Empleado <span class="text-danger">*</span></label>
-                                <select name="empleado_id" class="form-select form-control" required>
-                                    <option value="" disabled selected>Seleccionar Empleado</option>
-                                    @foreach($empleados as $e)
-                                        <option value="{{ $e->id }}" {{ old('empleado_id') == $e->id ? 'selected' : '' }}>
-                                            {{ $e->persona->nombres }} {{ $e->persona->apellidos }} - {{ $e->persona->numero_documento }}
-                                        </option>
-                                    @endforeach
-                                </select>
+
+                            {{-- EMPLEADO AUTOCOMPLETE --}}
+                            <div class="col-md-12 position-relative">
+
+                                <label class="form-label fw-semibold">
+                                    Empleado <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="text"
+                                       id="buscarEmpleado"
+                                       class="form-control"
+                                       placeholder="Escriba nombre o cédula...">
+
+                                <input type="hidden" name="empleado_id" id="empleado_id" required>
+
+                                <div id="listaEmpleados"
+                                     class="list-group position-absolute w-100"
+                                     style="z-index:999; display:none; max-height:250px; overflow-y:auto;">
+                                </div>
                             </div>
 
+                            {{-- TIPO DOCUMENTO --}}
                             <div class="col-md-12">
-                                <label class="form-label fw-semibold">Tipo de Documento <span class="text-danger">*</span></label>
-                                <input type="text" name="tipo_documento" class="form-control" placeholder="Ej. Examen Médico, Formación, Brigada..." required value="{{ old('tipo_documento') }}">
+                                <label class="form-label fw-semibold">
+                                    Tipo de Documento <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="text"
+                                       name="tipo_documento"
+                                       class="form-control"
+                                       placeholder="Ej. Examen Médico, Formación..."
+                                       value="{{ old('tipo_documento') }}"
+                                       required>
                             </div>
 
+                            {{-- FECHA --}}
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Fecha <span class="text-danger">*</span></label>
-                                <input type="date" name="fecha" class="form-control" required value="{{ old('fecha', now()->toDateString()) }}">
+                                <label class="form-label fw-semibold">
+                                    Fecha <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="date"
+                                       name="fecha"
+                                       class="form-control"
+                                       value="{{ old('fecha', now()->toDateString()) }}"
+                                       required>
                             </div>
 
+                            {{-- DOCUMENTOS --}}
                             <div class="col-12 mt-4">
-                                <h5 class="fw-bold mb-3" style="color: var(--text-main);">
-                                     <i class="fas fa-folder-open text-primary me-2"></i> Anexar Documentos de Soporte
-                                 </h5>
-                                 <p class="text-muted mb-4 small">
-                                     Puede seleccionar o arrastrar múltiples archivos a la vez.
-                                     <br><strong>Formatos aceptados:</strong> PDF, Word, JPG, PNG. Max: 10MB por archivo.
-                                 </p>
+                                <h5 class="fw-bold mb-3">
+                                    <i class="fas fa-folder-open text-primary me-2"></i>
+                                    Anexar Documentos de Soporte
+                                </h5>
 
-                                 <div class="file-drop-area" id="dropArea">
-                                     <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
-                                     <span class="file-drop-area-text">Arrastra y suelta tus archivos aquí</span>
-                                     <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
-                                     <input type="file" name="documentos[]" id="fileInput" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                                 </div>
-
-                                 <div class="file-list" id="fileList"></div>
+                                <input type="file"
+                                       name="documentos[]"
+                                       class="form-control"
+                                       multiple>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- BOTONES ACCIÓN --}}
+        {{-- BOTONES --}}
         <div class="d-flex justify-content-center gap-3 mt-4 mb-5 pb-4 px-2">
-            <a href="{{ route('admin.seguridad_salud_trabajo.index') }}" class="btn btn-light-custom px-4 shadow-sm border">
+            <a href="{{ route('admin.seguridad_salud_trabajo.index') }}"
+               class="btn btn-light-custom px-4 border">
                 Cancelar
             </a>
-            <button type="submit" class="btn btn-orange px-5 shadow-sm">
-                <i class="fas fa-save me-2"></i> Guardar Registro y Documentos
+
+            <button type="submit" class="btn btn-primary px-5">
+                <i class="fas fa-save me-2"></i>
+                Guardar Registro
             </button>
         </div>
 
@@ -108,112 +145,77 @@
 </div>
 @endsection
 
+{{-- JS AUTOCOMPLETE --}}
 @section('js')
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const dropArea = document.getElementById("dropArea");
-        const fileInput = document.getElementById("fileInput");
-        const fileList = document.getElementById("fileList");
-        let selectedFiles = new DataTransfer();
+document.addEventListener("DOMContentLoaded", function () {
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
+    const empleados = @json($empleados);
 
-        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+    const input = document.getElementById("buscarEmpleado");
+    const hidden = document.getElementById("empleado_id");
+    const lista = document.getElementById("listaEmpleados");
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
-        });
+    const norm = (t) => (t ?? "").toString().toLowerCase().trim();
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
-        });
+    input.addEventListener("input", function () {
 
-        dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
-        fileInput.addEventListener('change', function() { handleFiles(this.files); });
+        const valor = norm(this.value);
 
-        function handleFiles(files) {
-            [...files].forEach(file => {
-                if(file.size > 10 * 1024 * 1024) {
-                    alert('El archivo ' + file.name + ' supera los 10MB permitidos.');
-                    return;
-                }
-                selectedFiles.items.add(file);
-            });
-            updateDOM();
+        lista.innerHTML = "";
+        hidden.value = "";
+
+        if (valor.length < 1) {
+            lista.style.display = "none";
+            return;
         }
 
-        function updateDOM() {
-            fileInput.files = selectedFiles.files;
-            fileList.innerHTML = '';
-            
-            [...selectedFiles.files].forEach((file, index) => {
-                const size = (file.size / 1024 / 1024).toFixed(2);
-                const fileExt = file.name.split('.').pop().toLowerCase();
-                
-                let iconClass = 'fa-file-alt text-secondary';
-                if (fileExt === 'pdf') iconClass = 'fa-file-pdf text-danger';
-                else if (['jpg', 'jpeg', 'png'].includes(fileExt)) iconClass = 'fa-file-image text-primary';
-                else if (['doc', 'docx'].includes(fileExt)) iconClass = 'fa-file-word text-info';
+        const filtrados = empleados.filter(e => {
 
-                const fileCard = document.createElement('div');
-                fileCard.className = 'file-card';
-                fileCard.innerHTML = `
-                    <div class="file-details">
-                        <i class="fas ${iconClass} file-icon"></i>
-                        <div class="file-info">
-                            <span class="file-name" title="${file.name}">${file.name}</span>
-                            <span class="file-size">${size} MB</span>
-                        </div>
-                    </div>
-                    <button type="button" class="file-remove" onclick="removeFile(${index})" title="Eliminar archivo">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                fileList.appendChild(fileCard);
-            });
+            const nombre = norm(`${e.persona?.nombres ?? ''} ${e.persona?.apellidos ?? ''}`);
+            const cedula = norm(e.persona?.numero_documento);
+
+            return nombre.includes(valor) || cedula.includes(valor);
+        });
+
+        if (filtrados.length === 0) {
+            lista.style.display = "none";
+            return;
         }
 
-        window.removeFile = function (index) {
-            let newSelectedFiles = new DataTransfer();
-            let filesArray = Array.from(selectedFiles.files);
-            filesArray.splice(index, 1);
-            filesArray.forEach(file => newSelectedFiles.items.add(file));
-            selectedFiles = newSelectedFiles;
-            updateDOM();
-        };
+        filtrados.forEach(emp => {
+
+            const nombre = `${emp.persona?.nombres ?? ''} ${emp.persona?.apellidos ?? ''}`;
+            const cedula = emp.persona?.numero_documento ?? '';
+
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "list-group-item list-group-item-action";
+
+            // 🔥 MISMO ESTILO QUE TENÍAS
+            item.innerHTML = `
+                <strong>${nombre}</strong><br>
+                <small>${cedula}</small>
+            `;
+
+            item.onclick = function () {
+                input.value = nombre + " - " + cedula;
+                hidden.value = emp.id;
+                lista.style.display = "none";
+            };
+
+            lista.appendChild(item);
+        });
+
+        lista.style.display = "block";
     });
+
+    document.addEventListener("click", function (e) {
+        if (!input.contains(e.target) && !lista.contains(e.target)) {
+            lista.style.display = "none";
+        }
+    });
+
+});
 </script>
 @endsection
-
-@section('css')
-<style>
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-blue);
-        box-shadow: 0 0 0 0.2rem rgba(19, 182, 236, 0.1);
-    }
-    .btn-orange {
-        background-color: #f97316;
-        color: white;
-        border: none;
-        font-weight: 500;
-        transition: transform 0.2s;
-    }
-    .btn-orange:hover {
-        background-color: #ea580c;
-        color: white;
-        transform: translateY(-2px);
-    }
-    .btn-light-custom {
-        background-color: white;
-        color: #475569;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    .btn-light-custom:hover {
-        background-color: #f1f5f9;
-        color: #1e293b;
-    }
-</style>
-@stop

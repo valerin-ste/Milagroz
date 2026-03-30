@@ -4,24 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EtapaPrecontractual extends Model
 {
     use HasFactory;
 
     protected $table = 'etapa_precontractual';
-    public $timestamps = false;
+    public $timestamps = false; // El servidor no tiene created_at/updated_at en esta tabla
 
     protected $fillable = [
         'persona_id',
-        'archivo',
         'estado',
         'fecha_registro',
     ];
 
-    /**
-     * Get the persona that owns the etapa precontractual.
-     */
     public function persona()
     {
         return $this->belongsTo(Persona::class);
@@ -29,6 +26,6 @@ class EtapaPrecontractual extends Model
 
     public function documentos()
     {
-        return $this->morphMany(\App\Models\Documento::class, 'documentable');
+        return $this->morphMany(Documento::class, 'documentable');
     }
 }

@@ -23,10 +23,11 @@ class PersonaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tipo_documento' => 'required',
-            'numero_documento' => 'required|unique:personas',
-            'nombres' => 'required',
-            'apellidos' => 'required',
+            'tipo_documento' => 'required|string|max:10',
+            'numero_documento' => 'required|numeric|digits_between:5,20|unique:personas',
+            'nombres' => 'required|string|max:100',
+            'apellidos' => 'required|string|max:100',
+            'telefono' => 'nullable|numeric|digits_between:7,15',
         ]);
 
         Persona::create($request->all());
@@ -43,10 +44,11 @@ class PersonaController extends Controller
     public function update(Request $request, Persona $persona)
     {
         $request->validate([
-            'tipo_documento' => 'required',
-            'numero_documento' => 'required|unique:personas,numero_documento,' . $persona->id,
-            'nombres' => 'required',
-            'apellidos' => 'required',
+            'tipo_documento' => 'required|string|max:10',
+            'numero_documento' => 'required|numeric|digits_between:5,20|unique:personas,numero_documento,' . $persona->id,
+            'nombres' => 'required|string|max:100',
+            'apellidos' => 'required|string|max:100',
+            'telefono' => 'nullable|numeric|digits_between:7,15',
         ]);
 
         $persona->update($request->all());

@@ -22,88 +22,93 @@
                 <form action="{{ route('admin.formaciones.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    {{-- EMPLEADO --}}
-                    <div class="mb-4 text-start">
-                        <label for="empleado_id" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Empleado <span class="text-danger">*</span></label>
-                        <select name="empleado_id" id="empleado_id" class="form-control select2 border-light bg-light py-2 px-3 shadow-none @error('empleado_id') is-invalid @enderror" required>
-                            <option value="">-- Seleccionar Empleado --</option>
-                            @foreach($empleados as $e)
-                                <option value="{{ $e->id }}" {{ old('empleado_id') == $e->id ? 'selected' : '' }}>
-                                    {{ $e->persona->nombres }} {{ $e->persona->apellidos }} ({{ $e->cargo }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('empleado_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    {{-- 🔥 EMPLEADO AUTOCOMPLETE --}}
+                    <div class="mb-4 position-relative text-start">
+                        <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                            Empleado <span class="text-danger">*</span>
+                        </label>
+
+                        <input type="text"
+                               id="buscarEmpleado"
+                               class="form-control border-light bg-light py-2 px-3 shadow-none"
+                               placeholder="Escriba nombre o cédula..."
+                               autocomplete="off"
+                               required>
+
+                        <input type="hidden" name="empleado_id" id="empleado_id" required>
+
+                        <div id="listaEmpleados"
+                             class="list-group position-absolute w-100"
+                             style="z-index: 999; display:none; max-height: 250px; overflow-y: auto;">
+                        </div>
                     </div>
 
                     <div class="row g-4">
                         {{-- CURSO --}}
                         <div class="col-md-6 mb-4 text-start">
-                            <label for="nombre_curso" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Nombre del Curso / Formación <span class="text-danger">*</span></label>
-                            <input type="text" name="nombre_curso" id="nombre_curso" 
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('nombre_curso') is-invalid @enderror" 
-                                   value="{{ old('nombre_curso') }}" placeholder="Ej: Diplomado en Salud Ocupacional" required>
-                            @error('nombre_curso')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                Nombre del Curso / Formación <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="nombre_curso"
+                                   class="form-control border-light bg-light py-2 px-3 shadow-none"
+                                   value="{{ old('nombre_curso') }}"
+                                   placeholder="Ej: Diplomado en Salud Ocupacional" required>
                         </div>
 
                         {{-- INSTITUCION --}}
                         <div class="col-md-6 mb-4 text-start">
-                            <label for="institucion" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Institución / Entidad <span class="text-danger">*</span></label>
-                            <input type="text" name="institucion" id="institucion" 
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('institucion') is-invalid @enderror" 
-                                   value="{{ old('institucion') }}" placeholder="Ej: Universidad Nacional" required>
-                            @error('institucion')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                Institución / Entidad <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="institucion"
+                                   class="form-control border-light bg-light py-2 px-3 shadow-none"
+                                   value="{{ old('institucion') }}"
+                                   placeholder="Ej: Universidad Nacional" required>
                         </div>
                     </div>
 
                     <div class="row g-4">
                         {{-- FECHA INICIO --}}
                         <div class="col-md-6 mb-4 text-start">
-                            <label for="fecha_inicio" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha Inicio <span class="text-danger">*</span></label>
-                            <input type="date" name="fecha_inicio" id="fecha_inicio" 
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('fecha_inicio') is-invalid @enderror" 
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                Fecha Inicio <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="fecha_inicio"
+                                   class="form-control border-light bg-light py-2 px-3 shadow-none"
                                    value="{{ old('fecha_inicio', date('Y-m-d')) }}" required>
-                            @error('fecha_inicio')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
 
                         {{-- FECHA FIN --}}
                         <div class="col-md-6 mb-4 text-start">
-                            <label for="fecha_fin" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha Fin <span class="text-muted">(Opcional)</span></label>
-                            <input type="date" name="fecha_fin" id="fecha_fin" 
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('fecha_fin') is-invalid @enderror" 
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                Fecha Fin <span class="text-muted">(Opcional)</span>
+                            </label>
+                            <input type="date" name="fecha_fin"
+                                   class="form-control border-light bg-light py-2 px-3 shadow-none"
                                    value="{{ old('fecha_fin') }}">
-                            @error('fecha_fin')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
                     </div>
 
-                    {{-- CARGA DE ARCHIVOS --}}
+                    {{-- ARCHIVOS --}}
                     <div class="mb-4 text-start">
-                        <label for="archivos" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Soportes / Diplomas <i class="fas fa-info-circle ms-1 text-info" title="Puede subir más de un archivo a la vez"></i></label>
+                        <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                            Soportes / Diplomas
+                        </label>
                         <div class="p-3 border rounded border-dashed text-center bg-light-soft">
-                             <input type="file" name="archivos[]" id="archivos" multiple 
-                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('archivos') is-invalid @enderror">
-                             <small class="text-muted mt-2 d-block">Seleccione uno o varios archivos para cargar. (Formato PDF, Imágenes).</small>
+                            <input type="file" name="archivos[]" multiple
+                                   class="form-control border-light bg-light py-2 px-3 shadow-none">
+                            <small class="text-muted mt-2 d-block">
+                                Seleccione uno o varios archivos (PDF, imágenes)
+                            </small>
                         </div>
-                        @error('archivos')
-                            <div class="invalid-feedback text-danger d-block mt-1">{{ $message }}</div>
-                        @enderror
                     </div>
 
                     <div class="d-grid mt-5">
-                        <button type="submit" class="btn btn-orange text-white py-3 fw-bold rounded shadow-sm ripple">
+                        <button type="submit" class="btn btn-orange text-white py-3 fw-bold rounded shadow-sm">
                             <i class="fas fa-save me-2"></i> GUARDAR REGISTRO DE FORMACIÓN
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -113,15 +118,74 @@
 
 @section('js')
 <script>
-    $(document).ready(function() {
-        $('.select2').select2({ theme: 'bootstrap4', placeholder: "-- Seleccionar --", allowClear: true });
+document.addEventListener("DOMContentLoaded", function () {
+
+    const empleados = @json($empleados);
+
+    const input = document.getElementById("buscarEmpleado");
+    const hidden = document.getElementById("empleado_id");
+    const lista = document.getElementById("listaEmpleados");
+
+    input.addEventListener("input", function () {
+
+        let valor = this.value.toLowerCase().trim();
+        lista.innerHTML = "";
+
+        if (valor.length < 1) {
+            lista.style.display = "none";
+            hidden.value = "";
+            return;
+        }
+
+        let filtrados = empleados.filter(e => {
+            let nombre = (e.persona.nombres + " " + e.persona.apellidos).toLowerCase();
+            let cedula = (e.persona.numero_documento || "").toLowerCase();
+            return nombre.includes(valor) || cedula.includes(valor);
+        });
+
+        if (filtrados.length === 0) {
+            lista.style.display = "none";
+            return;
+        }
+
+        filtrados.forEach(emp => {
+
+            let nombre = emp.persona.nombres + " " + emp.persona.apellidos;
+
+            let item = document.createElement("button");
+            item.type = "button";
+            item.className = "list-group-item list-group-item-action";
+
+            item.innerHTML = `
+                <strong>${nombre}</strong><br>
+                <small>${emp.persona.numero_documento}</small>
+            `;
+
+            item.onclick = function () {
+                input.value = nombre + " - " + emp.persona.numero_documento;
+                hidden.value = emp.id;
+                lista.style.display = "none";
+            };
+
+            lista.appendChild(item);
+        });
+
+        lista.style.display = "block";
     });
+
+    document.addEventListener("click", function (e) {
+        if (!input.contains(e.target) && !lista.contains(e.target)) {
+            lista.style.display = "none";
+        }
+    });
+
+});
 </script>
 @stop
 
 @section('css')
 <style>
-    .bg-light-soft { background-color: #f8fafc; }
-    .border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: #cbd5e1 !important; }
+.bg-light-soft { background-color: #f8fafc; }
+.border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: #cbd5e1 !important; }
 </style>
 @endsection

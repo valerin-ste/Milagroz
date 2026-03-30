@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasStatusAlerts;
 use Illuminate\Database\Eloquent\Model;
 
 class EtapaContractual extends Model
 {
+    use HasStatusAlerts;
     protected $table = 'etapa_contractual';
     public $timestamps = false;
 

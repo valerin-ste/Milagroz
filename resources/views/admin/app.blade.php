@@ -7,7 +7,6 @@
 @stop
 
 @section('content')
-    {{-- Dynamic content --}}
     @yield('content')
 @stop
 

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasStatusAlerts;
 use Illuminate\Database\Eloquent\Model;
 
 class EvaluacionDesempeno extends Model
 {
+    use HasStatusAlerts;
     protected $table = 'evaluaciones_desempeno';
 
     protected $fillable = [

@@ -69,7 +69,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Número Documento <span class="text-danger">*</span></label>
-                                <input type="text" name="numero_documento" class="form-control" placeholder="123456789" required value="{{ old('numero_documento') }}">
+                                <input type="text" name="numero_documento" class="form-control" placeholder="123456789" required value="{{ old('numero_documento') }}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
 
                             <div class="col-md-6">
@@ -79,7 +79,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Teléfono</label>
-                                <input type="tel" name="telefono" class="form-control" placeholder="Ej. 300 000 0000" value="{{ old('telefono') }}">
+                                <input type="text" name="telefono" class="form-control" placeholder="Ej. 3000000000" value="{{ old('telefono') }}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
 
                             <div class="col-12">

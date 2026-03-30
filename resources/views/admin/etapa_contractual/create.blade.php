@@ -46,16 +46,22 @@
 
                     <div class="card-body px-4 pb-4 pt-2">
                         <div class="row g-4">
-                            <div class="col-md-12">
+
+                            {{-- 🔥 EMPLEADO CON BUSCADOR --}}
+                            <div class="col-md-12 position-relative">
                                 <label class="form-label">Empleado / Candidato <span class="text-danger">*</span></label>
-                                <select name="empleado_id" class="form-select" required>
-                                    <option value="" disabled selected>Seleccionar Empleado</option>
-                                    @foreach($empleados as $e)
-                                        <option value="{{ $e->id }}" {{ old('empleado_id') == $e->id ? 'selected' : '' }}>
-                                            {{ $e->persona->nombres }} {{ $e->persona->apellidos }} - {{ $e->persona->numero_documento }}
-                                        </option>
-                                    @endforeach
-                                </select>
+
+                                <input type="text"
+                                       id="buscarEmpleado"
+                                       class="form-control"
+                                       placeholder="Escriba nombre o cédula...">
+
+                                <input type="hidden" name="empleado_id" id="empleado_id" required>
+
+                                <div id="listaEmpleados"
+                                     class="list-group position-absolute w-100"
+                                     style="z-index: 999; display:none; max-height: 250px; overflow-y: auto;">
+                                </div>
                             </div>
 
                             <div class="col-md-6">
@@ -73,7 +79,7 @@
                                 <label class="form-label">Salario Base <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
-                                    <input type="number" step="0.01" name="salario" class="form-control" placeholder="Ej. 1500000.00" required value="{{ old('salario') }}">
+                                    <input type="number" step="0.01" name="salario" class="form-control" required value="{{ old('salario') }}">
                                 </div>
                             </div>
 
@@ -83,41 +89,34 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Fecha de Fin (Opcional si es Indefinido)</label>
+                                <label class="form-label">Fecha de Fin (Opcional)</label>
                                 <input type="date" name="fecha_fin" class="form-control" value="{{ old('fecha_fin') }}">
                             </div>
 
                             <div class="col-12 mt-5">
-                                <h5 class="fw-bold mb-3" style="color: var(--text-main);">
-                                    <i class="fas fa-folder-open text-primary me-2"></i> Anexar Documentos de Soporte
+                                <h5 class="fw-bold mb-3">
+                                    <i class="fas fa-folder-open text-primary me-2"></i> Anexar Documentos
                                 </h5>
-                                <p class="text-muted mb-4 small">
-                                    Puede seleccionar o arrastrar múltiples archivos a la vez (contrato, afiliaciones, etc).
-                                    <br><strong>Formatos aceptados:</strong> PDF, Word, JPG, PNG. Max: 10MB por archivo.
-                                </p>
 
                                 <div class="file-drop-area" id="dropArea">
-                                    <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
-                                    <span class="file-drop-area-text">Arrastra y suelta tus archivos aquí</span>
-                                    <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
-                                    <input type="file" name="documentos[]" id="fileInput" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                    <input type="file" name="documentos[]" id="fileInput" multiple>
                                 </div>
 
                                 <div class="file-list" id="fileList"></div>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- BOTONES ACCION --}}
         <div class="d-flex justify-content-end gap-3 mt-4 mb-5 pb-4 px-2">
             <a href="{{ route('admin.etapa_contractual.index') }}" class="btn btn-light-custom px-4">
                 Cancelar
             </a>
             <button type="submit" class="btn btn-orange px-5">
-                <i class="fas fa-save me-2 pb-1"></i> Guardar Contrato y Documentos
+                Guardar Contrato
             </button>
         </div>
 
@@ -127,79 +126,69 @@
 
 @section('js')
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const dropArea = document.getElementById("dropArea");
-        const fileInput = document.getElementById("fileInput");
-        const fileList = document.getElementById("fileList");
-        let selectedFiles = new DataTransfer();
+document.addEventListener("DOMContentLoaded", function () {
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
+    // =========================
+    // 🔥 EMPLEADOS AUTOCOMPLETE
+    // =========================
+    const empleados = @json($empleados);
 
-        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+    const input = document.getElementById("buscarEmpleado");
+    const hidden = document.getElementById("empleado_id");
+    const lista = document.getElementById("listaEmpleados");
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
-        });
+    input.addEventListener("input", function () {
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
-        });
+        let valor = this.value.toLowerCase().trim();
 
-        dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
-        fileInput.addEventListener('change', function() { handleFiles(this.files); });
+        lista.innerHTML = "";
 
-        function handleFiles(files) {
-            [...files].forEach(file => {
-                if(file.size > 10 * 1024 * 1024) {
-                    alert('El archivo ' + file.name + ' supera los 10MB permitidos.');
-                    return;
-                }
-                selectedFiles.items.add(file);
-            });
-            updateDOM();
+        if (valor.length < 1) {
+            lista.style.display = "none";
+            hidden.value = "";
+            return;
         }
 
-        function updateDOM() {
-            fileInput.files = selectedFiles.files;
-            fileList.innerHTML = '';
-            
-            [...selectedFiles.files].forEach((file, index) => {
-                const size = (file.size / 1024 / 1024).toFixed(2);
-                const fileExt = file.name.split('.').pop().toLowerCase();
-                
-                let iconClass = 'fa-file-alt text-secondary';
-                if (fileExt === 'pdf') iconClass = 'fa-file-pdf text-danger';
-                else if (['jpg', 'jpeg', 'png'].includes(fileExt)) iconClass = 'fa-file-image text-primary';
-                else if (['doc', 'docx'].includes(fileExt)) iconClass = 'fa-file-word text-info';
+        let filtrados = empleados.filter(e => {
+            let nombre = (e.persona.nombres + " " + e.persona.apellidos).toLowerCase();
+            let cedula = (e.persona.numero_documento || "").toLowerCase();
 
-                const fileCard = document.createElement('div');
-                fileCard.className = 'file-card';
-                fileCard.innerHTML = `
-                    <div class="file-details">
-                        <i class="fas ${iconClass} file-icon"></i>
-                        <div class="file-info">
-                            <span class="file-name" title="${file.name}">${file.name}</span>
-                            <span class="file-size">${size} MB</span>
-                        </div>
-                    </div>
-                    <button type="button" class="file-remove" onclick="removeFile(${index})" title="Eliminar archivo">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                fileList.appendChild(fileCard);
-            });
+            return nombre.includes(valor) || cedula.includes(valor);
+        });
+
+        if (filtrados.length === 0) {
+            lista.style.display = "none";
+            return;
         }
 
-        window.removeFile = function (index) {
-            let newSelectedFiles = new DataTransfer();
-            let filesArray = Array.from(selectedFiles.files);
-            filesArray.splice(index, 1);
-            filesArray.forEach(file => newSelectedFiles.items.add(file));
-            selectedFiles = newSelectedFiles;
-            updateDOM();
-        };
+        filtrados.forEach(emp => {
+
+            let nombre = emp.persona.nombres + " " + emp.persona.apellidos;
+
+            let item = document.createElement("button");
+            item.type = "button";
+            item.className = "list-group-item list-group-item-action";
+
+            item.innerHTML = `<strong>${nombre}</strong><br><small>${emp.persona.numero_documento}</small>`;
+
+            item.onclick = function () {
+                input.value = nombre + " - " + emp.persona.numero_documento;
+                hidden.value = emp.id;
+                lista.style.display = "none";
+            };
+
+            lista.appendChild(item);
+        });
+
+        lista.style.display = "block";
     });
+
+    document.addEventListener("click", function (e) {
+        if (!input.contains(e.target)) {
+            lista.style.display = "none";
+        }
+    });
+
+});
 </script>
 @endsection

@@ -25,19 +25,39 @@
     @endif
 
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3 border-light">
-            <form method="GET" action="{{ route('admin.formaciones.index') }}" class="row g-3 align-items-center">
-                <div class="col-md-5">
+    <form method="GET" action="{{ route('admin.formaciones.index') }}" class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-muted mb-1">Buscar Especialidad/Curso</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
-                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Buscar por empleado o curso..." value="{{ request('buscar') }}">
+                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre, curso o institución..." value="{{ request('buscar') }}">
                     </div>
                 </div>
+
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-info text-white w-100">Filtrar</button>
+                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
+                    <select name="estado" class="form-control border-light bg-light shadow-none">
+                        <option value="">-- Todos --</option>
+                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
+                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo (Vencido)</option>
+                    </select>
                 </div>
-            </form>
+
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
+                            <i class="fas fa-filter mr-1"></i> Filtrar
+                        </button>
+                        <a href="{{ route('admin.formaciones.index') }}" class="btn btn-light border flex-grow-1 shadow-xs">
+                            <i class="fas fa-undo mr-1"></i> Limpiar
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
+    </form>
 
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -79,11 +99,15 @@
                                     <span class="text-muted small fst-italic">Sin archivos</span>
                                 @endif
                             </td>
-                            <td>
-                                @if($f->estado == 1)
-                                    <span class="badge bg-success px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">Activo</span>
+                             <td>
+                                @php $badge = $f->getStatusBadge($f->fecha_fin); @endphp
+
+                                @if($f->estado == 0)
+                                    <span class="badge-soft-danger px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">Inactivo</span>
                                 @else
-                                    <span class="badge bg-danger px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">Inactivo</span>
+                                    <span class="{{ $badge['class'] }} px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">
+                                        <i class="{{ $badge['icon'] }} me-1"></i> {{ $badge['label'] }}
+                                    </span>
                                 @endif
                             </td>
                             <td class="text-center pe-4">

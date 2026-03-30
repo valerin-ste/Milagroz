@@ -7,19 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Models\EtapaPrecontractual;
 use App\Models\Persona;
 use App\Models\Documento;
-use App\Services\EtapaPrecontractualService;
-use App\Http\Requests\Admin\StoreEtapaPrecontractualRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class EtapaPrecontractualController extends Controller
 {
-    protected $service;
-
-    public function __construct(EtapaPrecontractualService $service)
-    {
-        $this->service = $service;
-    }
-
     public function index()
     {
         $etapas = EtapaPrecontractual::with(['persona', 'documentos'])
@@ -35,17 +27,48 @@ class EtapaPrecontractualController extends Controller
         return view('admin.etapa_precontractual.create', compact('personas'));
     }
 
-    public function store(StoreEtapaPrecontractualRequest $request)
+    public function store(Request $request)
     {
-        $this->service->store($request->validated(), $request->file('documentos'));
+        $request->validate([
+            'persona_id' => 'required|exists:personas,id',
+            'fecha_registro' => 'required|date',
+            'estado' => 'required',
+            'documentos' => 'nullable|array',
+            'documentos.*' => 'nullable|file|max:10240'
+        ]);
 
-        return redirect()->route('admin.etapa_precontractual.index')
-            ->with('success', 'Registro creado correctamente.');
+        DB::beginTransaction();
+        try {
+            $etapa = EtapaPrecontractual::create([
+                'persona_id' => $request->persona_id,
+                'fecha_registro' => $request->fecha_registro,
+                'estado' => $request->estado,
+            ]);
+
+            if ($request->hasFile('documentos')) {
+                foreach ($request->file('documentos') as $archivo) {
+                    $ruta = $archivo->store('documentos', 'public');
+                    $etapa->documentos()->create([
+                        'ruta' => $ruta,
+                        'nombre_original' => $archivo->getClientOriginalName(),
+                        'tipo_documento' => $archivo->getClientMimeType()
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('admin.etapa_precontractual.index')
+                ->with('success', 'Registro creado correctamente');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('Error: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function edit(EtapaPrecontractual $etapa_precontractual)
     {
-        $etapa_precontractual->load('persona', 'documentos'); // 🔥 importante
+        $etapa_precontractual->load('persona', 'documentos');
         return view('admin.etapa_precontractual.edit', compact('etapa_precontractual'));
     }
 
@@ -53,53 +76,59 @@ class EtapaPrecontractualController extends Controller
     {
         $etapa = EtapaPrecontractual::findOrFail($id);
 
-        // ✅ ACTUALIZAR ESTADO
-        $etapa->estado = $request->estado;
-        $etapa->save();
+        DB::beginTransaction();
+        try {
+            $etapa->estado = $request->estado;
+            $etapa->save();
 
-        // 🔥 ELIMINAR DOCUMENTOS
-        if ($request->eliminar_documentos) {
-            foreach ($request->eliminar_documentos as $docId) {
-                $doc = Documento::find($docId);
-                if ($doc) {
-                    Storage::disk('public')->delete($doc->ruta);
-                    $doc->delete();
+            // ✅ ELIMINAR DOCUMENTOS SELECCIONADOS
+            if ($request->has('eliminar_documentos')) {
+                foreach ($request->eliminar_documentos as $docId) {
+                    $doc = Documento::find($docId);
+                    if ($doc) {
+                        if (Storage::disk('public')->exists($doc->ruta)) {
+                            Storage::disk('public')->delete($doc->ruta);
+                        }
+                        $doc->delete();
+                    }
                 }
             }
-        }
 
-        // 🔥 SUBIR MÚLTIPLES ARCHIVOS (CORREGIDO)
-        if ($request->hasFile('documentos')) {
-
-            foreach ($request->file('documentos') as $archivo) {
-
-                $ruta = $archivo->store('documentos', 'public');
-
-                // ✅ USANDO RELACIÓN POLIMÓRFICA (LA CLAVE)
-                $etapa->documentos()->create([
-                    'ruta' => $ruta,
-                    'nombre_original' => $archivo->getClientOriginalName(),
-                ]);
+            // ✅ SUBIR NUEVOS DOCUMENTOS
+            if ($request->hasFile('documentos')) {
+                foreach ($request->file('documentos') as $archivo) {
+                    $ruta = $archivo->store('documentos', 'public');
+                    $etapa->documentos()->create([
+                        'ruta' => $ruta,
+                        'nombre_original' => $archivo->getClientOriginalName(),
+                        'tipo_documento' => $archivo->getClientMimeType()
+                    ]);
+                }
             }
-        }
 
-        return redirect()->route('admin.etapa_precontractual.index')
-            ->with('success', 'Actualizado correctamente');
+            DB::commit();
+            return redirect()->route('admin.etapa_precontractual.index')
+                ->with('success', 'Actualizado correctamente');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors('Error: ' . $e->getMessage());
+        }
     }
 
-    public function destroy(EtapaPrecontractual $etapa_precontractual)
+    public function destroy($id)
     {
-        $etapa_precontractual->update(['estado' => 0]);
+        $etapa = EtapaPrecontractual::findOrFail($id);
+        $etapa->update(['estado' => 0]);
         return back()->with('success', 'Registro desactivado correctamente.');
     }
 
     public function toggleStatus($id)
     {
         $registro = EtapaPrecontractual::findOrFail($id);
-        $nuevoEstado = $registro->estado == 1 ? 0 : 1;
-        $registro->update(['estado' => $nuevoEstado]);
+        $registro->estado = $registro->estado == 1 ? 0 : 1;
+        $registro->save();
 
-        $mensaje = $nuevoEstado == 1 ? 'activado' : 'desactivado';
-        return back()->with('success', "Registro $mensaje correctamente.");
+        return back()->with('success', 'Estado actualizado correctamente.');
     }
 }

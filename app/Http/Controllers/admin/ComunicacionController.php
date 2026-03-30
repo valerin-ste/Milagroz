@@ -35,15 +35,16 @@ class ComunicacionController extends Controller
             'archivos.*' => 'nullable|file|max:10240',
         ]);
 
-        $comunicacion = Comunicacion::create([
-            'empleado_id' => $request->empleado_id,
-            'asunto' => $request->asunto,
-            'mensaje' => $request->mensaje,
-            'fecha' => $request->fecha,
-        ]);
+        $comunicacion = Comunicacion::create($request->only([
+            'empleado_id',
+            'asunto',
+            'mensaje',
+            'fecha'
+        ]));
 
         if ($request->hasFile('archivos')) {
             foreach ($request->file('archivos') as $archivo) {
+
                 $ruta = $archivo->store('comunicaciones', 'public');
 
                 Documento::create([
@@ -59,46 +60,62 @@ class ComunicacionController extends Controller
         return redirect()->route('admin.comunicaciones.index')
             ->with('success', 'Comunicación creada correctamente');
     }
-
     public function edit(Comunicacion $comunicacion)
     {
         $empleados = Empleado::with('persona')->get();
+        $comunicacion->load('documentos');
+
         return view('admin.comunicaciones.edit', compact('comunicacion', 'empleados'));
     }
 
     public function update(Request $request, Comunicacion $comunicacion)
-    {
-        $request->validate([
-            'empleado_id' => 'required|exists:empleados,id',
-            'asunto' => 'required|string|max:255',
-            'fecha' => 'required|date',
-            'archivos.*' => 'nullable|file|max:10240',
-        ]);
+{
+    $request->validate([
+        'empleado_id' => 'required|exists:empleados,id',
+        'asunto' => 'required|string|max:255',
+        'fecha' => 'required|date',
+        'archivos.*' => 'nullable|file|max:10240',
+    ]);
 
-        $comunicacion->update([
-            'empleado_id' => $request->empleado_id,
-            'asunto' => $request->asunto,
-            'mensaje' => $request->mensaje,
-            'fecha' => $request->fecha,
-        ]);
+    $comunicacion->update([
+        'empleado_id' => $request->empleado_id,
+        'asunto' => $request->asunto,
+        'mensaje' => $request->mensaje,
+        'fecha' => $request->fecha,
+    ]);
 
-        if ($request->hasFile('archivos')) {
-            foreach ($request->file('archivos') as $archivo) {
-                $ruta = $archivo->store('comunicaciones', 'public');
+    // 📌 NUEVOS ARCHIVOS
+    if ($request->hasFile('archivos')) {
+        foreach ($request->file('archivos') as $archivo) {
+            $ruta = $archivo->store('comunicaciones', 'public');
 
-                Documento::create([
-                    'nombre_original' => $archivo->getClientOriginalName(),
-                    'ruta' => $ruta,
-                    'tipo_documento' => 'comunicacion',
-                    'documentable_id' => $comunicacion->id,
-                    'documentable_type' => Comunicacion::class,
-                ]);
+            Documento::create([
+                'nombre_original' => $archivo->getClientOriginalName(),
+                'ruta' => $ruta,
+                'tipo_documento' => 'comunicacion',
+                'documentable_id' => $comunicacion->id,
+                'documentable_type' => Comunicacion::class,
+            ]);
+        }
+    }
+
+    // 🔥 ARCHIVOS A ELIMINAR (ESTO ES LO IMPORTANTE)
+    if ($request->eliminar_documentos) {
+        foreach ($request->eliminar_documentos as $id) {
+            $doc = Documento::find($id);
+
+            if ($doc) {
+                if (Storage::disk('public')->exists($doc->ruta)) {
+                    Storage::disk('public')->delete($doc->ruta);
+                }
+                $doc->delete();
             }
         }
-
-        return redirect()->route('admin.comunicaciones.index')
-            ->with('success', 'Comunicación actualizada correctamente');
     }
+
+    return redirect()->route('admin.comunicaciones.index')
+        ->with('success', 'Comunicación actualizada correctamente');
+}
 
     public function destroy(Comunicacion $comunicacion)
     {
@@ -114,12 +131,20 @@ class ComunicacionController extends Controller
         return back()->with('success', 'Comunicación eliminada correctamente');
     }
 
-    public function deleteArchivo($id)
+    public function deleteArchivo($documento)
     {
-        $archivo = Documento::findOrFail($id); // si no existe, lanza 404
-        Storage::delete($archivo->ruta);
-        $archivo->delete();
+        $documento = Documento::findOrFail($documento);
 
-        return back()->with('success', 'Archivo eliminado correctamente');
+        if ($documento->ruta && Storage::disk('public')->exists($documento->ruta)) {
+            Storage::disk('public')->delete($documento->ruta);
+        }
+
+        $documento->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Archivo eliminado correctamente',
+            'id' => $documento->id
+        ]);
     }
 }
