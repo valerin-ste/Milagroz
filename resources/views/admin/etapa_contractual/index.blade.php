@@ -15,50 +15,52 @@
 @section('content')
 <div class="container-fluid px-2">
 
-    <form method="GET" action="{{ route('admin.etapa_contractual.index') }}" class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-3">
-            <div class="row align-items-end">
-                <div class="col-md-3">
-                    <label class="small font-weight-bold text-muted mb-1">Buscar Empleado</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
-                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre o apellido..." value="{{ request('buscar') }}">
-                    </div>
+    <form method="GET" action="{{ route('admin.etapa_contractual.index') }}" class="filter-card">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="filter-label">Buscar Empleado</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="buscar" class="form-control"
+                           placeholder="Nombre o apellido..." value="{{ request('buscar') }}">
                 </div>
+            </div>
 
-                <div class="col-md-2">
-                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
-                    <select name="estado" class="form-control border-light bg-light shadow-none">
-                        <option value="">-- Todos --</option>
-                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
-                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo</option>
-                    </select>
+            <div class="col-md-2">
+                <label class="filter-label">Estado</label>
+                <select name="estado" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
+                    <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="filter-label">Rango de Vigencia (Inicio – Fin)</label>
+                <div class="input-group">
+                    <input type="date" name="desde" value="{{ request('desde') }}" class="form-control">
+                    <span class="input-group-text" style="background:transparent; border-left:0; border-right:0;">a</span>
+                    <input type="date" name="hasta" value="{{ request('hasta') }}" class="form-control">
                 </div>
+            </div>
 
-                <div class="col-md-4">
-                    <label class="small font-weight-bold text-muted mb-1">Rango de Vigencia (Inicio - Fin)</label>
-                    <div class="input-group">
-                        <input type="date" name="desde" value="{{ request('desde') }}" class="form-control border-light bg-light shadow-none">
-                        <span class="input-group-text bg-transparent border-0 small">a</span>
-                        <input type="date" name="hasta" value="{{ request('hasta') }}" class="form-control border-light bg-light shadow-none">
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
-                            <i class="fas fa-filter mr-1"></i> Filtrar
-                        </button>
-                        <a href="{{ route('admin.etapa_contractual.index') }}" class="btn btn-light border flex-grow-1 shadow-xs">
-                            <i class="fas fa-undo mr-1"></i> Limpiar
-                        </a>
-                    </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1" style="height:38px;">
+                        <i class="fas fa-filter mr-1"></i> Filtrar
+                    </button>
+                    <a href="{{ route('admin.etapa_contractual.index') }}" class="btn btn-light border btn-sm flex-grow-1" style="height:38px;">
+                        <i class="fas fa-undo mr-1"></i> Limpiar
+                    </a>
                 </div>
             </div>
         </div>
     </form>
 
     <div class="card border-0">
+        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom" style="background:#fafbfc;">
+            <span style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#94a3b8;">Contratos registrados</span>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -75,14 +77,18 @@
                     <tbody>
                         @forelse($contratos as $c)
                         <tr>
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(19, 182, 236, 0.1); color: var(--primary-blue);">
-                                        <span class="fw-bold">{{ strtoupper(substr($c->empleado->persona->nombres ?? 'X', 0, 1)) }}</span>
+                            <td style="padding-left:1.5rem;">
+                                <div class="d-flex align-items-center" style="gap:0.85rem;">
+                                    <div class="cell-avatar">
+                                        {{ strtoupper(substr($c->empleado->persona->nombres ?? 'X', 0, 1)) }}
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">{{ $c->empleado->persona->nombres ?? '' }} {{ $c->empleado->persona->apellidos ?? '' }}</div>
-                                        <div class="text-muted" style="font-size: 0.85rem;">CC: {{ $c->empleado->persona->numero_documento ?? '' }}</div>
+                                        <div class="cell-primary">
+                                            {{ $c->empleado->persona->nombres ?? '' }} {{ $c->empleado->persona->apellidos ?? '' }}
+                                        </div>
+                                        <div class="cell-secondary">
+                                            <i class="fas fa-id-card mr-1"></i>{{ $c->empleado->persona->numero_documento ?? 'N/A' }}
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -136,25 +142,32 @@
                             <td class="text-center pe-4">
                                 <div class="action-container">
                                     @if($c->estado == 1)
-                                        <a href="{{ route('admin.etapa_contractual.edit', $c) }}" class="btn-table-action" title="Editar">
+                                        <a href="{{ route('admin.etapa_contractual.edit', $c) }}"
+                                           class="btn-table-action"
+                                           data-toggle="tooltip" data-placement="top" title="Editar contrato">
                                             <i class="fas fa-pen"></i>
                                         </a>
 
                                         <form action="{{ route('admin.etapa_contractual.destroy', $c) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn-table-action" title="Desactivar" onclick="return confirm('¿Confirma que desea DESACTIVAR este contrato?');">
+                                            <button class="btn-table-action"
+                                                    data-toggle="tooltip" data-placement="top" title="Desactivar contrato"
+                                                    onclick="return confirm('¿Confirma que desea DESACTIVAR este contrato?');">
                                                 <i class="fas fa-ban"></i>
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn-table-action opacity-50" title="Editar (Inactivo)" style="cursor:not-allowed;">
+                                        <button class="btn-table-action opacity-50"
+                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactivo)"
+                                                style="cursor:not-allowed;" disabled>
                                             <i class="fas fa-pen"></i>
                                         </button>
 
                                         <form action="{{ route('admin.etapa_contractual.toggle', $c->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-table-action" title="Reactivar">
+                                            <button type="submit" class="btn-table-action"
+                                                    data-toggle="tooltip" data-placement="top" title="Reactivar contrato">
                                                 <i class="fas fa-check-circle"></i>
                                             </button>
                                         </form>

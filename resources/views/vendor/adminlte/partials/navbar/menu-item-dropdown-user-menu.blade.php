@@ -54,11 +54,9 @@
                     </div>
                 @endif
                 <h5 class="fw-bold text-dark mb-1">{{ Auth::user()->name }}</h5>
-                @if(Auth::user()->
-                
-                roles->first())
+                @if(Auth::user()->roles && Auth::user()->roles->count() > 0)
                     <span class="badge bg-soft-blue text-primary border-0 px-3 py-2 mb-2" style="font-size: 0.8rem; font-weight: 600;">
-                        <i class="fas fa-shield-alt me-1"></i> {{ Auth::user()->roles->first()->name }}
+                        <i class="fas fa-shield-alt mr-1"></i> {{ Auth::user()->roles->first()->name }}
                     </span>
                 @endif
                 <p class="text-muted small mb-0">{{ Auth::user()->email }}</p>
@@ -72,24 +70,26 @@
 
         {{-- User menu body --}}
         @hasSection('usermenu_body')
-            <li class="user-body">
+            <li class="user-body p-3">
                 @yield('usermenu_body')
             </li>
         @endif
 
         {{-- User menu footer --}}
-        <li class="user-footer">
-            @if($profile_url)
-                <a href="{{ $profile_url }}" class="nav-link btn btn-default btn-flat d-inline-block">
-                    <i class="fa fa-fw fa-user text-lightblue"></i>
-                    {{ __('adminlte::menu.profile') }}
+        <li class="user-footer bg-light-soft border-top">
+            <div class="d-flex justify-content-between gap-2 p-1">
+                @if($profile_url)
+                    <a href="{{ $profile_url }}" class="btn btn-sm btn-light-custom flex-grow-1 text-left border-0 shadow-none">
+                        <i class="fa fa-fw fa-user text-soft-blue mr-1"></i>
+                        {{ __('adminlte::menu.profile') }}
+                    </a>
+                @endif
+                <a class="btn btn-sm btn-light-custom @if(!$profile_url) btn-block @else flex-grow-1 @endif text-left border-0 shadow-none text-soft-red"
+                   href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fa fa-fw fa-power-off text-soft-red mr-1"></i>
+                    {{ __('adminlte::adminlte.log_out') }}
                 </a>
-            @endif
-            <a class="btn btn-default btn-flat float-right @if(!$profile_url) btn-block @endif"
-               href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                <i class="fa fa-fw fa-power-off text-red"></i>
-                {{ __('adminlte::adminlte.log_out') }}
-            </a>
+            </div>
             <form id="logout-form" action="{{ $logout_url }}" method="POST" style="display: none;">
                 @if(config('adminlte.logout_method'))
                     {{ method_field(config('adminlte.logout_method')) }}

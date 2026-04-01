@@ -21,6 +21,9 @@
         {{-- Custom right links --}}
         @yield('content_top_nav_right')
 
+        {{-- Alertas y Notificaciones --}}
+        @include('admin.partials.notifications')
+
         {{-- Configured right links --}}
         @each('adminlte::partials.navbar.menu-item', $adminlte->menu('navbar-right'), 'item')
 

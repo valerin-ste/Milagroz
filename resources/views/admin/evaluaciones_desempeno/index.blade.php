@@ -140,25 +140,32 @@
                             <td class="text-center pe-4">
                                 <div class="d-flex justify-content-center gap-2">
                                     @if($e->estado == 1)
-                                        <a href="{{ route('admin.evaluaciones_desempeno.edit', $e) }}" class="btn btn-sm btn-light-custom px-3" title="Editar Evaluación">
+                                        <a href="{{ route('admin.evaluaciones_desempeno.edit', $e) }}"
+                                           class="btn btn-sm btn-light-custom px-3"
+                                           data-toggle="tooltip" data-placement="top" title="Editar evaluación de desempeño">
                                             <i class="fas fa-pen text-muted"></i>
                                         </a>
 
                                         <form action="{{ route('admin.evaluaciones_desempeno.destroy', $e) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-danger" onclick="return confirm('¿Confirma que desea DESACTIVAR esta evaluación?');" title="Desactivar">
+                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-danger"
+                                                    data-toggle="tooltip" data-placement="top" title="Desactivar evaluación"
+                                                    onclick="return confirm('¿Confirma que desea DESACTIVAR esta evaluación?');">
                                                 <i class="fas fa-ban"></i>
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50" disabled title="Evaluación inactiva">
+                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50"
+                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactiva)"
+                                                disabled>
                                             <i class="fas fa-pen text-muted"></i>
                                         </button>
 
                                         <form action="{{ route('admin.evaluaciones_desempeno.toggle', $e->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success" title="Reactivar">
+                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success"
+                                                    data-toggle="tooltip" data-placement="top" title="Reactivar evaluación">
                                                 <i class="fas fa-check-circle"></i> Activar
                                             </button>
                                         </form>

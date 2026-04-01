@@ -113,19 +113,29 @@
                             <td class="text-center pe-4">
                                 <div class="d-flex justify-content-center gap-2">
                                     @if($f->estado == 1)
-                                        <a href="{{ route('admin.formaciones.edit', $f) }}" class="btn btn-sm btn-light-custom px-3" title="Editar">
+                                        <a href="{{ route('admin.formaciones.edit', $f) }}"
+                                           class="btn btn-sm btn-light-custom px-3"
+                                           data-toggle="tooltip" data-placement="top" title="Editar formación">
                                             <i class="fas fa-pen text-muted"></i>
                                         </a>
                                         <form action="{{ route('admin.formaciones.destroy', $f) }}" method="POST" class="d-inline">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-danger" onclick="return confirm('¿Desactivar formación?');">
+                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-danger"
+                                                    data-toggle="tooltip" data-placement="top" title="Desactivar formación"
+                                                    onclick="return confirm('¿Desactivar formación?');">
                                                 <i class="fas fa-ban"></i>
                                             </button>
                                         </form>
                                     @else
+                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50"
+                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactivo)"
+                                                disabled>
+                                            <i class="fas fa-pen text-muted"></i>
+                                        </button>
                                         <form action="{{ route('admin.formaciones.toggle', $f->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success">
+                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success"
+                                                    data-toggle="tooltip" data-placement="top" title="Reactivar formación">
                                                 <i class="fas fa-check-circle"></i> Activar
                                             </button>
                                         </form>
@@ -135,7 +145,16 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted fst-italic">No se encontraron formaciones registradas.</td>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="empty-state py-3">
+                                    <div class="empty-state-icon"><i class="fas fa-graduation-cap"></i></div>
+                                    <h5 class="empty-state-title">Sin formaciones registradas</h5>
+                                    <p class="empty-state-description">Registre la primera capacitación o certificado del personal.</p>
+                                    <a href="{{ route('admin.formaciones.create') }}" class="btn btn-orange btn-sm px-4">
+                                        <i class="fas fa-plus mr-1"></i> Nueva Formación
+                                    </a>
+                                </div>
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>

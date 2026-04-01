@@ -139,6 +139,33 @@
     {{-- Custom Scripts --}}
     @yield('adminlte_js')
 
+    {{-- ✅ Global Tooltips Initialization --}}
+    <script>
+        $(function () {
+            // Bootstrap 4 (AdminLTE uses Bootstrap 4)
+            $('[data-toggle="tooltip"]').tooltip({
+                placement: 'top',
+                trigger: 'hover',
+                container: 'body'
+            });
+            // Also support data-title as shorthand
+            $('[title]:not([data-toggle="tooltip"])').attr('data-toggle', 'tooltip').tooltip({
+                placement: 'top',
+                trigger: 'hover',
+                container: 'body'
+            });
+        });
+
+        // Re-init tooltips after ajax/dynamic content
+        $(document).on('DOMNodeInserted', function() {
+            $('[data-toggle="tooltip"]:not([aria-describedby])').tooltip({
+                placement: 'top',
+                trigger: 'hover',
+                container: 'body'
+            });
+        });
+    </script>
+
 </body>
 
 </html>

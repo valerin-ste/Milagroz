@@ -123,7 +123,8 @@
 
                                     @if($c->estado == 1)
                                         <a href="{{ route('admin.etapa_precontractual.edit', $c) }}"
-                                           class="btn-table-action" title="Editar">
+                                           class="btn-table-action"
+                                           data-toggle="tooltip" data-placement="top" title="Editar registro precontractual">
                                             <i class="fas fa-pen"></i>
                                         </a>
 
@@ -132,19 +133,23 @@
                                             @csrf
                                             @method('DELETE')
                                             <button class="btn-table-action"
-                                                onclick="return confirm('¿Desactivar registro?')" title="Desactivar">
+                                                    data-toggle="tooltip" data-placement="top" title="Desactivar registro"
+                                                    onclick="return confirm('¿Desactivar registro?')">
                                                 <i class="fas fa-ban"></i>
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn-table-action opacity-50" title="Editar (Inactivo)" style="cursor:not-allowed;">
+                                        <button class="btn-table-action opacity-50"
+                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactivo)"
+                                                style="cursor:not-allowed;" disabled>
                                             <i class="fas fa-pen"></i>
                                         </button>
 
                                         <form action="{{ route('admin.etapa_precontractual.toggle', $c->id) }}"
                                               method="POST" class="d-inline">
                                             @csrf
-                                            <button class="btn-table-action" title="Activar">
+                                            <button class="btn-table-action"
+                                                    data-toggle="tooltip" data-placement="top" title="Reactivar registro">
                                                 <i class="fas fa-check-circle"></i>
                                             </button>
                                         </form>

@@ -118,8 +118,8 @@
                                         <i class="fas fa-ban me-1"></i> Inactivo
                                     </span>
                                 @else
-                                    <span class="{{ $badge['class'] }} px-3 py-2 shadow-sm" style="font-size: 0.8rem;">
-                                        <i class="{{ $badge['icon'] }} me-1"></i> {{ $badge['label'] }}
+                                    <span class="{{ $badge['class'] }} px-3 py-2 shadow-sm rounded-pill font-weight-bold" style="font-size: 0.8rem; border: 1px solid {{ $badge['color'] }}20;">
+                                        <i class="{{ $badge['icon'] }} me-1"></i> {{ strtoupper($badge['label']) }}
                                     </span>
                                 @endif
                             </td>
@@ -127,25 +127,32 @@
                             <td class="text-center pe-4">
                                 <div class="d-flex justify-content-center gap-2">
                                     @if($doc->estado == 1)
-                                        <a href="{{ route('admin.seguridad_salud_trabajo.edit', $doc) }}" class="btn btn-sm btn-light-custom px-3" title="Editar">
+                                        <a href="{{ route('admin.seguridad_salud_trabajo.edit', $doc) }}"
+                                           class="btn btn-sm btn-light-custom px-3"
+                                           data-toggle="tooltip" data-placement="top" title="Editar documento SST">
                                             <i class="fas fa-pen text-muted"></i>
                                         </a>
 
                                         <form action="{{ route('admin.seguridad_salud_trabajo.destroy', $doc) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm btn-light-custom px-3" title="Desactivar" onclick="return confirm('¿Confirma que desea DESACTIVAR este registro?');">
+                                            <button class="btn btn-sm btn-light-custom px-3"
+                                                    data-toggle="tooltip" data-placement="top" title="Desactivar documento"
+                                                    onclick="return confirm('¿Confirma que desea DESACTIVAR este registro?');">
                                                 <i class="fas fa-ban text-danger"></i>
                                             </button>
                                         </form>
                                     @else
-                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50" disabled title="Inactivo">
+                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50"
+                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactivo)"
+                                                disabled>
                                             <i class="fas fa-pen text-muted"></i>
                                         </button>
 
                                         <form action="{{ route('admin.seguridad_salud_trabajo.toggle', $doc->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success shadow-sm" title="Reactivar">
+                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success shadow-sm"
+                                                    data-toggle="tooltip" data-placement="top" title="Reactivar documento">
                                                 <i class="fas fa-check-circle"></i> Activar
                                             </button>
                                         </form>

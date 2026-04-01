@@ -115,7 +115,8 @@
 
                                     <a href="{{ route('admin.comunicaciones.edit', $c) }}"
                                        class="btn btn-sm btn-light-custom px-3"
-                                       title="Editar">
+                                       data-toggle="tooltip" data-placement="top"
+                                       title="Editar comunicación">
                                         <i class="fas fa-pen text-muted"></i>
                                     </a>
 
@@ -127,8 +128,9 @@
                                         @method('DELETE')
 
                                         <button class="btn btn-sm btn-light-custom px-3"
-                                            onclick="return confirm('¿Eliminar esta comunicación?');"
-                                            title="Eliminar">
+                                                data-toggle="tooltip" data-placement="top"
+                                                title="Eliminar comunicación permanentemente"
+                                                onclick="return confirm('¿Eliminar esta comunicación?');">
                                             <i class="fas fa-trash text-danger"></i>
                                         </button>
 
@@ -143,16 +145,14 @@
                         @empty
 
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
-                                <div class="d-flex flex-column align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-3"
-                                        style="width: 60px; height: 60px; background-color: #f1f5f9;">
-                                        <i class="fas fa-envelope fa-2x" style="color: #cbd5e1;"></i>
-                                    </div>
-                                    <h5 class="fw-bold mb-1" style="color: #64748b;">
-                                        No hay comunicaciones registradas
-                                    </h5>
-                                    <p class="mb-0">Comience creando la primera comunicación.</p>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="empty-state py-3">
+                                    <div class="empty-state-icon"><i class="fas fa-bullhorn"></i></div>
+                                    <h5 class="empty-state-title">No hay comunicaciones registradas</h5>
+                                    <p class="empty-state-description">Comience creando la primera comunicación interna.</p>
+                                    <a href="{{ route('admin.comunicaciones.create') }}" class="btn btn-orange btn-sm px-4">
+                                        <i class="fas fa-plus mr-1"></i> Nueva Comunicación
+                                    </a>
                                 </div>
                             </td>
                         </tr>

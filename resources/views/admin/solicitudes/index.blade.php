@@ -142,7 +142,8 @@
                                         {{-- EDITAR --}}
                                         <a href="{{ route('admin.solicitudes.edit', $s->id) }}"
                                            class="btn btn-sm btn-light-custom px-3"
-                                           title="Editar">
+                                           data-toggle="tooltip" data-placement="top"
+                                           title="Editar solicitud">
                                             <i class="fas fa-pen text-muted"></i>
                                         </a>
 
@@ -152,9 +153,9 @@
                                               class="d-inline">
                                             @csrf
                                             @method('PATCH')
-
                                             <button class="btn btn-sm btn-light-custom px-3 text-danger"
-                                                    title="Desactivar"
+                                                    data-toggle="tooltip" data-placement="top"
+                                                    title="Desactivar solicitud"
                                                     onclick="return confirm('¿Desea desactivar esta solicitud?')">
                                                 <i class="fas fa-ban"></i>
                                             </button>
@@ -164,8 +165,9 @@
 
                                         {{-- EDITAR DESHABILITADO --}}
                                         <button class="btn btn-sm btn-light-custom px-3 opacity-50"
-                                                title="No editable (Inactivo)"
-                                                style="cursor:not-allowed;">
+                                                data-toggle="tooltip" data-placement="top"
+                                                title="Edición no disponible (Inactivo)"
+                                                style="cursor:not-allowed;" disabled>
                                             <i class="fas fa-pen text-muted"></i>
                                         </button>
 
@@ -175,9 +177,9 @@
                                               class="d-inline">
                                             @csrf
                                             @method('PATCH')
-
                                             <button class="btn btn-sm btn-light-custom px-3 text-success"
-                                                    title="Activar">
+                                                    data-toggle="tooltip" data-placement="top"
+                                                    title="Reactivar solicitud">
                                                 <i class="fas fa-check-circle"></i> Activar
                                             </button>
                                         </form>
@@ -191,16 +193,14 @@
 
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <div class="d-flex flex-column align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-3"
-                                         style="width: 60px; height: 60px; background-color: #f1f5f9;">
-                                        <i class="fas fa-file-alt fa-2x" style="color: #cbd5e1;"></i>
-                                    </div>
-                                    <h5 class="fw-bold mb-1" style="color: #64748b;">
-                                        No hay solicitudes registradas
-                                    </h5>
-                                    <p class="mb-0">Comienza creando una nueva solicitud.</p>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="empty-state py-3">
+                                    <div class="empty-state-icon"><i class="fas fa-envelope-open-text"></i></div>
+                                    <h5 class="empty-state-title">No hay solicitudes registradas</h5>
+                                    <p class="empty-state-description">Comienza registrando la primera solicitud del personal.</p>
+                                    <a href="{{ route('admin.solicitudes.create') }}" class="btn btn-orange btn-sm px-4">
+                                        <i class="fas fa-plus mr-1"></i> Nueva Solicitud
+                                    </a>
                                 </div>
                             </td>
                         </tr>
