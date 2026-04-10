@@ -29,7 +29,7 @@
                 <tbody>
                     @foreach($roles as $role)
                         <tr>
-                            <td>{{ $role->id }}</td>
+                            <td>{{ $loop->iteration }}</td>
                             <td><strong class="{{ $role->name === 'Admin' ? 'text-primary' : '' }}">{{ $role->name }}</strong></td>
                             <td>
                                 @if($role->permissions->count() > 0)

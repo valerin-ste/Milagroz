@@ -317,13 +317,10 @@
     {{-- Nuevos registros --}}
     <div class="col-lg-8">
         <div class="card border-0">
-            <div class="card-header d-flex align-items-center justify-content-between" style="padding:1.1rem 1.5rem; border-bottom:1px solid var(--border-color);">
-                <div>
-                    <h6 class="fw-bold mb-0" style="font-size:0.95rem;">Últimos Empleados Registrados</h6>
-                    <p class="mb-0 text-muted" style="font-size:0.78rem;">Los 6 más recientes en el sistema</p>
-                </div>
+            <div class="card-header d-flex align-items-center justify-content-between" style="padding:1.1rem 0 1.1rem 1.5rem !important; border-bottom:1px solid var(--border-color);">
+                <h6 class="fw-bold mb-0" style="font-size:0.95rem;">Últimos Empleados Registrados</h6>
                 <a href="{{ route('admin.empleados.index') }}"
-                   class="btn btn-sm btn-light-custom border" style="font-size:0.78rem;">
+                   class="btn btn-sm btn-light-custom border m-0" style="font-size:0.78rem; margin-right: 0 !important;">
                     Ver todos <i class="fas fa-arrow-right ml-1"></i>
                 </a>
             </div>

@@ -11,9 +11,25 @@
             Administración y control del personal médico y administrativo.
         </p>
     </div>
-    <a href="{{ route('admin.empleados.create') }}" class="btn btn-orange">
-        <i class="fas fa-plus mr-2"></i> Nuevo Empleado
-    </a>
+    <div class="d-flex" style="gap: 10px;">
+        <div class="dropdown">
+            <button class="btn btn-light border shadow-sm dropdown-toggle" type="button" id="dropdownReportes" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-file-download mr-2 text-primary"></i> Reportes
+            </button>
+            <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" aria-labelledby="dropdownReportes" style="border-radius: 10px;">
+                <a class="dropdown-item py-2" href="{{ route('admin.empleados.reporte.pdf', request()->all()) }}">
+                    <i class="fas fa-file-pdf mr-2 text-danger"></i> Exportar PDF
+                </a>
+                <a class="dropdown-item py-2" href="{{ route('admin.empleados.reporte.excel', request()->all()) }}">
+                    <i class="fas fa-file-excel mr-2 text-success"></i> Exportar Excel
+                </a>
+            </div>
+        </div>
+        <a href="{{ route('admin.empleados.create') }}" class="btn btn-orange shadow-sm text-white">
+            <i class="fas fa-plus mr-2"></i> Nuevo Empleado
+        </a>
+    </div>
+    </div>
 </div>
 @stop
 

@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\FormacionController;
 use App\Http\Controllers\Admin\DocumentoController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemRoleController;
+use App\Http\Controllers\Admin\SystemRoleController;
 
 // 👇 Controller fuera de Admin
 use App\Http\Controllers\SolicitudController;
@@ -109,6 +110,12 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     // 🔥 DOCUMENTOS
     // ======================
     Route::resource('documentos', DocumentoController::class);
+
+    // ======================
+    // 🔥 EXPORTACIÓN DE REPORTES (EMPLEADOS)
+    // ======================
+    Route::get('empleados/reporte/pdf', [EmpleadoController::class, 'exportPdf'])->name('empleados.reporte.pdf');
+    Route::get('empleados/reporte/excel', [EmpleadoController::class, 'exportExcel'])->name('empleados.reporte.excel');
 
     // ======================
     // 🔥 CONFIGURACIÓN / ACCESOS (SOLO ADMIN)

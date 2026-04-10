@@ -62,7 +62,7 @@
                     <tbody>
                         @forelse($areas as $area)
                         <tr @if($area->estado == 0) style="background-color: #f8fafc; opacity: 0.85;" @endif>
-                            <td><strong>#{{ $area->id }}</strong></td>
+                            <td>{{ $loop->iteration }}</td>
                             <td class="fw-semibold text-truncate" style="max-width: 180px;">{{ $area->nombre }}</td>
                             <td>{{ $area->sede->nombre ?? 'Sin sede' }}</td>
                             <td class="text-muted text-truncate" style="max-width: 200px;">{{ $area->descripcion ?? 'Sin descripción' }}</td>
