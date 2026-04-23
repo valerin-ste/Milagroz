@@ -18,7 +18,6 @@ use App\Http\Controllers\Admin\FormacionController;
 use App\Http\Controllers\Admin\DocumentoController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemRoleController;
-use App\Http\Controllers\Admin\SystemRoleController;
 
 // 👇 Controller fuera de Admin
 use App\Http\Controllers\SolicitudController;
@@ -73,6 +72,12 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::match(['post', 'patch'], 'solicitudes/{id}/toggle', [SolicitudController::class, 'toggle'])
         ->name('solicitudes.toggle');
 
+    Route::get('solicitudes/{id}/archivo/view', [SolicitudController::class, 'viewArchivo'])
+        ->name('solicitudes.archivo.view');
+
+    Route::get('solicitudes/{id}/archivo/download', [SolicitudController::class, 'downloadArchivo'])
+        ->name('solicitudes.archivo.download');
+
 
     // ======================
     // 🔥 CAMBIAR ESTADO SOLICITUD
@@ -93,6 +98,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::resource('etapa_contractual', EtapaContractualController::class);
     Route::resource('seguridad_salud_trabajo', SeguridadSaludTrabajoController::class);
     Route::resource('evaluaciones_desempeno', EvaluacionDesempenoController::class);
+    Route::get('formaciones/vencimientos', [FormacionController::class, 'vencimientos'])->name('formaciones.vencimientos');
     Route::resource('formaciones', FormacionController::class);
 
     Route::resource('comunicaciones', ComunicacionController::class)
@@ -104,18 +110,20 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
         ->parameters([
             'solicitudes' => 'solicitud'
         ]);
-
+    
 
     // ======================
     // 🔥 DOCUMENTOS
     // ======================
-    Route::resource('documentos', DocumentoController::class);
+    Route::get('documentos/{id}/view', [DocumentoController::class, 'view'])->name('documentos.view');
+    Route::get('test-pdf', [DocumentoController::class, 'testPdf']); // Ruta de prueba
+    Route::get('documentos/{id}/download', [DocumentoController::class, 'download'])->name('documentos.download');
+    Route::resource('documentos', DocumentoController::class)->only(['destroy']);
 
     // ======================
     // 🔥 EXPORTACIÓN DE REPORTES (EMPLEADOS)
     // ======================
     Route::get('empleados/reporte/pdf', [EmpleadoController::class, 'exportPdf'])->name('empleados.reporte.pdf');
-    Route::get('empleados/reporte/excel', [EmpleadoController::class, 'exportExcel'])->name('empleados.reporte.excel');
 
     // ======================
     // 🔥 CONFIGURACIÓN / ACCESOS (SOLO ADMIN)

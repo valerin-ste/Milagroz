@@ -12,13 +12,23 @@ use Illuminate\Support\Facades\Storage;
 
 class EtapaPrecontractualController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $etapas = EtapaPrecontractual::with(['persona', 'documentos'])
-            ->orderByDesc('id')
-            ->paginate(10);
+        $busqueda = $request->buscar;
 
-        return view('admin.etapa_precontractual.index', compact('etapas'));
+        $etapas = EtapaPrecontractual::with(['persona', 'documentos'])
+            ->when($busqueda, function ($query, $busqueda) {
+                $query->whereHas('persona', function ($q) use ($busqueda) {
+                    $q->where('nombres', 'like', "%$busqueda%")
+                      ->orWhere('apellidos', 'like', "%$busqueda%")
+                      ->orWhere('numero_documento', 'like', "%$busqueda%");
+                });
+            })
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.etapa_precontractual.index', compact('etapas', 'busqueda'));
     }
 
     public function create()

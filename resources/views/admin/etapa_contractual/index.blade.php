@@ -1,7 +1,7 @@
 @extends('adminlte::page')
 
 @section('content_header')
-<div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
+<div class="d-flex justify-content-between align-items-center mb-2 px-2">
     <div>
         <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem; letter-spacing: -0.5px;">Etapa Contractual</h2>
         <p class="text-muted mb-0" style="font-size: 0.95rem;">Gestión y control de los contratos laborales firmados.</p>
@@ -26,21 +26,27 @@
                 </div>
             </div>
 
-            <div class="col-md-2">
-                <label class="filter-label">Estado</label>
-                <select name="estado" class="form-control">
-                    <option value="">Todos</option>
-                    <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
-                    <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo</option>
-                </select>
+            <div class="col-md-3">
+                <label class="filter-label">Número de Documento</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                    <input type="text" name="documento" class="form-control"
+                           placeholder="Documento..." value="{{ request('documento') }}">
+                </div>
             </div>
 
-            <div class="col-md-4">
-                <label class="filter-label">Rango de Vigencia (Inicio – Fin)</label>
+            <div class="col-md-3">
+                <label class="filter-label">Tipo de Contrato</label>
                 <div class="input-group">
-                    <input type="date" name="desde" value="{{ request('desde') }}" class="form-control">
-                    <span class="input-group-text" style="background:transparent; border-left:0; border-right:0;">a</span>
-                    <input type="date" name="hasta" value="{{ request('hasta') }}" class="form-control">
+                    <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
+                    <select name="tipo_contrato" class="form-control">
+                        <option value="">Todos</option>
+                        @foreach($tiposContrato as $t)
+                            <option value="{{ $t }}" {{ request('tipo_contrato') == $t ? 'selected' : '' }}>
+                                {{ $t }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -67,7 +73,7 @@
                     <thead>
                         <tr>
                             <th class="ps-4">Empleado Contratado</th>
-                            <th>Tipo y Salario</th>
+                            <th>Tipo de Contrato</th>
                             <th>Fechas de Vigencia</th>
                             <th>Estado Actual</th>
                             <th>Soporte Digital</th>
@@ -96,9 +102,6 @@
                             <td>
                                 <span class="d-block" style="color: #334155; font-weight: 500;">
                                     <i class="fas fa-file-signature text-muted me-1"></i> {{ $c->tipo_contrato }}
-                                </span>
-                                <span class="badge" style="background-color: #f1f5f9; color: #0f172a; font-size: 0.85rem; font-weight: 500;">
-                                    $ {{ number_format($c->salario, 2) }}
                                 </span>
                             </td>
 
@@ -129,7 +132,10 @@
                                 @if($c->documentos->count() > 0)
                                     <div class="d-flex flex-column gap-1">
                                         @foreach($c->documentos as $doc)
-                                            <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-light-custom text-start text-truncate" title="{{ $doc->nombre_original }}" style="border: 1px solid #e2e8f0; color: #b91c1c; max-width: 160px; font-size: 0.8rem;">
+                                            <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank"
+                                               class="btn btn-sm btn-light-custom text-start text-truncate"
+                                               title="{{ $doc->nombre_original }}"
+                                               style="border: 1px solid #e2e8f0; color: #b91c1c; max-width: 160px; font-size: 0.8rem;">
                                                 <i class="fas fa-file-pdf"></i> {{ $doc->nombre_original }}
                                             </a>
                                         @endforeach

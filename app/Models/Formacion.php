@@ -17,7 +17,8 @@ class Formacion extends Model
         'fecha_inicio',
         'fecha_fin',
         'archivo',
-        'estado'
+        'estado',
+        'vence'
     ];
 
     protected $casts = [

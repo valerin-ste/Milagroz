@@ -60,48 +60,94 @@
                                 </select>
                             </div>
 
-                                                            <div class="col-md-12">
-                                    <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
-                                        Archivos / Soportes actuales
-                                    </label>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Tipo de Documento <span class="text-danger">*</span></label>
+                                <input type="text" name="tipo_documento" class="form-control" 
+                                       value="{{ old('tipo_documento', $documento->tipo_documento) }}" required>
+                            </div>
 
-                                    <div class="list-group mb-3">
-                                        @forelse($documento->documentos as $archivo)
-                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Fecha <span class="text-danger">*</span></label>
+                                <input type="date" name="fecha" class="form-control" 
+                                       value="{{ old('fecha', $documento->fecha instanceof \Carbon\Carbon ? $documento->fecha->format('Y-m-d') : $documento->fecha) }}" required>
+                            </div>
 
-                                                {{-- NOMBRE DEL ARCHIVO (CLICKEABLE) --}}
-                                                <a href="{{ Storage::url($archivo->ruta) }}" target="_blank" class="text-decoration-none fw-semibold text-dark">
-                                                    📄 {{ $archivo->nombre_original }}
-                                                </a>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
+                                    Archivos / Soportes actuales
+                                </label>
 
-                                                {{-- ELIMINAR --}}
-                                                <form action="{{ route('admin.documentos.destroy', $archivo->id) }}" method="POST" onsubmit="return confirm('¿Eliminar este archivo?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </form>
+                                <div class="list-group mb-3">
+                                    @forelse($documento->documentos as $archivo)
+                                        <div id="doc-{{ $archivo->id }}" class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{-- NOMBRE DEL ARCHIVO (CLICKEABLE) --}}
+                                            <a href="{{ route('admin.documentos.view', $archivo->id) }}" target="_blank" class="text-decoration-none fw-semibold text-dark">
+                                                📄 {{ $archivo->nombre_original }}
+                                            </a>
 
-                                            </div>
-                                        @empty
-                                            <div class="text-muted small">Sin archivos adjuntos.</div>
-                                        @endforelse
-                                    </div>
-
-                                    {{-- INPUT MULTIPLE --}}
-                                    <label for="documentos" class="form-label fw-bold small text-uppercase" style="color: #64748b;">
-                                        Cargar más archivos
-                                    </label>
-
-                                    <input type="file" name="documentos[]" id="documentos" multiple
-                                        class="form-control border-light bg-light py-2 px-3 shadow-none"
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-
-                                    <small class="text-muted mt-1 d-block">
-                                        Opcional: Suba más documentos para este registro.
-                                    </small>
+                                            {{-- ELIMINAR --}}
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeExistingDoc({{ $archivo->id }})">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    @empty
+                                        <div class="text-muted small">Sin archivos adjuntos.</div>
+                                    @endforelse
                                 </div>
+
+                                {{-- OCULTOS PARA ELIMINACIÓN --}}
+                                <div id="hiddenDeleteInputs"></div>
+
+                                {{-- INPUT MULTIPLE --}}
+                                <label for="documentos" class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                    Cargar más archivos
+                                </label>
+
+                                <input type="file" name="documentos[]" id="documentos" multiple
+                                    class="form-control border-light bg-light py-2 px-3 shadow-none">
+
+                                <small class="text-muted mt-1 d-block">
+                                    Opcional: Suba más documentos para este registro.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- BOTONES DE ACCIÓN --}}
+                    <div class="card-footer bg-white border-0 px-4 pb-4 pt-0">
+                        <hr class="mt-0 mb-4 opacity-50">
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{{ route('admin.seguridad_salud_trabajo.index') }}" class="btn btn-light-custom px-4 border shadow-sm">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-orange px-5 text-white shadow">
+                                <i class="fas fa-save me-2"></i> ACTUALIZAR DOCUMENTO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function removeExistingDoc(id) {
+    if (!confirm('¿Eliminar este archivo?')) return;
+
+    // Eliminar el elemento visualmente
+    const element = document.getElementById('doc-' + id);
+    if (element) element.remove();
+
+    // Agregar el ID al input oculto para que el controlador lo procese
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'eliminar_documentos[]';
+    input.value = id;
+
+    document.getElementById('hiddenDeleteInputs').appendChild(input);
+}
+</script>
 @endsection
 
 @section('css')

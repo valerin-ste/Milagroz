@@ -32,42 +32,44 @@
                                id="buscarEmpleado"
                                class="form-control border-light bg-light py-2 px-3 shadow-none"
                                placeholder="Escriba nombre o cédula..."
-                               autocomplete="off"
-                               required>
+                               autocomplete="off">
 
-                        <input type="hidden" name="empleado_id" id="empleado_id" required>
+                        <input type="hidden" name="empleado_id" id="empleado_id"
+                               value="{{ old('empleado_id') }}">
 
                         <div id="listaEmpleados"
                              class="list-group position-absolute w-100"
                              style="z-index: 999; display:none; max-height: 250px; overflow-y: auto;">
                         </div>
+
+                        <div id="empleadoError" class="text-danger small mt-1" style="display:none;">
+                            Debe seleccionar un empleado de la lista.
+                        </div>
                     </div>
 
-                    <div class="row g-4">
-                        {{-- CURSO --}}
-                        <div class="col-md-6 mb-4 text-start">
+                    <div class="row g-4 mb-4">
+                        {{-- NOMBRE DEL CURSO --}}
+                        <div class="col-md-8 text-start">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                                 Nombre del Curso / Formación <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="nombre_curso"
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none"
-                                   value="{{ old('nombre_curso') }}"
-                                   placeholder="Ej: Diplomado en Salud Ocupacional" required>
+                            <input type="text" name="nombre_curso" 
+                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('nombre_curso') is-invalid @enderror" 
+                                   placeholder="Ej: Curso de Alturas, Diplomado en RRHH..."
+                                   value="{{ old('nombre_curso') }}" required>
                         </div>
 
-                        {{-- INSTITUCION --}}
-                        <div class="col-md-6 mb-4 text-start">
+                        {{-- TIPO DE FORMACIÓN (VENCE) --}}
+                        <div class="col-md-4 text-start">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
-                                Institución / Entidad <span class="text-danger">*</span>
+                                ¿Vence? <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="institucion"
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none"
-                                   value="{{ old('institucion') }}"
-                                   placeholder="Ej: Universidad Nacional" required>
+                            <select name="vence" id="vence" class="form-control border-light bg-light py-2 px-3 shadow-none" required>
+                                <option value="1" {{ old('vence') == '1' ? 'selected' : '' }}>Sí, vence</option>
+                                <option value="0" {{ old('vence') == '0' ? 'selected' : '' }}>No, es permanente</option>
+                            </select>
                         </div>
                     </div>
-
-                    <div class="row g-4">
                         {{-- FECHA INICIO --}}
                         <div class="col-md-6 mb-4 text-start">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
@@ -79,26 +81,26 @@
                         </div>
 
                         {{-- FECHA FIN --}}
-                        <div class="col-md-6 mb-4 text-start">
+                        <div class="col-md-6 mb-4 text-start" id="container_fecha_fin">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
-                                Fecha Fin <span class="text-muted">(Opcional)</span>
+                                Fecha Fin <span class="text-danger">*</span>
                             </label>
-                            <input type="date" name="fecha_fin"
+                            <input type="date" name="fecha_fin" id="fecha_fin"
                                    class="form-control border-light bg-light py-2 px-3 shadow-none"
                                    value="{{ old('fecha_fin') }}">
                         </div>
                     </div>
 
-                    {{-- ARCHIVOS --}}
+                    {{-- ARCHIVO --}}
                     <div class="mb-4 text-start">
                         <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
-                            Soportes / Diplomas
+                            Soporte / Diploma (PDF) <span class="text-danger">*</span>
                         </label>
                         <div class="p-3 border rounded border-dashed text-center bg-light-soft">
-                            <input type="file" name="archivos[]" multiple
+                            <input type="file" name="documento" required accept=".pdf"
                                    class="form-control border-light bg-light py-2 px-3 shadow-none">
                             <small class="text-muted mt-2 d-block">
-                                Seleccione uno o varios archivos (PDF, imágenes)
+                                Seleccione el archivo soporte en formato PDF (Máx. 2MB).
                             </small>
                         </div>
                     </div>
@@ -122,20 +124,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const empleados = @json($empleados);
 
-    const input = document.getElementById("buscarEmpleado");
+    const input  = document.getElementById("buscarEmpleado");
     const hidden = document.getElementById("empleado_id");
-    const lista = document.getElementById("listaEmpleados");
+    const lista  = document.getElementById("listaEmpleados");
+    const errDiv = document.getElementById("empleadoError");
+    const form   = input.closest('form');
+
+    if (hidden.value) {
+        const emp = empleados.find(e => e.id == hidden.value);
+        if (emp) input.value = emp.persona.nombres + ' ' + emp.persona.apellidos + ' - ' + emp.persona.numero_documento;
+    }
 
     input.addEventListener("input", function () {
-
         let valor = this.value.toLowerCase().trim();
         lista.innerHTML = "";
+        hidden.value = "";
+        errDiv.style.display = "none";
 
-        if (valor.length < 1) {
-            lista.style.display = "none";
-            hidden.value = "";
-            return;
-        }
+        if (valor.length < 1) { lista.style.display = "none"; return; }
 
         let filtrados = empleados.filter(e => {
             let nombre = (e.persona.nombres + " " + e.persona.apellidos).toLowerCase();
@@ -143,30 +149,21 @@ document.addEventListener("DOMContentLoaded", function () {
             return nombre.includes(valor) || cedula.includes(valor);
         });
 
-        if (filtrados.length === 0) {
-            lista.style.display = "none";
-            return;
-        }
+        if (filtrados.length === 0) { lista.style.display = "none"; return; }
 
         filtrados.forEach(emp => {
-
             let nombre = emp.persona.nombres + " " + emp.persona.apellidos;
-
             let item = document.createElement("button");
             item.type = "button";
             item.className = "list-group-item list-group-item-action";
-
-            item.innerHTML = `
-                <strong>${nombre}</strong><br>
-                <small>${emp.persona.numero_documento}</small>
-            `;
-
+            item.innerHTML = `<strong>${nombre}</strong><br><small>${emp.persona.numero_documento}</small>`;
             item.onclick = function () {
-                input.value = nombre + " - " + emp.persona.numero_documento;
+                input.value  = nombre + " - " + emp.persona.numero_documento;
                 hidden.value = emp.id;
                 lista.style.display = "none";
+                errDiv.style.display = "none";
+                input.classList.remove("is-invalid");
             };
-
             lista.appendChild(item);
         });
 
@@ -174,10 +171,39 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("click", function (e) {
-        if (!input.contains(e.target) && !lista.contains(e.target)) {
-            lista.style.display = "none";
+        if (!input.contains(e.target) && !lista.contains(e.target)) lista.style.display = "none";
+    });
+
+    form.addEventListener("submit", function (e) {
+        if (!hidden.value) {
+            e.preventDefault();
+            input.classList.add("is-invalid");
+            errDiv.style.display = "block";
+            input.focus();
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
+
+    // =========================
+    // 🛡️ LÓGICA VENCIMIENTO
+    // =========================
+    const selectVence = document.getElementById('vence');
+    const containerFechaFin = document.getElementById('container_fecha_fin');
+    const inputFechaFin = document.getElementById('fecha_fin');
+ 
+    function toggleVence() {
+        if (selectVence.value == '1') {
+            containerFechaFin.style.display = 'block';
+            inputFechaFin.required = true;
+        } else {
+            containerFechaFin.style.display = 'none';
+            inputFechaFin.required = false;
+            inputFechaFin.value = '';
+        }
+    }
+ 
+    selectVence.addEventListener('change', toggleVence);
+    toggleVence(); // Inicializar
 
 });
 </script>

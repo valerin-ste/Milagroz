@@ -116,21 +116,24 @@
                             {{-- FECHA --}}
                             <td style="color: #475569;">
                                 <i class="fas fa-calendar-alt text-muted me-1"></i>
-                                {{ \Carbon\Carbon::parse($s->fecha)->format('d M, Y') }}
+                                {{ \Carbon\Carbon::parse($s->fecha)->translatedFormat('d M Y') }}
                             </td>
 
-                            {{-- ARCHIVO --}}
+                            {{-- ARCHIVOS --}}
                             <td>
-                                @if($s->archivo)
-                                    <a href="{{ Storage::url($s->archivo) }}"
+                                @forelse($s->documentos as $doc)
+                                    <a href="{{ route('admin.documentos.view', $doc->id) }}?t={{ time() }}"
                                        target="_blank"
-                                       class="btn btn-sm btn-light-custom text-start text-truncate"
-                                       style="border: 1px solid #e2e8f0; max-width: 160px; font-size: 0.8rem;">
-                                        <i class="fas fa-file"></i> {{ $s->nombre_archivo }}
+                                       class="doc-file-clickable mb-1 d-inline-block"
+                                       data-toggle="tooltip" data-boundary="window"
+                                       title="{{ $doc->nombre_original }}"
+                                       style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                                        <i class="fas fa-file-alt" style="color:#f97316;"></i>
+                                        <span class="file-name-text text-truncate" style="max-width: 120px;">{{ $doc->nombre_original }}</span>
                                     </a>
-                                @else
+                                @empty
                                     <span class="text-muted small fst-italic">Sin archivos</span>
-                                @endif
+                                @endforelse
                             </td>
 
                             {{-- ACCIONES --}}
@@ -216,4 +219,16 @@
     </div>
 
 </div>
-@endsection
+@stop
+
+@section('js')
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({ 
+            placement: 'top', 
+            trigger: 'hover',
+            boundary: 'window' 
+        });
+    });
+</script>
+@stop

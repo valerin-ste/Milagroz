@@ -9,14 +9,14 @@ class SeguridadSaludTrabajo extends Model
 {
     use HasStatusAlerts;
     protected $table = 'seguridad_salud_trabajo';
-    public $timestamps = false;
+    // La tabla sí tiene columnas created_at / updated_at (según migración)
+    // public $timestamps = false; <-- deshabilitado correctamente
 
     protected $fillable = [
         'empleado_id',
         'tipo_documento',
-        'archivo', 
+        // 'archivo' se omite: el módulo usa la relación polimórfica 'documentos'
         'fecha',
-        'estado'
     ];
 
     protected $casts = [

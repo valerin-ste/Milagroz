@@ -17,7 +17,7 @@ class SolicitudController extends Controller
         $estado   = $request->estado;
         $tipo     = $request->tipo;
 
-        $solicitudes = Solicitud::with('empleado.persona')
+        $solicitudes = Solicitud::with('empleado.persona', 'documentos')
             ->when($busqueda, function ($query, $busqueda) {
                 $query->whereHas('empleado.persona', function ($q) use ($busqueda) {
                     $q->where('nombres', 'like', "%$busqueda%")
@@ -53,7 +53,7 @@ class SolicitudController extends Controller
             'descripcion' => 'nullable|string',
             'estado' => 'required|in:pendiente,aprobado,rechazado',
             'fecha' => 'required|date',
-            'archivo' => 'nullable|file|max:10240',
+            'archivos.*' => 'nullable|file|max:10240',
         ]);
 
         $data = $request->only([
@@ -67,14 +67,22 @@ class SolicitudController extends Controller
         // 🔥 por defecto activo
         $data['activo'] = 1;
 
-        if ($request->hasFile('archivo')) {
-            $file = $request->file('archivo');
+        $solicitud = Solicitud::create($data);
 
-            $data['archivo'] = $file->store('solicitudes', 'public');
-            $data['nombre_archivo'] = $file->getClientOriginalName();
+        // 📌 NUEVOS ARCHIVOS
+        if ($request->hasFile('archivos')) {
+            foreach ($request->file('archivos') as $archivo) {
+                $ruta = $archivo->store('solicitudes', 'public');
+
+                Documento::create([
+                    'nombre_original' => $archivo->getClientOriginalName(),
+                    'ruta' => $ruta,
+                    'tipo_documento' => 'solicitud',
+                    'documentable_id' => $solicitud->id,
+                    'documentable_type' => Solicitud::class,
+                ]);
+            }
         }
-
-        Solicitud::create($data);
 
         return redirect()->route('admin.solicitudes.index')
             ->with('success', 'Solicitud creada correctamente');
@@ -83,7 +91,7 @@ class SolicitudController extends Controller
     // 👁️ MOSTRAR
     public function show(Solicitud $solicitud)
     {
-        $solicitud->load('empleado.persona');
+        $solicitud->load('empleado.persona', 'documentos');
         return view('admin.solicitudes.show', compact('solicitud'));
     }
 
@@ -107,7 +115,7 @@ class SolicitudController extends Controller
             'descripcion' => 'nullable|string',
             'estado' => 'required|in:pendiente,aprobado,rechazado',
             'fecha' => 'required|date',
-            'archivo' => 'nullable|file|max:10240',
+            'archivos.*' => 'nullable|file|max:10240',
         ]);
 
         $solicitud->update([
@@ -118,19 +126,33 @@ class SolicitudController extends Controller
             'fecha' => $request->fecha
         ]);
 
-        // 🔥 actualizar archivo
-        if ($request->hasFile('archivo')) {
+        // 📌 NUEVOS ARCHIVOS
+        if ($request->hasFile('archivos')) {
+            foreach ($request->file('archivos') as $archivo) {
+                $ruta = $archivo->store('solicitudes', 'public');
 
-            if ($solicitud->archivo && Storage::disk('public')->exists($solicitud->archivo)) {
-                Storage::disk('public')->delete($solicitud->archivo);
+                Documento::create([
+                    'nombre_original' => $archivo->getClientOriginalName(),
+                    'ruta' => $ruta,
+                    'tipo_documento' => 'solicitud',
+                    'documentable_id' => $solicitud->id,
+                    'documentable_type' => Solicitud::class,
+                ]);
             }
+        }
 
-            $file = $request->file('archivo');
+        // 🔥 ARCHIVOS A ELIMINAR
+        if ($request->eliminar_documentos) {
+            foreach ($request->eliminar_documentos as $docId) {
+                $doc = Documento::find($docId);
 
-            $solicitud->update([
-                'archivo' => $file->store('solicitudes', 'public'),
-                'nombre_archivo' => $file->getClientOriginalName()
-            ]);
+                if ($doc && $doc->documentable_id == $solicitud->id && $doc->documentable_type == Solicitud::class) {
+                    if (Storage::disk('public')->exists($doc->ruta)) {
+                        Storage::disk('public')->delete($doc->ruta);
+                    }
+                    $doc->delete();
+                }
+            }
         }
 
         return redirect()->route('admin.solicitudes.index')
@@ -187,5 +209,49 @@ class SolicitudController extends Controller
         $s->save();
 
         return back()->with('success', 'Estado actualizado');
+    }
+
+    // 👁️ VER ARCHIVO
+    public function viewArchivo($id)
+    {
+        while (ob_get_level() > 0) ob_end_clean();
+
+        $solicitud = Solicitud::findOrFail($id);
+
+        if (!$solicitud->archivo) {
+            abort(404, 'Esta solicitud no tiene un archivo adjunto.');
+        }
+
+        $path = storage_path('app/public/' . $solicitud->archivo);
+
+        if (!file_exists($path)) {
+            abort(404, 'El archivo físico no existe en el servidor.');
+        }
+
+        $nombreOriginal = $solicitud->nombre_archivo ?? basename($solicitud->archivo);
+
+        return response()->file($path, [
+            'Content-Disposition' => 'inline; filename="' . str_replace('"', '\\"', basename($nombreOriginal)) . '"'
+        ]);
+    }
+
+    // 📥 DESCARGAR ARCHIVO
+    public function downloadArchivo($id)
+    {
+        $solicitud = Solicitud::findOrFail($id);
+
+        if (!$solicitud->archivo) {
+            abort(404, 'Archivo no encontrado');
+        }
+
+        $path = storage_path('app/public/' . $solicitud->archivo);
+
+        if (!file_exists($path)) {
+            abort(404, 'Archivo no encontrado');
+        }
+
+        $nombreOriginal = $solicitud->nombre_archivo ?? basename($solicitud->archivo);
+
+        return response()->download($path, $nombreOriginal);
     }
 }

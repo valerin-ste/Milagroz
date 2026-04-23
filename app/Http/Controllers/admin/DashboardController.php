@@ -23,6 +23,7 @@ class DashboardController extends Controller
         $en8d  = $now->clone()->addDays(8)->endOfDay();
         $en15d = $now->clone()->addDays(15)->endOfDay();
         $en30d = $now->clone()->addDays(30)->endOfDay();
+        $en45d = $now->clone()->addDays(45)->endOfDay();
         $mesAnterior = $now->clone()->subMonth();
 
         // ── 1. KPIs ──────────────────────────────────────────────
@@ -49,60 +50,88 @@ class DashboardController extends Controller
             'totalFormaciones', 'empMesActual', 'empMesAnterior', 'empVariacion'
         );
 
-        // ── 2. ALERTAS DETALLADAS ─────────────────────────────────
-        // Contratos vencidos (fecha_fin <= hoy)
-        $contratosVencidos = EtapaContractual::with('empleado.persona')
+        // ── 2. ALERTAS DETALLADAS (OPTIMIZADO) ────────────────────
+        // Obtener todos los contratos relevantes en una sola consulta
+        $contratosRel = EtapaContractual::with(['empleado.persona:id,nombres,apellidos'])
+            ->select('id', 'empleado_id', 'fecha_fin', 'tipo_contrato', 'estado')
             ->where('estado', 1)
             ->whereNotNull('fecha_fin')
-            ->whereDate('fecha_fin', '<=', $hoy)
+            ->whereDate('fecha_fin', '<=', $en45d)
             ->orderBy('fecha_fin')
             ->get();
 
-        // Contratos críticos (8 días)
-        $contratosCriticos = EtapaContractual::with('empleado.persona')
-            ->where('estado', 1)
-            ->whereNotNull('fecha_fin')
-            ->whereDate('fecha_fin', '>', $hoy)
-            ->whereDate('fecha_fin', '<=', $en8d)
-            ->orderBy('fecha_fin')
-            ->get();
+        $contratosVencidos = $contratosRel->where('fecha_fin', '<=', $hoy);
+        $contratosCriticos = $contratosRel->where('fecha_fin', '>', $hoy)->where('fecha_fin', '<=', $en8d);
+        $contratosPreventivos = $contratosRel->where('fecha_fin', '>', $en8d)->where('fecha_fin', '<=', $en30d);
+        $contratosProximos = $contratosRel->where('fecha_fin', '>', $en30d)->where('fecha_fin', '<=', $en45d);
 
-        // Contratos preventivos (8–30 días)
-        $contratosPreventivos = EtapaContractual::with('empleado.persona')
-            ->where('estado', 1)
-            ->whereNotNull('fecha_fin')
-            ->whereDate('fecha_fin', '>', $en8d)
-            ->whereDate('fecha_fin', '<=', $en30d)
-            ->orderBy('fecha_fin')
-            ->get();
-
-        // SST vencidos
-        $sstVencidos = SeguridadSaludTrabajo::with('empleado.persona')
+        // Obtener todos los SST relevantes en una sola consulta
+        $sstRel = SeguridadSaludTrabajo::with(['empleado.persona:id,nombres,apellidos'])
+            ->select('id', 'empleado_id', 'fecha', 'tipo_documento', 'estado')
             ->where('estado', 1)
             ->whereNotNull('fecha')
-            ->whereDate('fecha', '<=', $hoy)
-            ->orderBy('fecha')
-            ->get();
-
-        // SST críticos (8 días)
-        $sstCriticos = SeguridadSaludTrabajo::with('empleado.persona')
-            ->where('estado', 1)
-            ->whereNotNull('fecha')
-            ->whereDate('fecha', '>', $hoy)
             ->whereDate('fecha', '<=', $en8d)
             ->orderBy('fecha')
             ->get();
 
+        $sstVencidos = $sstRel->where('fecha', '<=', $hoy);
+        $sstCriticos = $sstRel->where('fecha', '>', $hoy);
+
         // Solicitudes pendientes detalladas
-        $solicitudesPendientesDetalle = Solicitud::with('empleado.persona')
+        $solicitudesPendientesDetalle = Solicitud::with('empleado.persona:id,nombres,apellidos')
+            ->select('id', 'empleado_id', 'tipo', 'fecha', 'estado', 'created_at')
             ->where('estado', 'pendiente')
             ->latest()
             ->limit(5)
             ->get();
 
+        // Formaciones próximas a vencer (30 días)
+        $formacionesProximas = Formacion::with('empleado.persona:id,nombres,apellidos')
+            ->select('id', 'empleado_id', 'nombre_curso', 'fecha_fin', 'vence', 'estado')
+            ->where('estado', 1)
+            ->where('vence', 1)
+            ->whereNotNull('fecha_fin')
+            ->whereDate('fecha_fin', '>=', $hoy)
+            ->whereDate('fecha_fin', '<=', $en30d)
+            ->orderBy('fecha_fin')
+            ->get();
+
+        $alertasSST = $sstRel->map(function($s) use ($hoy) {
+            $vencido = Carbon::parse($s->fecha)->isPast() || Carbon::parse($s->fecha)->isToday();
+            return (object) [
+                'empleado' => $s->empleado->persona->full_name ?? 'N/A',
+                'tipo'     => $vencido ? 'SST vencido' : 'SST por vencer',
+                'fecha'    => Carbon::parse($s->fecha)->format('d/m/Y'),
+                'critico'  => $vencido,
+                'link'     => route('admin.empleados.show', $s->empleado_id)
+            ];
+        })->take(5);
+
+        $alertasContratos = $contratosRel->map(function($c) use ($hoy) {
+            $vencido = Carbon::parse($c->fecha_fin)->isPast() || Carbon::parse($c->fecha_fin)->isToday();
+            return (object) [
+                'empleado' => $c->empleado->persona->full_name ?? 'N/A',
+                'tipo'     => $vencido ? 'Contrato vencido' : 'Contrato por vencer',
+                'fecha'    => Carbon::parse($c->fecha_fin)->format('d/m/Y'),
+                'critico'  => $vencido,
+                'link'     => route('admin.empleados.show', $c->empleado_id)
+            ];
+        })->take(5);
+
+        $alertasFormaciones = $formacionesProximas->map(function($f) {
+            return (object) [
+                'empleado' => $f->empleado->persona->full_name ?? 'N/A',
+                'tipo'     => 'Formación por vencer',
+                'fecha'    => Carbon::parse($f->fecha_fin)->format('d/m/Y'),
+                'critico'  => false,
+                'link'     => route('admin.empleados.show', $f->empleado_id)
+            ];
+        })->take(5);
+
         $alertas = compact(
-            'contratosVencidos', 'contratosCriticos', 'contratosPreventivos',
-            'sstVencidos', 'sstCriticos', 'solicitudesPendientesDetalle'
+            'contratosVencidos', 'contratosCriticos', 'contratosPreventivos', 'contratosProximos',
+            'sstVencidos', 'sstCriticos', 'solicitudesPendientesDetalle', 'formacionesProximas',
+            'alertasSST', 'alertasContratos', 'alertasFormaciones'
         );
 
         $totalAlertasCriticas = $contratosVencidos->count() + $sstVencidos->count() + $contratosCriticos->count();
@@ -151,7 +180,7 @@ class DashboardController extends Controller
         // ── 5. ACTIVIDAD AGRUPADA POR FECHA ──────────────────────
         $actividad = collect();
 
-        Empleado::with('persona')->latest()->limit(4)->get()->each(function($e) use ($actividad) {
+        Empleado::with('persona:id,nombres,apellidos')->select('id', 'persona_id', 'cargo', 'created_at')->latest()->limit(4)->get()->each(function($e) use ($actividad) {
             $actividad->push([
                 'tipo'        => 'empleado',
                 'titulo'      => 'Empleado registrado',
@@ -164,7 +193,7 @@ class DashboardController extends Controller
             ]);
         });
 
-        Solicitud::with('empleado.persona')->latest()->limit(4)->get()->each(function($s) use ($actividad) {
+        Solicitud::with('empleado.persona:id,nombres,apellidos')->select('id', 'empleado_id', 'tipo', 'estado', 'created_at')->latest()->limit(4)->get()->each(function($s) use ($actividad) {
             $actividad->push([
                 'tipo'        => 'solicitud',
                 'titulo'      => 'Solicitud ' . ucfirst($s->estado ?? 'recibida'),
@@ -177,7 +206,7 @@ class DashboardController extends Controller
             ]);
         });
 
-        Comunicacion::with('empleado.persona')->latest()->limit(3)->get()->each(function($c) use ($actividad) {
+        Comunicacion::with('empleado.persona:id,nombres,apellidos')->select('id', 'empleado_id', 'asunto', 'created_at')->latest()->limit(3)->get()->each(function($c) use ($actividad) {
             $actividad->push([
                 'tipo'        => 'comunicacion',
                 'titulo'      => 'Comunicación emitida',

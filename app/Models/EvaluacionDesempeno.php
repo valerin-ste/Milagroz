@@ -12,17 +12,13 @@ class EvaluacionDesempeno extends Model
 
     protected $fillable = [
         'empleado_id',
-        'calificacion',
         'observaciones',
         'archivo',
-        'fecha',
-        'estado'
+        'fecha'
     ];
 
     protected $casts = [
         'fecha' => 'date',
-        'calificacion' => 'integer',
-        'estado' => 'integer',
     ];
 
     public function empleado()

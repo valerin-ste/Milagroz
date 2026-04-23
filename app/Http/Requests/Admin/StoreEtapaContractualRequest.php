@@ -16,7 +16,6 @@ class StoreEtapaContractualRequest extends FormRequest
         return [
             'empleado_id' => 'required|exists:empleados,id',
             'tipo_contrato' => 'required|string|max:50',
-            'salario' => 'required|numeric|min:0',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
             'documentos.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',

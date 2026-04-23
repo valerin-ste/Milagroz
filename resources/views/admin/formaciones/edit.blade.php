@@ -29,28 +29,22 @@
                         <input type="text" class="form-control border-light bg-light py-2 px-3 shadow-none text-muted" 
                                value="{{ $formacion->empleado->persona->nombres }} {{ $formacion->empleado->persona->apellidos }}" disabled>
                     </div>
-
-                    <div class="row g-4">
-                        {{-- CURSO --}}
-                        <div class="col-md-6 mb-4 text-start">
-                            <label for="nombre_curso" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Nombre del Curso <span class="text-danger">*</span></label>
-                            <input type="text" name="nombre_curso" id="nombre_curso" 
+                    <div class="row g-4 mb-4">
+                        {{-- NOMBRE DEL CURSO --}}
+                        <div class="col-md-8 text-start">
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Nombre del Curso / Formación <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre_curso" 
                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('nombre_curso') is-invalid @enderror" 
                                    value="{{ old('nombre_curso', $formacion->nombre_curso) }}" required>
-                            @error('nombre_curso')
-                                <div class="invalid-feedback text-danger small d-block">{{ $message }}</div>
-                            @enderror
                         </div>
 
-                        {{-- INSTITUCION --}}
-                        <div class="col-md-6 mb-4 text-start">
-                            <label for="institucion" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Institución <span class="text-danger">*</span></label>
-                            <input type="text" name="institucion" id="institucion" 
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('institucion') is-invalid @enderror" 
-                                   value="{{ old('institucion', $formacion->institucion) }}" required>
-                            @error('institucion')
-                                <div class="invalid-feedback text-danger small d-block">{{ $message }}</div>
-                            @enderror
+                        {{-- TIPO DE FORMACIÓN (VENCE) --}}
+                        <div class="col-md-4 text-start">
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">¿Vence? <span class="text-danger">*</span></label>
+                            <select name="vence" id="vence" class="form-control border-light bg-light py-2 px-3 shadow-none" required>
+                                <option value="1" {{ old('vence', $formacion->vence) == '1' ? 'selected' : '' }}>Sí, vence</option>
+                                <option value="0" {{ old('vence', $formacion->vence) == '0' ? 'selected' : '' }}>No, es permanente</option>
+                            </select>
                         </div>
                     </div>
 
@@ -64,8 +58,8 @@
                         </div>
 
                         {{-- FECHA FIN --}}
-                        <div class="col-md-6 text-start">
-                            <label for="fecha_fin" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha Fin</label>
+                        <div class="col-md-6 text-start" id="container_fecha_fin">
+                            <label for="fecha_fin" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha Fin <span class="text-danger">*</span></label>
                             <input type="date" name="fecha_fin" id="fecha_fin" 
                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('fecha_fin') is-invalid @enderror" 
                                    value="{{ $formacion->fecha_fin ? $formacion->fecha_fin->format('Y-m-d') : '' }}">
@@ -74,55 +68,123 @@
 
                     {{-- ARCHIVOS ACTUALES --}}
                     <div class="mb-4 text-start">
-    <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
-        Certificados actuales
-    </label>
+                        <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
+                            Certificados actuales
+                        </label>
 
-    <div class="list-group">
-        @forelse($formacion->documentos as $doc)
-            <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="list-group mb-3">
+                            @forelse($formacion->documentos as $doc)
+                                <div id="doc-{{ $doc->id }}" class="list-group-item d-flex justify-content-between align-items-center">
 
-                {{-- NOMBRE DEL ARCHIVO (CLICK PARA VER) --}}
-                <a href="{{ Storage::url($doc->ruta) }}" target="_blank" 
-                   class="text-decoration-none fw-semibold text-dark">
-                    📄 {{ $doc->nombre_original }}
-                </a>
+                                    {{-- NOMBRE DEL ARCHIVO (CLICK PARA VER) --}}
+                                    <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" 
+                                       class="text-decoration-none fw-semibold text-dark">
+                                        📄 {{ $doc->nombre_original }}
+                                    </a>
 
-                {{-- BOTÓN ELIMINAR --}}
-                <form action="{{ route('admin.documentos.destroy', $doc->id) }}" 
-                      method="POST" 
-                      onsubmit="return confirm('¿Eliminar este certificado?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                                    {{-- BOTÓN ELIMINAR --}}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeExistingDoc({{ $doc->id }})">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            @empty
+                                <div class="text-muted small">Sin certificados previos.</div>
+                            @endforelse
+                        </div>
+
+                        {{-- OCULTOS PARA ELIMINACIÓN --}}
+                        <div id="hiddenDeleteInputs"></div>
+                    </div>
+
+                    {{-- SUBIR NUEVO DOCUMENTO --}}
+                    <div class="mb-4 text-start">
+                        <label for="documento" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
+                            Actualizar Soporte / Diploma (PDF)
+                        </label>
+
+                        <div class="p-3 border rounded border-dashed text-center bg-light-soft">
+                            <input type="file" name="documento" id="documento" accept=".pdf"
+                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('documento') is-invalid @enderror">
+                            
+                            <small class="text-muted mt-2 d-block">
+                                Seleccione un nuevo archivo PDF si desea reemplazar o añadir un soporte (Máx. 2MB).
+                            </small>
+                        </div>
+                        @error('documento')
+                            <div class="invalid-feedback text-danger small d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="d-grid mt-5">
+                        <button type="submit" class="btn btn-orange text-white py-3 fw-bold rounded shadow-sm ripple">
+                            <i class="fas fa-save me-2"></i> ACTUALIZAR FORMACIÓN
+                        </button>
+                    </div>
                 </form>
-
             </div>
-        @empty
-            <div class="text-muted small">Sin certificados previos.</div>
-        @endforelse
+        </div>
     </div>
 </div>
 
-{{-- SUBIR MÁS ARCHIVOS --}}
-<div class="mb-4 text-start">
-    <label for="archivos" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
-        Cargar más certificados
-    </label>
+@section('js')
+<script>
+function removeExistingDoc(id) {
+    if (!confirm('¿Eliminar este certificado?')) return;
 
-    <input type="file" name="archivos[]" id="archivos" multiple 
-           class="form-control border-light bg-light py-2 px-3 shadow-none @error('archivos') is-invalid @enderror">
+    const element = document.getElementById('doc-' + id);
+    if (element) element.remove();
 
-    <small class="text-muted mt-2 d-block">
-        Seleccione los archivos adicionales que desea vincular a esta formación.
-    </small>
-</div>
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'eliminar_documentos[]';
+    input.value = id;
 
-<div class="d-grid mt-5">
-    <button type="submit" class="btn btn-orange text-white py-3 fw-bold rounded shadow-sm ripple">
-        <i class="fas fa-save me-2"></i> ACTUALIZAR INFORMACIÓN FACTURACIÓN
-    </button>
-</div>
+    document.getElementById('hiddenDeleteInputs').appendChild(input);
+}
+
+// =========================
+// 🛡️ LÓGICA VENCIMIENTO
+// =========================
+document.addEventListener('DOMContentLoaded', function() {
+    const selectVence = document.getElementById('vence');
+    const containerFechaFin = document.getElementById('container_fecha_fin');
+    const inputFechaFin = document.getElementById('fecha_fin');
+ 
+    function toggleVence() {
+        if (selectVence.value == '1') {
+            containerFechaFin.style.display = 'block';
+            inputFechaFin.required = true;
+        } else {
+            containerFechaFin.style.display = 'none';
+            inputFechaFin.required = false;
+            inputFechaFin.value = '';
+        }
+    }
+ 
+    selectVence.addEventListener('change', toggleVence);
+    toggleVence(); // Inicializar
+
+    // ==========================================
+    // 🛡️ VALIDACIÓN DE DOCUMENTO OBLIGATORIO
+    // ==========================================
+    const form = selectVence.closest('form');
+    form.addEventListener('submit', function(e) {
+        const existingDocs = document.querySelectorAll('[id^="doc-"]').length;
+        const newDoc = document.getElementById('documento').value;
+
+        if (existingDocs === 0 && !newDoc) {
+            e.preventDefault();
+            alert('El registro de formación debe tener al menos un documento de soporte (PDF).');
+        }
+    });
+});
+</script>
+@stop
+@section('css')
+<style>
+.bg-light-soft { background-color: #f8fafc; }
+.border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: #cbd5e1 !important; }
+.ripple { position: relative; overflow: hidden; }
+</style>
+@stop
 @endsection

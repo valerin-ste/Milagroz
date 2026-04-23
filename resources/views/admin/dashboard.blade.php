@@ -3,385 +3,311 @@
 @section('title', 'Panel de Control — Milagroz')
 
 @section('content_header')
-<div class="d-flex justify-content-between align-items-center mt-2 mb-1 px-1">
+<div class="dash-welcome-header d-flex justify-content-between align-items-center mt-3 mb-4 px-1">
     <div>
-        <h2 class="fw-bold mb-0" style="color:var(--text-main); font-size:1.6rem; letter-spacing:-0.5px;">
-            Panel de Control
-        </h2>
-        <p class="text-muted mb-0" style="font-size:0.875rem;">
-            <i class="fas fa-calendar-alt mr-1"></i>
-            {{ \Carbon\Carbon::now()->translatedFormat('l, d \d\e F \d\e Y') }}
+        <h1 class="fw-bold mb-1 header-title">
+            ¡Hola, {{ explode(' ', auth()->user()->name)[0] ?? 'Admin' }}! 👋
+        </h1>
+        <p class="header-subtitle text-muted mb-0">
+            <i class="far fa-calendar-check me-1"></i>
+            {{ \Carbon\Carbon::now()->translatedFormat('l, d \d\e F') }} — Resumen del estado actual.
         </p>
     </div>
-    <div class="d-flex" style="gap:0.5rem;">
+    <div class="header-actions d-flex gap-2">
         @if($totalAlertasCriticas > 0)
-        <span class="btn btn-sm" style="background:#fef2f2; color:#b91c1c; border:1px solid rgba(239,68,68,0.3); font-weight:600; font-size:0.78rem; cursor:default;">
-            <i class="fas fa-exclamation-triangle mr-1"></i> {{ $totalAlertasCriticas }} alertas críticas
-        </span>
+        <div class="critical-indicator shadow-sm">
+            <span class="pulse"></span>
+            <i class="fas fa-exclamation-triangle me-1"></i> {{ $totalAlertasCriticas }} Alertas
+        </div>
         @endif
-        <a href="{{ route('admin.empleados.create') }}" class="btn btn-sm btn-orange">
-            <i class="fas fa-plus mr-1"></i> Nuevo Empleado
-        </a>
-        <a href="{{ route('admin.solicitudes.create') }}" class="btn btn-sm btn-light-custom border">
-            <i class="fas fa-file-alt mr-1"></i> Nueva Solicitud
+        <a href="{{ route('admin.empleados.create') }}" class="btn btn-primary-modern shadow-sm">
+            <i class="fas fa-user-plus me-1"></i> Nuevo Empleado
         </a>
     </div>
 </div>
 @stop
 
 @section('content')
-<div class="container-fluid px-2 pb-5">
+<div class="container-fluid px-3 pb-5">
 
-{{-- ══════════════════════════════════════════════════════════════
-     BLOQUE DE ALERTAS
-══════════════════════════════════════════════════════════════ --}}
-@php
-    $hayAlertas = $alertas['contratosVencidos']->count() > 0
-               || $alertas['sstVencidos']->count() > 0
-               || $alertas['contratosCriticos']->count() > 0
-               || $alertas['sstCriticos']->count() > 0
-               || $alertas['contratosPreventivos']->count() > 0
-               || $alertas['solicitudesPendientesDetalle']->count() > 0;
-@endphp
+    {{-- ══════════════════════════════════════════════════════════════
+         ALERTAS PRIOTIZADAS (GRID DINÁMICO)
+         ══════════════════════════════════════════════════════════════ --}}
+    @php
+        $hayAlertas = $alertas['alertasSST']->count() > 0
+                   || $alertas['alertasContratos']->count() > 0
+                   || $alertas['alertasFormaciones']->count() > 0;
+    @endphp
 
-@if($hayAlertas)
-<div class="row mb-2">
-    <div class="col-12">
-        <div style="display:flex; flex-direction:column; gap:0.6rem;">
-
-            {{-- 🔴 CRÍTICAS: Vencidos hoy o ya expirados --}}
-            @if($alertas['contratosVencidos']->count() > 0 || $alertas['sstVencidos']->count() > 0)
-            <div class="dash-alert dash-alert-critical d-flex align-items-start" style="gap:1rem;">
-                <div class="dash-alert-icon" style="background:rgba(239,68,68,0.15); color:#b91c1c; flex-shrink:0;">
-                    <i class="fas fa-times-circle"></i>
+    @if($hayAlertas)
+    <div class="row mb-5 g-4">
+        {{-- 🔴 SST VENCIDOS --}}
+        <div class="col-lg-4">
+            <div class="alert-group-card h-100">
+                <div class="group-header sst">
+                    <div class="icon-box"><i class="fas fa-heartbeat"></i></div>
+                    <div class="title-box">
+                        <h6 class="fw-bold mb-0">SST Alertas</h6>
+                        <small>Documentos y exámenes</small>
+                    </div>
                 </div>
-                <div class="flex-grow-1">
-                    <div class="dash-alert-title">Documentos Vencidos — Acción Inmediata Requerida</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.4rem;">
-                        @foreach($alertas['contratosVencidos']->take(3) as $c)
-                        <span class="dash-alert-tag" style="background:#fef2f2; color:#b91c1c; border-color:rgba(239,68,68,0.3);">
-                            <i class="fas fa-file-contract mr-1"></i>
-                            {{ $c->empleado->persona->nombres ?? '—' }} {{ $c->empleado->persona->apellidos ?? '' }}
-                            — vence {{ \Carbon\Carbon::parse($c->fecha_fin)->format('d/m/Y') }}
-                        </span>
-                        @endforeach
-                        @foreach($alertas['sstVencidos']->take(2) as $s)
-                        <span class="dash-alert-tag" style="background:#fef2f2; color:#b91c1c; border-color:rgba(239,68,68,0.3);">
-                            <i class="fas fa-heartbeat mr-1"></i>
-                            {{ $s->empleado->persona->nombres ?? '—' }} — SST {{ \Carbon\Carbon::parse($s->fecha)->format('d/m/Y') }}
-                        </span>
-                        @endforeach
-                        @if(($alertas['contratosVencidos']->count() + $alertas['sstVencidos']->count()) > 5)
-                        <span class="dash-alert-tag" style="background:#f1f5f9; color:#64748b; border-color:#e2e8f0;">
-                            +{{ ($alertas['contratosVencidos']->count() + $alertas['sstVencidos']->count()) - 5 }} más
-                        </span>
+                <div class="group-body">
+                    @forelse($alertas['alertasSST'] as $item)
+                        <a href="{{ $item->link }}" class="alert-list-item {{ $item->critico ? 'is-critical' : '' }}">
+                            <div class="alert-marker"></div>
+                            <div class="alert-content">
+                                <span class="emp-name">{{ $item->empleado }}</span>
+                                <span class="alert-desc">{{ $item->tipo }} <span class="alert-date">({{ $item->fecha }})</span></span>
+                            </div>
+                            <i class="fas fa-chevron-right alert-arrow"></i>
+                        </a>
+                    @empty
+                        <div class="empty-alerts">
+                            <i class="fas fa-check-circle me-2"></i> Sin alertas de SST
+                        </div>
+                    @endforelse
+                </div>
+                <div class="group-footer">
+                    <a href="{{ route('admin.seguridad_salud_trabajo.index') }}" class="btn-view-all">
+                        Ver todos los SST <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 🟡 CONTRATOS POR VENCER --}}
+        <div class="col-lg-4">
+            <div class="alert-group-card h-100">
+                <div class="group-header contracts">
+                    <div class="icon-box"><i class="fas fa-file-contract"></i></div>
+                    <div class="title-box">
+                        <h6 class="fw-bold mb-0">Contratos</h6>
+                        <small>Vencimientos próximos</small>
+                    </div>
+                </div>
+                <div class="group-body">
+                    @forelse($alertas['alertasContratos'] as $item)
+                        <a href="{{ $item->link }}" class="alert-list-item {{ $item->critico ? 'is-critical' : '' }}">
+                            <div class="alert-marker"></div>
+                            <div class="alert-content">
+                                <span class="emp-name">{{ $item->empleado }}</span>
+                                <span class="alert-desc">{{ $item->tipo }} <span class="alert-date">({{ $item->fecha }})</span></span>
+                            </div>
+                            <i class="fas fa-chevron-right alert-arrow"></i>
+                        </a>
+                    @empty
+                        <div class="empty-alerts">
+                            <i class="fas fa-check-circle me-2"></i> Sin contratos por vencer
+                        </div>
+                    @endforelse
+                </div>
+                <div class="group-footer">
+                    <a href="{{ route('admin.etapa_contractual.index') }}" class="btn-view-all">
+                        Ver todos los Contratos <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- 🟠 FORMACIONES POR VENCER --}}
+        <div class="col-lg-4">
+            <div class="alert-group-card h-100">
+                <div class="group-header training">
+                    <div class="icon-box"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="title-box">
+                        <h6 class="fw-bold mb-0">Formaciones</h6>
+                        <small>Cursos y capacitaciones</small>
+                    </div>
+                </div>
+                <div class="group-body">
+                    @forelse($alertas['alertasFormaciones'] as $item)
+                        <a href="{{ $item->link }}" class="alert-list-item {{ $item->critico ? 'is-critical' : '' }}">
+                            <div class="alert-marker"></div>
+                            <div class="alert-content">
+                                <span class="emp-name">{{ $item->empleado }}</span>
+                                <span class="alert-desc">{{ $item->tipo }} <span class="alert-date">({{ $item->fecha }})</span></span>
+                            </div>
+                            <i class="fas fa-chevron-right alert-arrow"></i>
+                        </a>
+                    @empty
+                        <div class="empty-alerts">
+                            <i class="fas fa-check-circle me-2"></i> Sin formaciones próximas
+                        </div>
+                    @endforelse
+                </div>
+                <div class="group-footer">
+                    <a href="{{ route('admin.formaciones.index') }}" class="btn-view-all">
+                        Ver todas las Formaciones <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ══════════════════════════════════════════════════════════════
+         KPI CARDS (GLASSMORPHISM)
+         ══════════════════════════════════════════════════════════════ --}}
+    <div class="row g-4 mb-5">
+        {{-- Total Empleados --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-kpi">
+                <div class="kpi-icon-wrap bg-primary">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="label">Total Personal</span>
+                    <h2 class="value">{{ number_format($kpi['totalEmpleados']) }}</h2>
+                    <div class="sub-info">
+                        <span class="text-success fw-bold"><i class="fas fa-check-circle pe-1"></i>{{ $kpi['activos'] }} Activos</span>
+                    </div>
+                </div>
+                @if($kpi['empVariacion'] != 0)
+                <div class="trend-badge {{ $kpi['empVariacion'] > 0 ? 'up' : 'down' }}">
+                    <i class="fas fa-caret-{{ $kpi['empVariacion'] > 0 ? 'up' : 'down' }}"></i> {{ abs($kpi['empVariacion']) }}%
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Solicitudes Pendientes --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-kpi">
+                <div class="kpi-icon-wrap bg-warning">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="label">Solicitudes</span>
+                    <h2 class="value">{{ $kpi['totalSolicitudes'] }}</h2>
+                    <div class="sub-info">
+                        @if($kpi['solPendientes'] > 0)
+                            <span class="text-warning fw-bold pulse-text"><i class="fas fa-exclamation-circle pe-1"></i>{{ $kpi['solPendientes'] }} pendientes</span>
+                        @else
+                            <span class="text-success"><i class="fas fa-check-double pe-1"></i>Al día</span>
                         @endif
                     </div>
                 </div>
-                <a href="{{ route('admin.etapa_contractual.index') }}"
-                   class="btn btn-sm" style="background:#fef2f2; color:#b91c1c; border:1px solid rgba(239,68,68,0.3); white-space:nowrap; font-weight:600; font-size:0.78rem; flex-shrink:0;">
-                    Ver <i class="fas fa-arrow-right ml-1"></i>
-                </a>
             </div>
-            @endif
+        </div>
 
-            {{-- 🟠 PREVENTIVAS: 8 días --}}
-            @if($alertas['contratosCriticos']->count() > 0 || $alertas['sstCriticos']->count() > 0)
-            <div class="dash-alert dash-alert-warning d-flex align-items-start" style="gap:1rem;">
-                <div class="dash-alert-icon" style="background:rgba(249,115,22,0.12); color:#c2410c; flex-shrink:0;">
-                    <i class="fas fa-clock"></i>
+        {{-- Comunicaciones --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-kpi">
+                <div class="kpi-icon-wrap bg-info">
+                    <i class="fas fa-bullhorn"></i>
                 </div>
-                <div class="flex-grow-1">
-                    <div class="dash-alert-title">Próximos Vencimientos — Menos de 8 días</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.4rem;">
-                        @foreach($alertas['contratosCriticos']->take(3) as $c)
-                        <span class="dash-alert-tag" style="background:rgba(249,115,22,0.08); color:#c2410c; border-color:rgba(249,115,22,0.3);">
-                            <i class="fas fa-file-contract mr-1"></i>
-                            {{ $c->empleado->persona->nombres ?? '—' }}
-                            — {{ \Carbon\Carbon::parse($c->fecha_fin)->format('d/m/Y') }}
-                            ({{ \Carbon\Carbon::parse($c->fecha_fin)->diffInDays(now()) }}d)
-                        </span>
-                        @endforeach
-                        @foreach($alertas['sstCriticos']->take(2) as $s)
-                        <span class="dash-alert-tag" style="background:rgba(249,115,22,0.08); color:#c2410c; border-color:rgba(249,115,22,0.3);">
-                            <i class="fas fa-heartbeat mr-1"></i>
-                            {{ $s->empleado->persona->nombres ?? '—' }} — SST
-                        </span>
-                        @endforeach
+                <div class="kpi-content">
+                    <span class="label">Comunicación</span>
+                    <h2 class="value">{{ $kpi['totalComunicaciones'] }}</h2>
+                    <div class="sub-info">
+                        <span class="text-muted">{{ $kpi['comMesActual'] }} este mes</span>
                     </div>
                 </div>
-                <a href="{{ route('admin.etapa_contractual.index') }}?estado=1"
-                   class="btn btn-sm" style="background:rgba(249,115,22,0.1); color:#c2410c; border:1px solid rgba(249,115,22,0.3); white-space:nowrap; font-weight:600; font-size:0.78rem; flex-shrink:0;">
-                    Ver <i class="fas fa-arrow-right ml-1"></i>
-                </a>
             </div>
-            @endif
+        </div>
 
-            {{-- 🟡 INFORMATIVAS: 30 días --}}
-            @if($alertas['contratosPreventivos']->count() > 0)
-            <div class="dash-alert dash-alert-info d-flex align-items-start" style="gap:1rem;">
-                <div class="dash-alert-icon" style="background:rgba(234,179,8,0.12); color:#854d0e; flex-shrink:0;">
-                    <i class="fas fa-exclamation-triangle"></i>
+        {{-- Rotación/Empresa --}}
+        <div class="col-xl-3 col-md-6">
+            <div class="glass-kpi">
+                <div class="kpi-icon-wrap bg-indigo">
+                    <i class="fas fa-chart-pie"></i>
                 </div>
-                <div class="flex-grow-1">
-                    <div class="dash-alert-title">
-                        {{ $alertas['contratosPreventivos']->count() }} contrato(s) vencen en los próximos 30 días
-                    </div>
-                    <p class="mb-0 mt-1" style="font-size:0.8rem; color:#92400e;">
-                        Planifique las renovaciones con anticipación para evitar interrupciones laborales.
-                    </p>
-                </div>
-            </div>
-            @endif
-
-            {{-- 🔵 SOLICITUDES PENDIENTES --}}
-            @if($alertas['solicitudesPendientesDetalle']->count() > 0)
-            <div class="dash-alert dash-alert-blue d-flex align-items-start" style="gap:1rem;">
-                <div class="dash-alert-icon" style="background:rgba(19,182,236,0.12); color:#0369a1; flex-shrink:0;">
-                    <i class="fas fa-inbox"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="dash-alert-title">
-                        {{ $kpi['solPendientes'] }} solicitud(es) pendiente(s) de gestión
-                    </div>
-                    <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.4rem;">
-                        @foreach($alertas['solicitudesPendientesDetalle']->take(4) as $sol)
-                        <span class="dash-alert-tag" style="background:rgba(19,182,236,0.08); color:#0369a1; border-color:rgba(19,182,236,0.2);">
-                            {{ $sol->empleado->persona->nombres ?? '—' }} — {{ ucfirst($sol->tipo) }}
-                        </span>
-                        @endforeach
+                <div class="kpi-content">
+                    <span class="label">Capacidad Humana</span>
+                    <h2 class="value">{{ $kpi['totalFormaciones'] }}</h2>
+                    <div class="sub-info">
+                        <span class="text-muted">Eventos de formación</span>
                     </div>
                 </div>
-                <a href="{{ route('admin.solicitudes.index') }}?estado=pendiente"
-                   class="btn btn-sm" style="background:rgba(19,182,236,0.1); color:#0369a1; border:1px solid rgba(19,182,236,0.25); white-space:nowrap; font-weight:600; font-size:0.78rem; flex-shrink:0;">
-                    Gestionar <i class="fas fa-arrow-right ml-1"></i>
-                </a>
             </div>
-            @endif
-
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- ══════════════════════════════════════════════════════════════
-     KPIs
-══════════════════════════════════════════════════════════════ --}}
-<div class="row g-3 mb-4">
-
-    {{-- Total Empleados --}}
-    <div class="col-xl-3 col-md-6">
-        <div class="kpi-card" style="border-left: 4px solid #0ea5e9;">
-            <div class="kpi-icon" style="background:rgba(14,165,233,0.1); color:#0ea5e9;">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="kpi-body">
-                <span class="kpi-label">Total Empleados</span>
-                <div class="kpi-value">{{ $kpi['totalEmpleados'] }}</div>
-                <div class="kpi-sub">
-                    <span class="kpi-active">{{ $kpi['activos'] }} activos</span>
-                    <span class="kpi-inactive">{{ $kpi['inactivos'] }} inactivos</span>
-                </div>
-            </div>
-            @if($kpi['empVariacion'] != 0)
-            <div class="kpi-trend {{ $kpi['empVariacion'] > 0 ? 'trend-up' : 'trend-down' }}">
-                <i class="fas fa-arrow-{{ $kpi['empVariacion'] > 0 ? 'up' : 'down' }}"></i>
-                {{ abs($kpi['empVariacion']) }}%
-            </div>
-            @endif
         </div>
     </div>
 
-    {{-- Empleados Activos --}}
-    <div class="col-xl-3 col-md-6">
-        <div class="kpi-card" style="border-left: 4px solid #10b981;">
-            <div class="kpi-icon" style="background:rgba(16,185,129,0.1); color:#10b981;">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="kpi-body">
-                <span class="kpi-label">Empleados Activos</span>
-                <div class="kpi-value">{{ $kpi['activos'] }}</div>
-                <div class="kpi-sub">
-                    @php $pctActivos = $kpi['totalEmpleados'] > 0 ? round(($kpi['activos'] / $kpi['totalEmpleados']) * 100) : 0; @endphp
-                    <div class="kpi-bar-wrap">
-                        <div class="kpi-bar-fill" style="width:{{ $pctActivos }}%; background:#10b981;"></div>
+    {{-- ══════════════════════════════════════════════════════════════
+         DATAVIZ SECTION (CHARTS)
+         ══════════════════════════════════════════════════════════════ --}}
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="glass-panel h-100">
+                <div class="panel-header">
+                    <div>
+                        <h6 class="fw-bold mb-0">Demanda de Gestión</h6>
+                        <small class="text-muted">Solicitudes vs Ingresos de Personal</small>
                     </div>
-                    <span style="font-size:0.72rem; color:#10b981; font-weight:600;">{{ $pctActivos }}% de plantilla</span>
+                    <div class="chart-legend">
+                        <span class="dot bg-warning"></span> Solicitudes
+                        <span class="dot bg-primary ms-3"></span> Ingresos
+                    </div>
+                </div>
+                <div class="panel-body pt-3">
+                    <div style="height: 300px;">
+                        <canvas id="mainComboChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="glass-panel h-100">
+                <div class="panel-header">
+                    <h6 class="fw-bold mb-0">Personal por Área</h6>
+                </div>
+                <div class="panel-body d-flex align-items-center justify-content-center">
+                    <div style="height: 280px; width: 100%;">
+                        <canvas id="areaDistributionChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Solicitudes --}}
-    <div class="col-xl-3 col-md-6">
-        <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
-            <div class="kpi-icon" style="background:rgba(245,158,11,0.1); color:#f59e0b;">
-                <i class="fas fa-file-invoice"></i>
-            </div>
-            <div class="kpi-body">
-                <span class="kpi-label">Solicitudes</span>
-                <div class="kpi-value">{{ $kpi['totalSolicitudes'] }}</div>
-                <div class="kpi-sub">
-                    @if($kpi['solPendientes'] > 0)
-                        <span style="color:#f59e0b; font-weight:600; font-size:0.76rem;">
-                            <i class="fas fa-clock mr-1"></i>{{ $kpi['solPendientes'] }} sin gestionar
-                        </span>
-                    @else
-                        <span style="color:#10b981; font-size:0.76rem;">
-                            <i class="fas fa-check-circle mr-1"></i>Todas gestionadas
-                        </span>
-                    @endif
+    {{-- ══════════════════════════════════════════════════════════════
+         RECENT ACTIVITY & TABLES
+         ══════════════════════════════════════════════════════════════ --}}
+    <div class="row g-4">
+        {{-- Tabla de Empleados --}}
+        <div class="col-lg-7">
+            <div class="glass-panel p-0 overflow-hidden">
+                <div class="panel-header border-bottom px-4 py-3 bg-white-50">
+                    <h6 class="fw-bold mb-0 text-dark">Últimas Incorporaciones</h6>
+                    <a href="{{ route('admin.empleados.index') }}" class="btn btn-link btn-sm text-primary text-decoration-none fw-bold">Ver todos</a>
                 </div>
-            </div>
-            @if($kpi['solMesAnterior'] > 0)
-            @php $solVar = round((($kpi['solMesActual'] - $kpi['solMesAnterior']) / $kpi['solMesAnterior']) * 100); @endphp
-            <div class="kpi-trend {{ $solVar >= 0 ? 'trend-up' : 'trend-down' }}">
-                <i class="fas fa-arrow-{{ $solVar >= 0 ? 'up' : 'down' }}"></i>
-                {{ abs($solVar) }}%
-            </div>
-            @endif
-        </div>
-    </div>
-
-    {{-- Comunicaciones --}}
-    <div class="col-xl-3 col-md-6">
-        <div class="kpi-card" style="border-left: 4px solid #6366f1;">
-            <div class="kpi-icon" style="background:rgba(99,102,241,0.1); color:#6366f1;">
-                <i class="fas fa-bullhorn"></i>
-            </div>
-            <div class="kpi-body">
-                <span class="kpi-label">Comunicados</span>
-                <div class="kpi-value">{{ $kpi['totalComunicaciones'] }}</div>
-                <div class="kpi-sub">
-                    <span style="font-size:0.76rem; color:var(--text-muted);">
-                        {{ $kpi['comMesActual'] }} este mes
-                        &nbsp;·&nbsp; {{ $kpi['totalFormaciones'] }} formaciones
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-
-{{-- ══════════════════════════════════════════════════════════════
-     GRÁFICAS
-══════════════════════════════════════════════════════════════ --}}
-<div class="row g-3 mb-4">
-
-    {{-- Solicitudes por mes --}}
-    <div class="col-lg-5">
-        <div class="card border-0 h-100">
-            <div class="card-header" style="padding:1.1rem 1.5rem;">
-                <h6 class="fw-bold mb-0">Solicitudes Mensuales</h6>
-                <small class="text-muted">Últimos 6 meses</small>
-            </div>
-            <div class="card-body" style="height:260px;">
-                <canvas id="solicitudChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    {{-- Empleados --}}
-    <div class="col-lg-4">
-        <div class="card border-0 h-100">
-            <div class="card-header" style="padding:1.1rem 1.5rem;">
-                <h6 class="fw-bold mb-0">Ingresos de Personal</h6>
-                <small class="text-muted">Nuevos empleados</small>
-            </div>
-            <div class="card-body" style="height:260px;">
-                <canvas id="empChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    {{-- Áreas --}}
-    <div class="col-lg-3">
-        <div class="card border-0 h-100">
-            <div class="card-header" style="padding:1.1rem 1.5rem;">
-                <h6 class="fw-bold mb-0">Distribución por Área</h6>
-            </div>
-            <div class="card-body d-flex align-items-center justify-content-center" style="height:240px;">
-                <canvas id="areaChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-{{-- ══════════════════════════════════════════════════════════════
-     TABLA ÚLTIMOS EMPLEADOS + ACTIVIDAD
-══════════════════════════════════════════════════════════════ --}}
-<div class="row g-3">
-    {{-- Nuevos registros --}}
-    <div class="col-lg-8">
-        <div class="card border-0">
-            <div class="card-header d-flex align-items-center justify-content-between" style="padding:1.1rem 0 1.1rem 1.5rem !important; border-bottom:1px solid var(--border-color);">
-                <h6 class="fw-bold mb-0" style="font-size:0.95rem;">Últimos Empleados Registrados</h6>
-                <a href="{{ route('admin.empleados.index') }}"
-                   class="btn btn-sm btn-light-custom border m-0" style="font-size:0.78rem; margin-right: 0 !important;">
-                    Ver todos <i class="fas fa-arrow-right ml-1"></i>
-                </a>
-            </div>
-            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover modern-table align-middle mb-0">
                         <thead>
                             <tr>
-                                <th style="padding-left:1.5rem;">Empleado</th>
-                                <th>Área / Cargo</th>
-                                <th>Sede</th>
+                                <th>Colaborador</th>
+                                <th>Resumen</th>
                                 <th class="text-center">Estado</th>
-                                <th class="text-center" style="padding-right:1.5rem;">Acciones</th>
+                                <th class="text-end pe-4">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($ultimosEmpleados as $emp)
                             <tr>
-                                <td style="padding-left:1.5rem;">
-                                    <div class="d-flex align-items-center" style="gap:0.75rem;">
-                                        <div class="cell-avatar">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-sm bg-soft-primary text-primary fw-bold">
                                             {{ strtoupper(substr($emp->persona->nombres ?? 'U', 0, 1)) }}
                                         </div>
                                         <div>
-                                            <div class="cell-primary">{{ $emp->persona->nombres ?? '' }} {{ $emp->persona->apellidos ?? '' }}</div>
-                                            <div class="cell-secondary"><i class="fas fa-id-card mr-1"></i>{{ $emp->persona->numero_documento ?? 'N/A' }}</div>
+                                            <div class="fw-bold text-dark">{{ $emp->persona->short_name ?? ($emp->persona->nombres . ' ' . $emp->persona->apellidos) }}</div>
+                                            <small class="text-muted">{{ $emp->persona->numero_documento }}</small>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="cell-primary">{{ $emp->area->nombre ?? 'Sin área' }}</div>
-                                    <div class="cell-secondary">{{ $emp->cargo }}</div>
-                                </td>
-                                <td>
-                                    <span style="font-size:0.8rem; color:#475569;">
-                                        <i class="fas fa-hospital-alt mr-1 text-muted"></i>
-                                        {{ $emp->sede->nombre ?? 'Sin sede' }}
-                                    </span>
+                                    <div class="fw-semibold text-truncate" style="max-width: 150px;">{{ $emp->cargo }}</div>
+                                    <small class="text-muted">{{ $emp->area->nombre ?? 'N/A' }}</small>
                                 </td>
                                 <td class="text-center">
-                                    @if($emp->estado == 1)
-                                        <span class="badge-soft-success">Activo</span>
-                                    @else
-                                        <span class="badge-soft-danger">Inactivo</span>
-                                    @endif
+                                    <span class="badge {{ $emp->estado == 1 ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }} rounded-pill px-3">
+                                        {{ $emp->estado == 1 ? 'Activo' : 'Inactivo' }}
+                                    </span>
                                 </td>
-                                <td class="text-center" style="padding-right:1.5rem;">
-                                    <div class="action-container">
-                                        <a href="{{ route('admin.empleados.show', $emp) }}"
-                                           class="btn-table-action"
-                                           data-toggle="tooltip" title="Ver perfil">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if($emp->estado == 1)
-                                        <a href="{{ route('admin.empleados.edit', $emp) }}"
-                                           class="btn-table-action"
-                                           data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-pen"></i>
-                                        </a>
-                                        @endif
-                                    </div>
+                                <td class="text-end pe-4">
+                                    <a href="{{ route('admin.empleados.show', $emp) }}" class="btn btn-icon-soft">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
                                 </td>
                             </tr>
                             @endforeach
@@ -390,300 +316,429 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- Actividad reciente --}}
-    <div class="col-lg-4">
-        <div class="card border-0">
-            <div class="card-header" style="padding:1.1rem 1.5rem; border-bottom:1px solid var(--border-color);">
-                <h6 class="fw-bold mb-0" style="font-size:0.95rem;">
-                    <i class="fas fa-history mr-2" style="color:#6366f1;"></i>Actividad Reciente
-                </h6>
-            </div>
-            <div class="card-body" style="padding:0.5rem 0; max-height:380px; overflow-y:auto;">
-                @php
-                    $hoyStr = \Carbon\Carbon::today()->format('Y-m-d');
-                    $ayerStr = \Carbon\Carbon::yesterday()->format('Y-m-d');
-                    $currentGroup = null;
-                    $groups = ['today' => 'Hoy', 'yesterday' => 'Ayer', 'week' => 'Esta semana'];
-                @endphp
-                @foreach($actividad as $item)
-                @php
-                    $itemDate = $item['fecha']->format('Y-m-d');
-                    $group = $itemDate === $hoyStr ? 'today' : ($itemDate === $ayerStr ? 'yesterday' : 'week');
-                @endphp
-                @if($group !== $currentGroup)
-                    @php $currentGroup = $group; @endphp
-                    <div style="padding:0.5rem 1.25rem 0.2rem; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#94a3b8;">
-                        {{ $groups[$group] ?? $group }}
-                    </div>
-                @endif
-                <a href="{{ $item['link'] ?? '#' }}" class="activity-row text-decoration-none" style="display:flex; align-items:center; gap:0.85rem; padding:0.7rem 1.25rem; transition:background 0.15s; border-bottom:1px solid #f8fafc;">
-                    <div style="width:34px; height:34px; border-radius:9px; background:{{ $item['bg'] }}; color:{{ $item['color'] }}; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.8rem;">
-                        <i class="{{ $item['icono'] }}"></i>
-                    </div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:0.82rem; font-weight:600; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $item['titulo'] }}</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $item['descripcion'] }}</div>
-                    </div>
-                    <div style="font-size:0.7rem; color:#cbd5e1; white-space:nowrap;">{{ $item['fecha']->diffForHumans() }}</div>
-                </a>
-                @endforeach
-                @if($actividad->isEmpty())
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-history fa-2x mb-2 d-block" style="opacity:0.2;"></i>
-                    <small>Sin actividad reciente</small>
+        {{-- Timeline de Actividad --}}
+        <div class="col-lg-5">
+            <div class="glass-panel h-100">
+                <div class="panel-header mb-4">
+                    <h6 class="fw-bold mb-0">Movimientos Recientes</h6>
                 </div>
-                @endif
+                <div style="max-height: 480px; overflow-y: auto; padding-right: 15px; margin-right: -10px;">
+                    <div class="modern-timeline">
+                        @foreach($actividad as $item)
+                        <div class="timeline-item">
+                            <div class="timeline-icon" style="background: {{ $item['bg'] }}; color: {{ $item['color'] }}">
+                                <i class="{{ $item['icono'] }}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold text-dark">{{ $item['titulo'] }}</span>
+                                    <small class="text-muted">{{ $item['fecha']->diffForHumans() }}</small>
+                                </div>
+                                <p class="text-muted small mb-0">{{ $item['descripcion'] }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
 </div>
 
-</div>{{-- /container --}}
 @stop
 
 @section('css')
 <style>
-/* ── DASH ALERT CARDS ─────────────────────────────── */
-.dash-alert {
-    padding: 0.9rem 1.1rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid;
-    animation: fadeIn 0.3s ease;
-}
-.dash-alert-critical { background: #fff5f5; border-color: rgba(239,68,68,0.25); }
-.dash-alert-warning  { background: #fff7ed; border-color: rgba(249,115,22,0.25); }
-.dash-alert-info     { background: #fffbeb; border-color: rgba(234,179,8,0.25); }
-.dash-alert-blue     { background: #f0f9ff; border-color: rgba(14,165,233,0.2); }
-
-.dash-alert-icon {
-    width: 38px; height: 38px;
-    border-radius: 9px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
-}
-.dash-alert-title {
-    font-weight: 700; font-size: 0.875rem; color: var(--text-main);
-}
-.dash-alert-tag {
-    display: inline-flex; align-items: center;
-    padding: 0.25rem 0.6rem; border-radius: 6px;
-    font-size: 0.775rem; font-weight: 500;
-    border: 1px solid;
+:root {
+    --primary-modern: #4f46e5;
+    --primary-hover: #4338ca;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --radius-xl: 1.25rem;
+    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --text-main: #1e293b;
+    --bg-soft-primary: rgba(79, 70, 229, 0.1);
+    --bg-soft-success: rgba(16, 185, 129, 0.1);
+    --bg-soft-warning: rgba(245, 158, 11, 0.1);
+    --bg-soft-danger: rgba(239, 68, 68, 0.1);
 }
 
-/* ── KPI CARDS ────────────────────────────────────── */
-.kpi-card {
-    background: #fff;
-    border-radius: var(--radius-xl);
-    padding: 1.1rem 1.25rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.85rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    position: relative;
-    overflow: hidden;
-    transition: box-shadow 0.2s;
-    height: 100%;
+body {
+    background-color: #f8fafc !important;
+    color: var(--text-main);
 }
-.kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-.kpi-icon {
-    width: 46px; height: 46px;
+
+.header-title { color: var(--text-main); font-size: 1.85rem; letter-spacing: -1px; }
+.header-subtitle { font-size: 0.95rem; }
+
+.btn-primary-modern {
+    background: var(--primary-modern);
+    color: white;
+    border: none;
     border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
+    padding: 0.6rem 1.4rem;
+    font-weight: 600;
+    transition: all 0.2s;
 }
-.kpi-body { flex: 1; min-width: 0; }
-.kpi-label {
-    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.6px; color: #94a3b8; display: block;
+.btn-primary-modern:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    color: white;
 }
-.kpi-value {
-    font-size: 1.9rem; font-weight: 700; color: var(--text-main);
-    line-height: 1.1; margin: 0.15rem 0 0.35rem;
-}
-.kpi-sub { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-.kpi-active  { font-size: 0.72rem; font-weight: 600; color: #10b981; }
-.kpi-inactive{ font-size: 0.72rem; font-weight: 600; color: #ef4444; }
-.kpi-trend {
-    position: absolute; top: 0.85rem; right: 0.9rem;
-    font-size: 0.7rem; font-weight: 700;
-    padding: 0.2rem 0.5rem; border-radius: 6px;
-}
-.trend-up   { background: #f0fdf4; color: #15803d; }
-.trend-down { background: #fef2f2; color: #b91c1c; }
-.kpi-bar-wrap { height: 4px; background: #f1f5f9; border-radius: 99px; overflow: hidden; width: 60px; flex-shrink: 0; }
-.kpi-bar-fill { height: 100%; border-radius: 99px; }
 
-/* ── ACTIVITY ROW ─────────────────────────────────── */
-.activity-row:hover { background: #f8fafc !important; }
+.critical-indicator {
+    background: #fff;
+    border: 1px solid #fee2e2;
+    color: #ef4444;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.pulse {
+    width: 8px; height: 8px; background: #ef4444; border-radius: 50%;
+    margin-right: 8px; animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Glass Panels */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-soft);
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.border-start-danger { border-left: 5px solid #ef4444 !important; }
+
+.modern-tag {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+}
+.tag-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.tag-warning { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.tag-warning-soft { background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+.tag-info { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+
+/* KPI CARDS */
+.glass-kpi {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    border: 1px solid #f1f5f9;
+}
+
+.kpi-icon-wrap {
+    width: 54px; height: 54px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: white;
+}
+
+.kpi-content .label { font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-content .value { font-size: 2rem; font-weight: 800; margin: 0.2rem 0; letter-spacing: -1px; color: var(--text-main); }
+.kpi-content .sub-info { font-size: 0.8rem; }
+
+.trend-badge {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700;
+}
+.trend-badge.up { background: #f0fdf4; color: #16a34a; }
+.trend-badge.down { background: #fef2f2; color: #dc2626; }
+
+/* Tables */
+.modern-table thead th {
+    background: #f8fafc;
+    border: none;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+}
+.modern-table tbody td { border-bottom: 1px solid #f1f5f9; padding: 1.1rem 0.75rem; }
+.avatar-sm { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+.bg-soft-primary { background: #eef2ff; color: #4f46e5; }
+.bg-soft-success { background: #ecfdf5; color: #059669; }
+.bg-soft-danger { background: #fef2f2; color: #dc2626; }
+
+.btn-icon-soft {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: #f1f5f9; color: #64748b; border: none;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.btn-icon-soft:hover { background: var(--bg-soft-primary); color: var(--primary-modern); }
+
+/* Timeline */
+.modern-timeline { position: relative; padding-left: 1.5rem; }
+.modern-timeline::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px; background: #e2e8f0; border-radius: 1px;
+}
+.timeline-item { position: relative; padding-bottom: 2rem; }
+.timeline-icon {
+    position: absolute; left: 0; top: 0;
+    width: 38px; height: 38px; border-radius: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; justify-content: center;
+    border: 4px solid white; font-size: 0.85rem;
+    box-shadow: 0 4px 10px -1px rgba(0,0,0,0.1);
+    z-index: 10;
+    overflow: hidden; /* Para avatares */
+}
+.timeline-icon i { flex-shrink: 0; }
+.timeline-icon img { width: 100%; height: 100%; object-fit: cover; }
+.timeline-content { padding-left: 1.5rem; }
+
+/* Charts */
+.panel-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.chart-legend { font-size: 0.75rem; font-weight: 600; color: #64748b; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.bg-primary { background-color: var(--primary-modern) !important; }
+.bg-warning { background-color: #f59e0b !important; }
+.bg-info { background-color: #0ea5e9 !important; }
+.bg-indigo { background-color: #6366f1 !important; }
+
+.bg-soft-warning { background-color: rgba(245, 158, 11, 0.1); }
+.pulse-text { animation: pulseOpacity 2s infinite; }
+@keyframes pulseOpacity { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+/* 🚨 NUEVOS ESTILOS: ALERTAS DASHBOARD 🚨 */
+.alert-group-card {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #f1f5f9;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.alert-group-card:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.group-header {
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+}
+.group-header.sst { background: linear-gradient(135deg, #ef4444, #f87171); }
+.group-header.contracts { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.group-header.training { background: linear-gradient(135deg, #f97316, #fb923c); }
+
+.icon-box {
+    width: 44px; height: 44px; background: rgba(255,255,255,0.25);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; backdrop-filter: blur(4px);
+}
+
+.group-body { padding: 0.75rem 0; flex-grow: 1; }
+
+.alert-list-item {
+    display: flex; align-items: center; padding: 0.9rem 1.25rem;
+    text-decoration: none !important; color: inherit; transition: all 0.2s;
+    border-bottom: 1px solid #f8fafc;
+}
+.alert-list-item:hover { background: #f1f5f9; }
+.alert-list-item:last-child { border-bottom: none; }
+
+.alert-marker { width: 4px; height: 32px; border-radius: 10px; background: #e2e8f0; margin-right: 1rem; flex-shrink: 0; }
+.sst .alert-marker { background: #fee2e2; }
+.contracts .alert-marker { background: #fef3c7; }
+.training .alert-marker { background: #ffedd5; }
+
+.is-critical .alert-marker { background: #ef4444 !important; }
+.is-critical .emp-name { color: #b91c1c; }
+
+.alert-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+.emp-name { font-weight: 700; font-size: 0.92rem; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alert-desc { font-size: 0.78rem; color: #64748b; margin-top: 1px; }
+.alert-date { font-weight: 600; color: #94a3b8; }
+.is-critical .alert-date { color: #ef4444; }
+
+.alert-arrow { font-size: 0.75rem; color: #cbd5e1; transition: transform 0.2s; }
+.alert-list-item:hover .alert-arrow { transform: translateX(3px); color: var(--primary-modern); }
+
+.group-footer { padding: 1rem 1.25rem; border-top: 1px solid #f1f5f9; background: #fcfdfe; }
+.btn-view-all { 
+    font-size: 0.8rem; font-weight: 700; color: #4f46e5; 
+    text-decoration: none !important; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.btn-view-all:hover { color: #4338ca; transform: scale(1.02); }
+
+.empty-alerts { 
+    padding: 3rem 1.25rem; text-align: center; color: #94a3b8; 
+    font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.empty-alerts i { font-size: 1.5rem; opacity: 0.5; }
+
 </style>
 @stop
 
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
-@section('js')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    const gridColor = '#f1f5f9';
+    const primaryColor = '#4f46e5';
+    const warningColor = '#f59e0b';
+    const gridColor = 'rgba(226, 232, 240, 0.4)';
 
     // ─────────────────────────────
-    // 🔹 SOLICITUDES
+    // 🔹 COMBO CHART (SOLICITUDES + INGRESOS)
     // ─────────────────────────────
-    const solicitudCanvas = document.getElementById('solicitudChart');
+    const mainCtx = document.getElementById('mainComboChart');
+    if (mainCtx) {
+        const mesesLabels = {!! json_encode($chartMesesLabels ?? []) !!};
+        const mesesData = {!! json_encode($chartMesesData ?? []) !!};
+        const empData = {!! json_encode($chartEmpData ?? []) !!};
 
-    if (solicitudCanvas) {
-
-        if (window.solicitudChartInstance) {
-            window.solicitudChartInstance.destroy();
+        if (mesesLabels.length === 0) {
+            console.warn('Dashboard: No hay datos para el gráfico de demanda.');
         }
 
-        window.solicitudChartInstance = new Chart(solicitudCanvas, {
+        new Chart(mainCtx, {
             type: 'bar',
             data: {
-                labels: {!! json_encode($chartMesesLabels) !!},
-                datasets: [{
-                    label: 'Solicitudes',
-                    data: {!! json_encode($chartMesesData) !!},
-                    backgroundColor: 'rgba(245,158,11,0.3)',
-                    borderColor: '#f59e0b',
-                    borderWidth: 2,
-                    borderRadius: 6
-                }]
+                labels: mesesLabels,
+                datasets: [
+                    {
+                        label: 'Solicitudes',
+                        data: mesesData,
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        borderRadius: 6,
+                        order: 2,
+                        yAxisID: 'y' 
+                    },
+                    {
+                        label: 'Ingresos',
+                        data: empData,
+                        type: 'line',
+                        borderColor: primaryColor,
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointBackgroundColor: primaryColor,
+                        tension: 0.4,
+                        order: 1,
+                        yAxisID: 'y' 
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: gridColor }
-                    },
-                    x: {
-                        grid: { display: false }
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
                     }
                 },
-                plugins: {
-                    legend: { display: false }
+                scales: {
+                    x: { 
+                        grid: { display: false }, 
+                        border: { display: false } 
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        border: { display: false },
+                        ticks: { 
+                            stepSize: 1,
+                            callback: function(value) { if (value % 1 === 0) return value; }
+                        }
+                    }
                 }
             }
         });
     }
 
     // ─────────────────────────────
-    // 🔹 EMPLEADOS
+    // 🔹 AREA DISTRIBUTION (DOUGHNUT)
     // ─────────────────────────────
-    const empCanvas = document.getElementById('empChart');
+    const areaCtx = document.getElementById('areaDistributionChart');
+    if (areaCtx) {
+        const areaLabels = {!! json_encode($chartAreasLabels ?? []) !!};
+        const areaData = {!! json_encode($chartAreasData ?? []) !!};
 
-    if (empCanvas) {
-
-        if (window.empChartInstance) {
-            window.empChartInstance.destroy();
+        if (areaLabels.length === 0) {
+            console.warn('Dashboard: No hay datos para el gráfico de áreas.');
         }
 
-        window.empChartInstance = new Chart(empCanvas, {
-            type: 'line',
-            data: {
-                labels: {!! json_encode($chartEmpLabels) !!},
-                datasets: [{
-                    label: 'Empleados',
-                    data: {!! json_encode($chartEmpData) !!},
-                    borderColor: '#0ea5e9',
-                    backgroundColor: 'rgba(14,165,233,0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: gridColor }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
-
-    // ─────────────────────────────
-    // 🔹 ÁREAS
-    // ─────────────────────────────
-    const areaCanvas = document.getElementById('areaChart');
-
-    if (areaCanvas) {
-
-        if (window.areaChartInstance) {
-            window.areaChartInstance.destroy();
-        }
-
-        window.areaChartInstance = new Chart(areaCanvas, {
+        new Chart(areaCtx, {
             type: 'doughnut',
             data: {
-                labels: {!! json_encode($chartAreasLabels) !!},
+                labels: areaLabels,
                 datasets: [{
-                    data: {!! json_encode($chartAreasData) !!},
+                    data: areaData,
                     backgroundColor: [
-                        '#0ea5e9',
-                        '#10b981',
-                        '#f59e0b',
-                        '#6366f1',
-                        '#ef4444'
+                        '#4f46e5', '#f59e0b', '#0ea5e9', '#10b981', '#6366f1', '#f43f5e'
                     ],
-                    borderWidth: 0
+                    borderWidth: 4,
+                    borderColor: '#ffffff',
+                    hoverOffset: 15
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '65%',
+                cutout: '75%',
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 11, weight: '600' }
+                        }
+                    },
+                    // Mostrar mensaje central si no hay datos
+                    beforeDraw: function(chart) {
+                        if (chart.data.datasets[0].data.every(item => item === 0)) {
+                            let ctx = chart.ctx;
+                            let width = chart.width;
+                            let height = chart.height;
+                            ctx.restore();
+                            let fontSize = (height / 200).toFixed(2);
+                            ctx.font = fontSize + "em sans-serif";
+                            ctx.textBaseline = "middle";
+                            let text = "Sin datos disponibles";
+                            let textX = Math.round((width - ctx.measureText(text).width) / 2);
+                            let textY = height / 2;
+                            ctx.fillText(text, textX, textY);
+                            ctx.save();
+                        }
                     }
                 }
-            }
-        });
-    }
-
-});
-</script>
-@stop
-
-    // 🔹 ÁREAS
-    const areaCanvas = document.getElementById('areaChart');
-    if (areaCanvas) {
-        if (window.areaChartInstance) {
-            window.areaChartInstance.destroy();
-        }
-
-        window.areaChartInstance = new Chart(areaCanvas, {
-            type: 'doughnut',
-            data: {
-                labels: {!! json_encode($chartAreasLabels) !!},
-                datasets: [{
-                    data: {!! json_encode($chartAreasData) !!},
-                    backgroundColor: ['#0ea5e9','#10b981','#f59e0b','#6366f1','#ef4444']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
             }
         });
     }

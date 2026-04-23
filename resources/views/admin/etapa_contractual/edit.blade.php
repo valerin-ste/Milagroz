@@ -52,22 +52,15 @@
                                 <input type="text" class="form-control bg-light" value="{{ $etapa_contractual->empleado->persona->nombres }} {{ $etapa_contractual->empleado->persona->apellidos }} - {{ $etapa_contractual->empleado->persona->numero_documento }}" readonly disabled>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">Tipo de Contrato <span class="text-danger">*</span></label>
-                                <select name="tipo_contrato" class="form-select" required>
-                                    <option value="Término Indefinido" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Término Indefinido' ? 'selected' : '' }}>Término Indefinido</option>
-                                    <option value="Término Fijo" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Término Fijo' ? 'selected' : '' }}>Término Fijo</option>
-                                    <option value="Prestación de Servicios" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Prestación de Servicios' ? 'selected' : '' }}>Prestación de Servicios</option>
-                                    <option value="Obra o Labor" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Obra o Labor' ? 'selected' : '' }}>Obra o Labor</option>
+                                <select name="tipo_contrato" id="tipo_contrato" class="form-select" required>
+                                    <option value="Contrato indefinido" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Contrato indefinido' ? 'selected' : '' }}>Contrato indefinido</option>
+                                    <option value="Contrato fijo" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Contrato fijo' ? 'selected' : '' }}>Contrato fijo</option>
+                                    <option value="Obra o labor" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Obra o labor' ? 'selected' : '' }}>Obra o labor</option>
+                                    <option value="Temporal" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Temporal' ? 'selected' : '' }}>Temporal</option>
+                                    <option value="Prestación de servicios" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Prestación de servicios' ? 'selected' : '' }}>Prestación de servicios</option>
                                 </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Salario Base <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
-                                    <input type="number" step="0.01" name="salario" class="form-control" value="{{ old('salario', $etapa_contractual->salario) }}" required>
-                                </div>
                             </div>
 
                             <div class="col-md-6">
@@ -77,7 +70,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Fecha de Fin (Opcional)</label>
-                                <input type="date" name="fecha_fin" class="form-control" value="{{ old('fecha_fin', $etapa_contractual->fecha_fin) }}">
+                                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="{{ old('fecha_fin', $etapa_contractual->fecha_fin) }}">
                             </div>
 
                             <div class="col-12 mt-5">
@@ -235,6 +228,26 @@
                 document.getElementById('hiddenDeleteInputs').appendChild(input);
             }
         };
+
+        // =========================
+        // 🛡️ LÓGICA FECHA FIN (INDEFINIDO)
+        // =========================
+        const selectContrato = document.getElementById('tipo_contrato');
+        const inputFechaFin = document.getElementById('fecha_fin');
+
+        function checkFechaFin() {
+            if (selectContrato.value === 'Contrato indefinido') {
+                inputFechaFin.value = "";
+                inputFechaFin.disabled = true;
+                inputFechaFin.style.opacity = "0.6";
+            } else {
+                inputFechaFin.disabled = false;
+                inputFechaFin.style.opacity = "1";
+            }
+        }
+
+        selectContrato.addEventListener('change', checkFechaFin);
+        checkFechaFin();
     });
 </script>
 @endsection

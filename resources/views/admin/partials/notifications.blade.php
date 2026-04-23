@@ -1,10 +1,10 @@
 @php
     $totalAlerts = 0;
-    if(isset($alertas)) {
-        $totalAlerts = count($alertas['contratos_vencidos'] ?? []) + 
-                      count($alertas['sst_vencidos'] ?? []) + 
-                      count($alertas['contratos_criticos'] ?? []) + 
-                      count($alertas['sst_criticos'] ?? []);
+    if(isset($alertasCount)) {
+        $totalAlerts = ($alertasCount['contratos_vencidos'] ?? 0) + 
+                      ($alertasCount['sst_vencidos'] ?? 0) + 
+                      ($alertasCount['contratos_criticos'] ?? 0) + 
+                      ($alertasCount['sst_criticos'] ?? 0);
     }
 @endphp
 
@@ -23,7 +23,7 @@
         <div class="dropdown-divider m-0"></div>
         
         <div style="max-height: 350px; overflow-y: auto;">
-            @if(count($alertas['contratos_vencidos'] ?? []) > 0)
+            @if(($alertasCount['contratos_vencidos'] ?? 0) > 0)
                 <a href="{{ route('admin.etapa_contractual.index') }}" class="dropdown-item py-3">
                     <div class="d-flex align-items-start">
                         <div class="bg-soft-red rounded-circle p-2 mr-3">
@@ -31,14 +31,14 @@
                         </div>
                         <div class="flex-grow-1">
                             <p class="mb-0 text-sm font-weight-bold" style="color: var(--text-main);">Contratos Vencidos</p>
-                            <p class="mb-0 text-xs text-muted">Hay {{ count($alertas['contratos_vencidos']) }} contratos que requieren acción inmediata.</p>
+                            <p class="mb-0 text-xs text-muted">Hay {{ $alertasCount['contratos_vencidos'] }} contratos que requieren acción inmediata.</p>
                         </div>
                     </div>
                 </a>
                 <div class="dropdown-divider m-0"></div>
             @endif
 
-            @if(count($alertas['sst_vencidos'] ?? []) > 0)
+            @if(($alertasCount['sst_vencidos'] ?? 0) > 0)
                 <a href="{{ route('admin.seguridad_salud_trabajo.index') }}" class="dropdown-item py-3">
                     <div class="d-flex align-items-start">
                         <div class="bg-soft-red rounded-circle p-2 mr-3">
@@ -46,14 +46,14 @@
                         </div>
                         <div class="flex-grow-1">
                             <p class="mb-0 text-sm font-weight-bold" style="color: var(--text-main);">Docs SST Expirados</p>
-                            <p class="mb-0 text-xs text-muted">{{ count($alertas['sst_vencidos']) }} documentos de seguridad vencidos.</p>
+                            <p class="mb-0 text-xs text-muted">{{ $alertasCount['sst_vencidos'] }} documentos de seguridad vencidos.</p>
                         </div>
                     </div>
                 </a>
                 <div class="dropdown-divider m-0"></div>
             @endif
 
-            @if(count($alertas['contratos_criticos'] ?? []) > 0)
+            @if(($alertasCount['contratos_criticos'] ?? 0) > 0)
                 <a href="{{ route('admin.etapa_contractual.index') }}" class="dropdown-item py-3">
                     <div class="d-flex align-items-start">
                         <div class="bg-soft-orange rounded-circle p-2 mr-3">
@@ -61,14 +61,14 @@
                         </div>
                         <div class="flex-grow-1">
                             <p class="mb-0 text-sm font-weight-bold" style="color: var(--text-main);">Vencimiento Cercano (8d)</p>
-                            <p class="mb-0 text-xs text-muted">{{ count($alertas['contratos_criticos']) }} contratos por vencer en 8 días.</p>
+                            <p class="mb-0 text-xs text-muted">{{ $alertasCount['contratos_criticos'] }} contratos por vencer en 8 días.</p>
                         </div>
                     </div>
                 </a>
                 <div class="dropdown-divider m-0"></div>
             @endif
 
-            @if(count($alertas['sst_criticos'] ?? []) > 0)
+            @if(($alertasCount['sst_criticos'] ?? 0) > 0)
                 <a href="{{ route('admin.seguridad_salud_trabajo.index') }}" class="dropdown-item py-3">
                     <div class="d-flex align-items-start">
                         <div class="bg-soft-orange rounded-circle p-2 mr-3">
@@ -76,7 +76,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <p class="mb-0 text-sm font-weight-bold" style="color: var(--text-main);">SST Críticos (8d)</p>
-                            <p class="mb-0 text-xs text-muted">{{ count($alertas['sst_criticos']) }} documentos SST por expirar.</p>
+                            <p class="mb-0 text-xs text-muted">{{ $alertasCount['sst_criticos'] }} documentos SST por expirar.</p>
                         </div>
                     </div>
                 </a>

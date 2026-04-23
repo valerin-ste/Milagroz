@@ -364,11 +364,17 @@ return [
                 'active' => ['admin/evaluaciones_desempeno*'],
             ],
             [
-                'text' => 'Formación',
-                'url' => 'admin/formaciones',
-                'icon' => 'fas fa-graduation-cap text-success',
+                'text'    => 'Formación',
+                'icon'    => 'fas fa-graduation-cap text-success',
                 'classes' => 'text-success',
-                'active' => ['admin/formaciones*'],
+                'submenu' => [
+                    [
+                        'text' => 'Gestión General',
+                        'url'  => 'admin/formaciones',
+                        'icon' => 'fas fa-list-ul',
+                        'key'  => 'formaciones_general',
+                    ],
+                ],
             ],
         ],
     ],

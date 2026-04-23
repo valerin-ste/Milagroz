@@ -14,7 +14,6 @@ class EtapaContractual extends Model
     protected $fillable = [
         'empleado_id',
         'tipo_contrato',
-        'salario',
         'fecha_inicio',
         'fecha_fin',
         'archivo',

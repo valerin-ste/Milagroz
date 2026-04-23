@@ -20,7 +20,7 @@
     <form method="GET" action="{{ route('admin.seguridad_salud_trabajo.index') }}" class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">
             <div class="row align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="small font-weight-bold text-muted mb-1">Buscar Empleado</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
@@ -28,21 +28,12 @@
                     </div>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="small font-weight-bold text-muted mb-1">Tipo Documento</label>
-                    <input type="text" name="tipo_documento" class="form-control border-light bg-light shadow-none" placeholder="Ej: RETHUS..." value="{{ request('tipo_documento') }}">
+                    <input type="text" name="tipo_documento" class="form-control border-light bg-light shadow-none" placeholder="Ej: Certificado..." value="{{ request('tipo_documento') }}">
                 </div>
 
-                <div class="col-md-3">
-                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
-                    <select name="estado" class="form-control border-light bg-light shadow-none">
-                        <option value="">-- Todos --</option>
-                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Vigente</option>
-                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Vencido/Inactivo</option>
-                    </select>
-                </div>
-
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
                             <i class="fas fa-filter mr-1"></i> Filtrar
@@ -66,13 +57,13 @@
                             <th>Tipo de Documento</th>
                             <th>Fecha</th>
                             <th>Archivo</th>
-                            <th>Estado</th>
+                            <th>Vencimiento</th>
                             <th class="text-center pe-4">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($documentos as $doc)
-                        <tr @if($doc->estado == 0) style="background-color: #f8fafc; opacity: 0.8;" @endif>
+                        <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(19, 182, 236, 0.1); color: var(--primary-blue);">
@@ -100,8 +91,14 @@
                                 @if($doc->documentos->count() > 0)
                                     <div class="d-flex flex-wrap gap-2">
                                         @foreach($doc->documentos as $archivo)
-                                            <a href="{{ Storage::url($archivo->ruta) }}" target="_blank" class="btn btn-sm btn-light-custom text-start text-truncate" title="{{ $archivo->nombre_original }}" style="border: 1px solid #e2e8f0; color: #b91c1c; max-width: 150px;">
-                                                <i class="fas fa-file-pdf"></i> {{ $archivo->nombre_original }}
+                                            <a href="{{ route('admin.documentos.view', $archivo->id) }}"
+                                               target="_blank"
+                                               class="doc-file-clickable"
+                                               data-toggle="tooltip" data-boundary="window"
+                                               title="{{ $archivo->nombre_original }}"
+                                               style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                                                <i class="fas fa-file-pdf"></i>
+                                                <span class="file-name-text text-truncate" style="max-width: 120px;">{{ $archivo->nombre_original }}</span>
                                             </a>
                                         @endforeach
                                     </div>
@@ -112,51 +109,28 @@
 
                             <td>
                                 @php $badge = $doc->getStatusBadge($doc->fecha); @endphp
-
-                                @if($doc->estado == 0)
-                                    <span class="badge-soft-danger px-3 py-2 shadow-sm" style="font-size: 0.8rem;">
-                                        <i class="fas fa-ban me-1"></i> Inactivo
-                                    </span>
-                                @else
-                                    <span class="{{ $badge['class'] }} px-3 py-2 shadow-sm rounded-pill font-weight-bold" style="font-size: 0.8rem; border: 1px solid {{ $badge['color'] }}20;">
-                                        <i class="{{ $badge['icon'] }} me-1"></i> {{ strtoupper($badge['label']) }}
-                                    </span>
-                                @endif
+                                <span class="{{ $badge['class'] }} px-3 py-2 shadow-sm rounded-pill font-weight-bold" style="font-size: 0.8rem; border: 1px solid {{ $badge['color'] }}20;">
+                                    <i class="{{ $badge['icon'] }} me-1"></i> {{ strtoupper($badge['label']) }}
+                                </span>
                             </td>
 
                             <td class="text-center pe-4">
                                 <div class="d-flex justify-content-center gap-2">
-                                    @if($doc->estado == 1)
-                                        <a href="{{ route('admin.seguridad_salud_trabajo.edit', $doc) }}"
-                                           class="btn btn-sm btn-light-custom px-3"
-                                           data-toggle="tooltip" data-placement="top" title="Editar documento SST">
-                                            <i class="fas fa-pen text-muted"></i>
-                                        </a>
+                                    <a href="{{ route('admin.seguridad_salud_trabajo.edit', $doc) }}"
+                                       class="btn btn-sm btn-light-custom px-3"
+                                       data-toggle="tooltip" data-placement="top" title="Editar documento">
+                                        <i class="fas fa-pen text-muted"></i>
+                                    </a>
 
-                                        <form action="{{ route('admin.seguridad_salud_trabajo.destroy', $doc) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="btn btn-sm btn-light-custom px-3"
-                                                    data-toggle="tooltip" data-placement="top" title="Desactivar documento"
-                                                    onclick="return confirm('¿Confirma que desea DESACTIVAR este registro?');">
-                                                <i class="fas fa-ban text-danger"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50"
-                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactivo)"
-                                                disabled>
-                                            <i class="fas fa-pen text-muted"></i>
+                                    <form action="{{ route('admin.seguridad_salud_trabajo.destroy', $doc) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-light-custom px-3 text-danger"
+                                                data-toggle="tooltip" data-placement="top" title="Eliminar registro"
+                                                onclick="return confirm('¿Confirma que desea ELIMINAR este registro?');">
+                                            <i class="fas fa-trash-alt"></i>
                                         </button>
-
-                                        <form action="{{ route('admin.seguridad_salud_trabajo.toggle', $doc->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success shadow-sm"
-                                                    data-toggle="tooltip" data-placement="top" title="Reactivar documento">
-                                                <i class="fas fa-check-circle"></i> Activar
-                                            </button>
-                                        </form>
-                                    @endif
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -186,4 +160,16 @@
     </div>
 
 </div>
-@endsection
+@stop
+
+@section('js')
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({ 
+            placement: 'top', 
+            trigger: 'hover',
+            boundary: 'window' 
+        });
+    });
+</script>
+@stop

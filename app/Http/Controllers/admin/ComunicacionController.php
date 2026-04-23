@@ -11,13 +11,28 @@ use Illuminate\Support\Facades\Storage;
 
 class ComunicacionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $comunicaciones = Comunicacion::with('empleado.persona', 'documentos')
-            ->latest()
-            ->paginate(10);
+        $busqueda  = $request->buscar;
+        $documento = $request->documento;
 
-        return view('admin.comunicaciones.index', compact('comunicaciones'));
+        $comunicaciones = Comunicacion::with('empleado.persona', 'documentos')
+            ->when($busqueda, function ($query, $busqueda) {
+                $query->whereHas('empleado.persona', function ($q) use ($busqueda) {
+                    $q->where('nombres', 'like', "%$busqueda%")
+                      ->orWhere('apellidos', 'like', "%$busqueda%");
+                });
+            })
+            ->when($documento, function ($query, $documento) {
+                $query->whereHas('empleado.persona', function ($q) use ($documento) {
+                    $q->where('numero_documento', 'like', "%$documento%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.comunicaciones.index', compact('comunicaciones', 'busqueda', 'documento'));
     }
 
     public function create()

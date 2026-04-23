@@ -21,7 +21,6 @@ class SeguridadSaludTrabajoController extends Controller
     {
         $busqueda = $request->buscar;
         $tipo     = $request->tipo_documento;
-        $estado   = $request->estado;
 
         $documentos = SeguridadSaludTrabajo::with(['empleado.persona', 'documentos'])
             ->when($busqueda, function ($query, $busqueda) {
@@ -33,14 +32,11 @@ class SeguridadSaludTrabajoController extends Controller
             ->when($tipo, function ($query, $tipo) {
                 $query->where('tipo_documento', 'like', "%$tipo%");
             })
-            ->when($estado !== null && $estado !== '', function ($query) use ($estado) {
-                $query->where('estado', $estado);
-            })
             ->orderByDesc('fecha')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.seguridad_salud_trabajo.index', compact('documentos', 'busqueda', 'tipo', 'estado'));
+        return view('admin.seguridad_salud_trabajo.index', compact('documentos', 'busqueda', 'tipo'));
     }
 
     public function create()
@@ -54,7 +50,7 @@ class SeguridadSaludTrabajoController extends Controller
         $request->validate([
             'empleado_id'    => 'required|exists:empleados,id',
             'tipo_documento' => 'required|string|max:100',
-            'documentos'     => 'required|array',
+            'documentos'     => 'nullable|array',
             'documentos.*'   => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'fecha'          => 'required|date',
         ]);
@@ -93,17 +89,11 @@ class SeguridadSaludTrabajoController extends Controller
 
     public function destroy(SeguridadSaludTrabajo $seguridad_salud_trabajo)
     {
-        $seguridad_salud_trabajo->update(['estado' => 0]);
-        return back()->with('success', 'Registro desactivado correctamente.');
-    }
-
-    public function toggleStatus($id)
-    {
-        $registro = SeguridadSaludTrabajo::findOrFail($id);
-        $nuevoEstado = $registro->estado == 1 ? 0 : 1;
-        $registro->update(['estado' => $nuevoEstado]);
-
-        $mensaje = $nuevoEstado == 1 ? 'activado' : 'desactivado';
-        return back()->with('success', "Registro $mensaje correctamente.");
+        // En lugar de desactivar, eliminamos el registro si el usuario lo solicita (o mantenemos inactivación lógica si se prefiere ocultar)
+        // Por consistencia con la solicitud de "eliminar campo estado", trataremos los registros como siempre vigentes
+        // pero permitiremos el borrado físico si se desea limpiar datos. 
+        // El usuario pidió "Eliminar el campo estado", así que quitamos la lógica de toggles.
+        $seguridad_salud_trabajo->delete();
+        return back()->with('success', 'Registro eliminado correctamente.');
     }
 }

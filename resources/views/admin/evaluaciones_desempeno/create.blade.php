@@ -44,18 +44,8 @@
                     </div>
 
                     <div class="row g-4">
-                        {{-- CALIFICACIÓN --}}
-                        <div class="col-md-6 mb-4">
-                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
-                                Calificación (1-10) <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" name="calificacion" min="1" max="10" step="1"
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none"
-                                   value="{{ old('calificacion') }}" required>
-                        </div>
-
                         {{-- FECHA --}}
-                        <div class="col-md-6 mb-4">
+                        <div class="col-md-12 mb-4">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                                 Fecha de Evaluación <span class="text-danger">*</span>
                             </label>

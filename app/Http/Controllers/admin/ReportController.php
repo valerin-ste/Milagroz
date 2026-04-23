@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Empleado;
 use App\Models\Area;
 use App\Models\Sede;
-use App\Exports\EmployeesExport;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
@@ -88,9 +86,5 @@ class ReportController extends Controller
         return $pdf->download('reporte_empleados_' . date('Ymd_His') . '.pdf');
     }
 
-    public function exportEmployeesExcel(Request $request)
-    {
-        $filters = $request->all();
-        return Excel::download(new EmployeesExport($filters), 'reporte_empleados_' . date('Ymd_His') . '.xlsx');
-    }
+
 }

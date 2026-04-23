@@ -29,17 +29,7 @@
                     </div>
 
                     <div class="row g-4">
-                        <div class="col-md-6 mb-4">
-                            <label for="calificacion" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Calificación (1-10) <span class="text-danger">*</span></label>
-                            <input type="number" name="calificacion" id="calificacion" min="1" max="10" step="1" 
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none @error('calificacion') is-invalid @enderror" 
-                                   value="{{ old('calificacion', $evaluacion->calificacion) }}" required>
-                            @error('calificacion')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-4">
+                        <div class="col-md-12 mb-4">
                             <label for="fecha" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha de Evaluación <span class="text-danger">*</span></label>
                             <input type="date" name="fecha" id="fecha" 
                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('fecha') is-invalid @enderror" 
@@ -51,37 +41,33 @@
                     </div>
 
                     <div class="mb-4">
-    <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
-        Archivos actuales
-    </label>
+                        <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
+                            Archivos actuales
+                        </label>
 
-    <div class="list-group">
-        @forelse($evaluacion->documentos as $doc)
-            <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="list-group mb-3">
+                            @forelse($evaluacion->documentos as $doc)
+                                <div id="doc-{{ $doc->id }}" class="list-group-item d-flex justify-content-between align-items-center">
 
-                {{-- NOMBRE DEL ARCHIVO (CLICK PARA VER) --}}
-                <a href="{{ Storage::url($doc->ruta) }}" target="_blank" 
-                   class="text-decoration-none fw-semibold text-dark">
-                    📄 {{ $doc->nombre_original }}
-                </a>
+                                    {{-- NOMBRE DEL ARCHIVO (CLICK PARA VER) --}}
+                                    <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" 
+                                       class="text-decoration-none fw-semibold text-dark">
+                                        📄 {{ $doc->nombre_original }}
+                                    </a>
 
-                {{-- BOTÓN ELIMINAR --}}
-                <form action="{{ route('admin.documentos.destroy', $doc->id) }}" 
-                      method="POST" 
-                      onsubmit="return confirm('¿Eliminar este archivo permanentemente?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </form>
+                                    {{-- BOTÓN ELIMINAR --}}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeExistingDoc({{ $doc->id }})">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            @empty
+                                <div class="text-muted small">No hay archivos previos.</div>
+                            @endforelse
+                        </div>
 
-            </div>
-        @empty
-            <div class="text-muted small">No hay archivos previos.</div>
-        @endforelse
-    </div>
-</div>
+                        {{-- OCULTOS PARA ELIMINACIÓN --}}
+                        <div id="hiddenDeleteInputs"></div>
+                    </div>
 
                     <div class="mb-4">
                         <label for="archivos" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Subir más archivos</label>
@@ -103,3 +89,21 @@
     </div>
 </div>
 @endsection
+
+@section('js')
+<script>
+function removeExistingDoc(id) {
+    if (!confirm('¿Eliminar este archivo?')) return;
+
+    const element = document.getElementById('doc-' + id);
+    if (element) element.remove();
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'eliminar_documentos[]';
+    input.value = id;
+
+    document.getElementById('hiddenDeleteInputs').appendChild(input);
+}
+</script>
+@stop

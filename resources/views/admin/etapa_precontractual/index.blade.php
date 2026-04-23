@@ -1,7 +1,8 @@
 @extends('adminlte::page')
 
 @section('content_header')
-<div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
+
+<div class="d-flex justify-content-between align-items-center mb-2 px-2">
     <div>
         <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem;">
             Etapa Precontractual
@@ -15,6 +16,26 @@
         <i class="fas fa-plus me-2"></i> Nuevo Registro
     </a>
 </div>
+
+<form method="GET" action="{{ route('admin.etapa_precontractual.index') }}" class="mb-3 px-2">
+    <div class="input-group">
+
+        <input type="text" name="buscar" class="form-control"
+               placeholder="Buscar por nombre o número de documento..."
+               value="{{ request('buscar') }}">
+
+        <button class="btn btn-primary">
+            Buscar
+        </button>
+
+        @if(request('buscar'))
+            <a href="{{ route('admin.etapa_precontractual.index') }}" class="btn btn-secondary">
+                Limpiar
+            </a>
+        @endif
+
+    </div>
+</form> 
 @stop
 
 @section('content')
@@ -28,165 +49,186 @@
         </div>
     @endif
 
-    <div class="card border-0">
-        <div class="card-body p-0">
+    {{-- 🔥 NUEVO DISEÑO EN TARJETAS --}}
+    <div class="row p-3">
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+        @forelse($etapas as $c)
+        <div class="col-md-6 col-lg-4 mb-4">
 
-                    <thead>
-                        <tr>
-                            <th class="ps-4">Empleado</th>
-                            <th>Fechas</th>
-                            <th>Estado</th>
-                            <th>Documentos</th>
-                            <th class="text-center pe-4">Acciones</th>
-                        </tr>
-                    </thead>
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body d-flex flex-column">
 
-                    <tbody>
-                        @forelse($etapas as $c)
-                        <tr>
+                    {{-- EMPLEADO --}}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width: 45px; height: 45px; background-color: rgba(19,182,236,0.1); color: var(--primary-blue);">
+                            <span class="fw-bold">
+                                {{ strtoupper(substr($c->persona->nombres ?? 'X', 0, 1)) }}
+                            </span>
+                        </div>
 
-                            {{-- EMPLEADO --}}
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                                         style="width: 40px; height: 40px; background-color: rgba(19,182,236,0.1); color: var(--primary-blue);">
-                                        <span class="fw-bold">
-                                            {{ strtoupper(substr($c->persona->nombres ?? 'X', 0, 1)) }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">
-                                            {{ $c->persona->nombres ?? '' }} {{ $c->persona->apellidos ?? '' }}
-                                        </div>
-                                        <div class="text-muted small">
-                                            CC: {{ $c->persona->numero_documento ?? '' }}
-                                        </div>
-                                    </div>
+                        <div>
+                            <div class="fw-bold">
+                                {{ $c->persona->nombres ?? '' }} {{ $c->persona->apellidos ?? '' }}
+                            </div>
+                            <small class="text-muted">
+                                CC: {{ $c->persona->numero_documento ?? '' }}
+                            </small>
+                        </div>
+                    </div>
+
+                    {{-- FECHA --}}
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Fecha</small>
+                        <span>📅 {{ \Carbon\Carbon::parse($c->fecha_registro)->format('d M Y') }}</span>
+                    </div>
+
+                    {{-- ESTADO --}}
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Estado</small>
+
+                        @php
+                            $vencido = $c->fecha_fin && \Carbon\Carbon::parse($c->fecha_fin)->isPast();
+                        @endphp
+
+                        @if($c->estado == 0)
+                            <span class="badge bg-danger">Inactivo</span>
+                        @elseif($vencido)
+                            <span class="badge bg-warning text-dark">Vencido</span>
+                        @else
+                            <span class="badge bg-success">Vigente</span>
+                        @endif
+                    </div>
+
+                    {{-- ACCIONES --}}
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+
+            {{-- BOTÓN PRINCIPAL --}}
+            <button class="btn btn-outline-secondary btn-sm"
+                    data-toggle="modal"
+                    data-target="#docsModal{{ $c->id }}">
+                📂 Ver documentos ({{ $c->documentos->count() }})
+            </button>
+
+            {{-- ACCIONES --}}
+            <div class="d-flex align-items-center gap-2">
+
+            @if($c->estado == 1)
+
+                {{-- EDITAR --}}
+                <a href="{{ route('admin.etapa_precontractual.edit', $c) }}"
+                    class="btn btn-sm btn-icon btn-outline-primary"
+                    data-toggle="tooltip"
+                    title="Editar">
+                        <i class="fas fa-pen"></i>
+                </a>
+
+                {{-- ELIMINAR --}}
+                <form action="{{ route('admin.etapa_precontractual.destroy', $c) }}"
+                    method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button class="btn btn-sm btn-icon btn-outline-danger"
+                            data-toggle="tooltip"
+                            title="Inactivar"
+                            onclick="return confirm('¿Inactivar registro?')">
+                        <i class="fas fa-toggle-off"></i>
+                    </button>
+                </form>
+
+            @else
+
+                {{-- REACTIVAR --}}
+                <form action="{{ route('admin.etapa_precontractual.toggle', $c->id) }}"
+                    method="POST">
+                    @csrf
+                    <button class="btn btn-sm btn-light border">
+                        🔄
+                    </button>
+                </form>
+
+            @endif
+
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+        {{-- MODAL DOCUMENTOS --}}
+        <div class="modal fade" id="docsModal{{ $c->id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content rounded-4">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Documentos</h5>
+                        <button type="button" class="btn-close" data-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <ul class="list-group">
+                            @forelse($c->documentos as $doc)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                                <span class="text-truncate" style="max-width: 200px;">
+                                    📄 {{ $doc->nombre_original }}
+                                </span>
+
+                                <div class="d-flex gap-2">
+
+                                    <a href="{{ route('admin.documentos.view', $doc->id) }}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-outline-primary">
+                                        👁️
+                                    </a>
+
+                                    <a href="{{ route('admin.documentos.download', $doc->id) }}"
+                                    class="btn btn-sm btn-outline-success">
+                                        ⬇️
+                                    </a>
+
                                 </div>
-                            </td>
 
-                            <td style="color: #475569;">
-                                <div class="mb-1">
-                                    <i class="fas fa-calendar-check text-success me-1"></i>
-                                    {{ \Carbon\Carbon::parse($c->fecha_registro)->format('d M, Y') }}
-                                </div>
-                            </td>
+                            </li>
+                            @empty
+                            <li class="list-group-item text-muted">
+                                Sin documentos
+                            </li>
+                            @endforelse
+                        </ul>
+                    </div>
 
-                            {{-- ESTADO --}}
-                            <td>
-                                @php
-                                    $vencido = $c->fecha_fin && \Carbon\Carbon::parse($c->fecha_fin)->isPast();
-                                @endphp
-
-                                @if($c->estado == 0)
-                                    <span class="badge-soft-danger">
-                                        <i class="fas fa-times-circle"></i> Inactivo
-                                    </span>
-                                @elseif($vencido)
-                                    <span class="badge-soft-danger">
-                                        <i class="fas fa-exclamation-triangle"></i> Vencido
-                                    </span>
-                                @else
-                                    <span class="badge-soft-success">
-                                        <i class="fas fa-check-circle"></i> Vigente
-                                    </span>
-                                @endif
-                            </td>
-
-                            {{-- DOCUMENTOS --}}
-                            <td>
-                                @if($c->documentos->count() > 0)
-                                    <div class="d-flex flex-column gap-1">
-                                        @foreach($c->documentos as $doc)
-                                            <a href="{{ Storage::url($doc->ruta) }}"
-                                               target="_blank"
-                                               class="btn btn-sm btn-light-custom text-start text-truncate"
-                                               title="{{ $doc->nombre_original }}"
-                                               style="border: 1px solid #e2e8f0; color:#b91c1c; max-width:160px; font-size:0.8rem;">
-                                                <i class="fas fa-file-pdf"></i>
-                                                {{ $doc->nombre_original }}
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <span class="text-muted small fst-italic">
-                                        Sin archivos
-                                    </span>
-                                @endif
-                            </td>
-
-                            <td class="text-center pe-4">
-                                <div class="action-container">
-
-                                    @if($c->estado == 1)
-                                        <a href="{{ route('admin.etapa_precontractual.edit', $c) }}"
-                                           class="btn-table-action"
-                                           data-toggle="tooltip" data-placement="top" title="Editar registro precontractual">
-                                            <i class="fas fa-pen"></i>
-                                        </a>
-
-                                        <form action="{{ route('admin.etapa_precontractual.destroy', $c) }}"
-                                              method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="btn-table-action"
-                                                    data-toggle="tooltip" data-placement="top" title="Desactivar registro"
-                                                    onclick="return confirm('¿Desactivar registro?')">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <button class="btn-table-action opacity-50"
-                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactivo)"
-                                                style="cursor:not-allowed;" disabled>
-                                            <i class="fas fa-pen"></i>
-                                        </button>
-
-                                        <form action="{{ route('admin.etapa_precontractual.toggle', $c->id) }}"
-                                              method="POST" class="d-inline">
-                                            @csrf
-                                            <button class="btn-table-action"
-                                                    data-toggle="tooltip" data-placement="top" title="Reactivar registro">
-                                                <i class="fas fa-check-circle"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-
-                                </div>
-                            </td>
-
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
-                                <div class="d-flex flex-column align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-3"
-                                         style="width: 60px; height: 60px; background-color: #f1f5f9;">
-                                        <i class="fas fa-handshake fa-2x" style="color: #cbd5e1;"></i>
-                                    </div>
-                                    <h5 class="fw-bold mb-1">Aún no hay registros</h5>
-                                    <p class="mb-0">Crea el primero</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-
-                    </tbody>
-                </table>
+                </div>
             </div>
-
         </div>
 
-        @if($etapas->hasPages())
-        <div class="card-footer bg-white border-top py-3 px-4">
-            {{ $etapas->links() }}
+        @empty
+        <div class="col-12 text-center py-5 text-muted">
+            <h5>No hay registros</h5>
         </div>
-        @endif
+        @endforelse
 
     </div>
 
+    {{-- PAGINACIÓN --}}
+    @if($etapas->hasPages())
+    <div class="card-footer bg-white border-top py-3 px-4">
+        {{ $etapas->links() }}
+    </div>
+    @endif
+
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@endpush
+
+@push('css')
+<style>
+.btn-icon:hover {
+    transform: scale(1.1);
+    transition: 0.2s;
+}
+</style>
+@endpush

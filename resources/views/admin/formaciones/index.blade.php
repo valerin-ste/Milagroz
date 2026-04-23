@@ -32,16 +32,16 @@
                     <label class="small font-weight-bold text-muted mb-1">Buscar Especialidad/Curso</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
-                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre, curso o institución..." value="{{ request('buscar') }}">
+                        <input type="text" name="buscar" class="form-control border-light bg-light shadow-none" placeholder="Nombre o curso..." value="{{ request('buscar') }}">
                     </div>
                 </div>
 
                 <div class="col-md-2">
-                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
-                    <select name="estado" class="form-control border-light bg-light shadow-none">
+                    <label class="small font-weight-bold text-muted mb-1">Tipo de Formación</label>
+                    <select name="vence" class="form-control border-light bg-light shadow-none">
                         <option value="">-- Todos --</option>
-                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Activo</option>
-                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactivo (Vencido)</option>
+                        <option value="1" {{ request('vence') === '1' ? 'selected' : '' }}>Curso vence</option>
+                        <option value="0" {{ request('vence') === '0' ? 'selected' : '' }}>Curso no vence</option>
                     </select>
                 </div>
 
@@ -66,7 +66,6 @@
                         <tr>
                             <th class="ps-4">Empleado</th>
                             <th>Curso / Formación</th>
-                            <th>Institución</th>
                             <th>Fechas</th>
                             <th>Certificados</th>
                             <th>Estado</th>
@@ -81,7 +80,6 @@
                                 <small class="text-muted">{{ $f->empleado->cargo }}</small>
                             </td>
                             <td><span class="fw-bold text-primary">{{ $f->nombre_curso }}</span></td>
-                            <td>{{ $f->institucion }}</td>
                             <td>
                                 <small class="text-muted d-block">Desde: {{ $f->fecha_inicio->format('d/m/Y') }}</small>
                                 <small class="text-muted d-block">Hasta: {{ $f->fecha_fin ? $f->fecha_fin->format('d/m/Y') : 'En curso' }}</small>
@@ -90,8 +88,14 @@
                                 @if($f->documentos->count() > 0)
                                     <div class="d-flex flex-column gap-1">
                                         @foreach($f->documentos as $doc)
-                                            <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-light-custom text-truncate" style="max-width: 160px; font-size: 0.8rem;" title="{{ $doc->nombre_original }}">
-                                                <i class="fas fa-file-pdf text-danger me-1"></i> {{ $doc->nombre_original }}
+                                            <a href="{{ route('admin.documentos.view', $doc->id) }}"
+                                               target="_blank"
+                                               class="doc-file-clickable"
+                                               data-toggle="tooltip" data-boundary="window"
+                                               title="{{ $doc->nombre_original }}"
+                                               style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                                                <i class="fas fa-file-pdf"></i>
+                                                <span class="file-name-text text-truncate" style="max-width: 120px;">{{ $doc->nombre_original }}</span>
                                             </a>
                                         @endforeach
                                     </div>
@@ -169,7 +173,19 @@
         @endif
     </div>
 </div>
-@endsection
+@stop
+
+@section('js')
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({ 
+            placement: 'top', 
+            trigger: 'hover',
+            boundary: 'window' 
+        });
+    });
+</script>
+@stop
 
 @section('css')
 <style>

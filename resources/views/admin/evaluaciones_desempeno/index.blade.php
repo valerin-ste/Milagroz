@@ -35,7 +35,7 @@
     <form method="GET" action="{{ route('admin.evaluaciones_desempeno.index') }}" class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">
             <div class="row align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-5">
                     <label class="small font-weight-bold text-muted mb-1">Buscar Empleado</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-light text-muted"><i class="fas fa-search"></i></span>
@@ -43,16 +43,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-2">
-                    <label class="small font-weight-bold text-muted mb-1">Estado</label>
-                    <select name="estado" class="form-control border-light bg-light shadow-none">
-                        <option value="">-- Todos --</option>
-                        <option value="1" {{ request('estado') === '1' ? 'selected' : '' }}>Vigente</option>
-                        <option value="0" {{ request('estado') === '0' ? 'selected' : '' }}>Inactiva</option>
-                    </select>
-                </div>
-
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary flex-grow-1 shadow-xs">
                             <i class="fas fa-filter mr-1"></i> Filtrar
@@ -73,15 +64,13 @@
                         <tr>
                             <th class="ps-4">Empleado</th>
                             <th>Fecha</th>
-                            <th>Calificación</th>
                             <th>Archivos Adjuntos</th>
-                            <th>Estado</th>
                             <th class="text-center pe-4">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($evaluaciones as $e)
-                        <tr @if($e->estado == 0) style="background-color: #f8fafc; opacity: 0.8;" @endif>
+                        <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(19, 182, 236, 0.1); color: var(--primary-blue);">
@@ -100,22 +89,12 @@
                             </td>
 
                             <td>
-                                @php
-                                    $color = $e->calificacion >= 8 ? 'success' : ($e->calificacion >= 6 ? 'warning' : 'danger');
-                                @endphp
-                                <div class="d-flex align-items-center">
-                                    <div class="progress flex-grow-1 me-2" style="height: 6px; border-radius: 10px;">
-                                        <div class="progress-bar bg-{{ $color }}" role="progressbar" style="width: {{ $e->calificacion * 10 }}%" aria-valuenow="{{ $e->calificacion }}" aria-valuemin="0" aria-valuemax="10"></div>
-                                    </div>
-                                    <span class="fw-bold text-{{ $color }}">{{ $e->calificacion }}/10</span>
-                                </div>
-                            </td>
-
-                            <td>
                                 @if($e->documentos->count() > 0)
                                     <div class="d-flex flex-column gap-1">
                                         @foreach($e->documentos as $doc)
-                                            <a href="{{ Storage::url($doc->ruta) }}" target="_blank" class="btn btn-sm btn-outline-secondary text-truncate" style="max-width: 160px; font-size: 0.8rem;" title="{{ $doc->nombre_original }}">
+                                            <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" 
+                                               class="btn btn-sm btn-light-custom text-start text-truncate" 
+                                               style="max-width: 160px; font-size: 0.8rem;" title="{{ $doc->nombre_original }}">
                                                 <i class="fas fa-file-pdf text-danger me-1"></i> {{ $doc->nombre_original }}
                                             </a>
                                         @endforeach
@@ -125,57 +104,29 @@
                                 @endif
                             </td>
 
-                            <td>
-                                @php $badge = $e->getStatusBadge($e->fecha); @endphp
-
-                                @if($e->estado == 0)
-                                    <span class="badge-soft-danger px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">Inactiva</span>
-                                @else
-                                    <span class="{{ $badge['class'] }} px-3 py-1 rounded-pill" style="font-size: 0.8rem; font-weight: 600;">
-                                        <i class="{{ $badge['icon'] }} me-1"></i> {{ $badge['label'] }}
-                                    </span>
-                                @endif
-                            </td>
-
                             <td class="text-center pe-4">
                                 <div class="d-flex justify-content-center gap-2">
-                                    @if($e->estado == 1)
-                                        <a href="{{ route('admin.evaluaciones_desempeno.edit', $e) }}"
-                                           class="btn btn-sm btn-light-custom px-3"
-                                           data-toggle="tooltip" data-placement="top" title="Editar evaluación de desempeño">
-                                            <i class="fas fa-pen text-muted"></i>
-                                        </a>
+                                    <a href="{{ route('admin.evaluaciones_desempeno.edit', $e) }}"
+                                       class="btn btn-sm btn-light-custom px-3"
+                                       data-toggle="tooltip" data-placement="top" title="Editar evaluación">
+                                        <i class="fas fa-pen text-muted"></i>
+                                    </a>
 
-                                        <form action="{{ route('admin.evaluaciones_desempeno.destroy', $e) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-danger"
-                                                    data-toggle="tooltip" data-placement="top" title="Desactivar evaluación"
-                                                    onclick="return confirm('¿Confirma que desea DESACTIVAR esta evaluación?');">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <button class="btn btn-sm btn-light-custom px-3 opacity-50"
-                                                data-toggle="tooltip" data-placement="top" title="Edición no disponible (Inactiva)"
-                                                disabled>
-                                            <i class="fas fa-pen text-muted"></i>
+                                    <form action="{{ route('admin.evaluaciones_desempeno.destroy', $e) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-light-custom px-3 text-danger"
+                                                data-toggle="tooltip" data-placement="top" title="Eliminar evaluación"
+                                                onclick="return confirm('¿Confirma que desea ELIMINAR esta evaluación?');">
+                                            <i class="fas fa-trash-alt"></i>
                                         </button>
-
-                                        <form action="{{ route('admin.evaluaciones_desempeno.toggle', $e->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-light-custom px-3 text-success"
-                                                    data-toggle="tooltip" data-placement="top" title="Reactivar evaluación">
-                                                <i class="fas fa-check-circle"></i> Activar
-                                            </button>
-                                        </form>
-                                    @endif
+                                    </form>
                                 </div>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="4" class="text-center py-5 text-muted">
                                 <div class="d-flex flex-column align-items-center">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background-color: #f1f5f9;">
                                         <i class="fas fa-chart-line fa-2x text-muted"></i>

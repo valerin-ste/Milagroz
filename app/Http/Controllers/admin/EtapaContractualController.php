@@ -20,11 +20,18 @@ class EtapaContractualController extends Controller
 
     public function index(\Illuminate\Http\Request $request)
     {
-        $busqueda = $request->buscar;
-        $estado   = $request->estado;
-        $tipo     = $request->tipo_contrato;
-        $desde    = $request->desde;
-        $hasta    = $request->hasta;
+        $busqueda  = $request->buscar;
+        $documento = $request->documento;
+        $tipo      = $request->tipo_contrato;
+
+        // Lista fija de tipos de contrato
+        $tiposContrato = [
+            'Contrato fijo',
+            'Contrato indefinido',
+            'Obra o labor',
+            'Temporal',
+            'Prestación de servicios'
+        ];
 
         $contratos = EtapaContractual::with(['empleado.persona', 'documentos'])
             ->when($busqueda, function ($query, $busqueda) {
@@ -33,23 +40,19 @@ class EtapaContractualController extends Controller
                       ->orWhere('apellidos', 'like', "%$busqueda%");
                 });
             })
-            ->when($estado !== null && $estado !== '', function ($query) use ($estado) {
-                $query->where('estado', $estado);
+            ->when($documento, function ($query, $documento) {
+                $query->whereHas('empleado.persona', function ($q) use ($documento) {
+                    $q->where('numero_documento', 'like', "%$documento%");
+                });
             })
             ->when($tipo, function ($query, $tipo) {
-                $query->where('tipo_contrato', 'like', "%$tipo%");
-            })
-            ->when($desde, function ($query, $desde) {
-                $query->whereDate('fecha_inicio', '>=', $desde);
-            })
-            ->when($hasta, function ($query, $hasta) {
-                $query->whereDate('fecha_fin', '<=', $hasta);
+                $query->where('tipo_contrato', $tipo);
             })
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.etapa_contractual.index', compact('contratos', 'busqueda', 'estado', 'tipo', 'desde', 'hasta'));
+        return view('admin.etapa_contractual.index', compact('contratos', 'busqueda', 'documento', 'tipo', 'tiposContrato'));
     }
 
     public function create()

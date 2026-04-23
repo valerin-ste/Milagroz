@@ -10,9 +10,7 @@ use App\Models\Sede;
 use App\Models\Role;
 use App\Http\Requests\Admin\StoreEmpleadoRequest;
 use App\Http\Requests\Admin\UpdateEmpleadoRequest;
-use App\Exports\EmployeesExport;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class EmpleadoController extends Controller
@@ -54,16 +52,19 @@ class EmpleadoController extends Controller
     public function show(Empleado $empleado)
     {
         $empleado->load([
-        'persona',
-        'area',
-        'sede',
-        'rol',
-        'etapaPrecontractuales.documentos',
-        'etapaContractuales.documentos',    
-        'seguridadSaludTrabajo.documentos',
-        'evaluacionesDesempeno.documentos',
-        'formaciones.documentos' // 🔥 FALTA ESTO
-    ]);
+            'persona:id,tipo_documento,numero_documento,nombres,apellidos,telefono,correo,direccion,fecha_nacimiento',
+            'area:id,nombre',
+            'sede:id,nombre',
+            'rol:id,nombre',
+            'etapaPrecontractuales.documentos',
+            'etapaContractuales.documentos',
+            'seguridadSaludTrabajo.documentos',
+            'evaluacionesDesempeno.documentos',
+            'formaciones.documentos',
+            'comunicaciones.documentos',
+            'solicitudes.documentos'
+        ]);
+        
 
         return view('admin.empleados.show', compact('empleado'));
     }
@@ -78,6 +79,7 @@ class EmpleadoController extends Controller
 
         return view('admin.empleados.create', compact('personas', 'areas', 'sedes', 'roles'));
     }
+ 
 
     public function store(StoreEmpleadoRequest $request)
     {
@@ -197,11 +199,5 @@ class EmpleadoController extends Controller
         $pdf->setPaper('letter', 'landscape');
         
         return $pdf->download('reporte_empleados_' . date('Ymd_His') . '.pdf');
-    }
-
-    public function exportExcel(Request $request)
-    {
-        $filters = $request->all();
-        return Excel::download(new EmployeesExport($filters), 'reporte_empleados_' . date('Ymd_His') . '.xlsx');
     }
 }

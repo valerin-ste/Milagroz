@@ -1,7 +1,7 @@
 @extends('adminlte::page')
 
 @section('content_header')
-<div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
+<div class="d-flex justify-content-between align-items-center mb-2 px-2">
     <div>
         <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem; letter-spacing: -0.5px;">
             Comunicaciones
@@ -27,6 +27,39 @@
             <div>{{ session('success') }}</div>
         </div>
     @endif
+
+    <form method="GET" action="{{ route('admin.comunicaciones.index') }}" class="filter-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="filter-label">Buscar Empleado / Destinatario</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="buscar" class="form-control"
+                           placeholder="Nombre o apellido..." value="{{ request('buscar') }}">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="filter-label">Número de Documento</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                    <input type="text" name="documento" class="form-control"
+                           placeholder="Documento..." value="{{ request('documento') }}">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1" style="height:38px;">
+                        <i class="fas fa-filter mr-1"></i> Filtrar
+                    </button>
+                    <a href="{{ route('admin.comunicaciones.index') }}" class="btn btn-light border btn-sm flex-grow-1" style="height:38px;">
+                        <i class="fas fa-undo mr-1"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
 
     <div class="card border-0">
         <div class="card-body p-0">
@@ -93,13 +126,14 @@
                                 @if($c->documentos->count() > 0)
                                     <div class="d-flex flex-column gap-1">
                                         @foreach($c->documentos as $doc)
-                                            <a href="{{ Storage::url($doc->ruta) }}"
+                                            <a href="{{ route('admin.documentos.view', $doc->id) }}?t={{ time() }}"
                                                target="_blank"
-                                               class="btn btn-sm btn-light-custom text-start text-truncate"
+                                               class="doc-file-clickable"
+                                               data-toggle="tooltip" data-boundary="window"
                                                title="{{ $doc->nombre_original }}"
-                                               style="border: 1px solid #e2e8f0; color: #b91c1c; max-width: 160px; font-size: 0.8rem;">
-                                                <i class="fas fa-file"></i>
-                                                {{ $doc->nombre_original }}
+                                               style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                                                <i class="fas fa-file-pdf"></i>
+                                                <span class="file-name-text text-truncate" style="max-width: 120px;">{{ $doc->nombre_original }}</span>
                                             </a>
                                         @endforeach
                                     </div>
@@ -144,19 +178,6 @@
 
                         @empty
 
-                        <tr>
-                            <td colspan="5" class="text-center py-5">
-                                <div class="empty-state py-3">
-                                    <div class="empty-state-icon"><i class="fas fa-bullhorn"></i></div>
-                                    <h5 class="empty-state-title">No hay comunicaciones registradas</h5>
-                                    <p class="empty-state-description">Comience creando la primera comunicación interna.</p>
-                                    <a href="{{ route('admin.comunicaciones.create') }}" class="btn btn-orange btn-sm px-4">
-                                        <i class="fas fa-plus mr-1"></i> Nueva Comunicación
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-
                         @endforelse
 
                     </tbody>
@@ -174,5 +195,17 @@
 
     </div>
 
+    
 </div>
+@section('js')
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({ 
+            placement: 'top', 
+            trigger: 'hover',
+            boundary: 'window' 
+        });
+    });
+</script>
+@endsection
 @endsection

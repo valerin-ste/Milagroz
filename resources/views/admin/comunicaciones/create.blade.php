@@ -72,14 +72,19 @@
                                        id="buscarEmpleado"
                                        class="form-control"
                                        placeholder="Buscar empleado por nombre o cédula..."
-                                       required>
+                                       autocomplete="off">
 
-                                <input type="hidden" name="empleado_id" id="empleado_id">
+                                <input type="hidden" name="empleado_id" id="empleado_id"
+                                       value="{{ old('empleado_id') }}">
 
                                 <div id="listaEmpleados"
                                      class="list-group position-absolute w-100"
                                      style="z-index:999; display:none; max-height:250px; overflow-y:auto;">
                                 </div>
+
+                                <div id="empleadoError"
+                                     class="text-danger small mt-1"
+                                     style="display:none;">Debe seleccionar un empleado de la lista.</div>
                             </div>
 
                             <div class="col-md-12">
@@ -150,57 +155,54 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔥 AUTOCOMPLETE EMPLEADOS
     const empleados = @json($empleados);
 
-    const input = document.getElementById("buscarEmpleado");
+    const input  = document.getElementById("buscarEmpleado");
     const hidden = document.getElementById("empleado_id");
-    const lista = document.getElementById("listaEmpleados");
+    const lista  = document.getElementById("listaEmpleados");
+    const errDiv = document.getElementById("empleadoError");
+    const form   = input.closest('form');
+
+    // Pre-rellenar si hay old() value
+    if (hidden.value) {
+        const emp = empleados.find(e => e.id == hidden.value);
+        if (emp) {
+            const nombre = `${emp.persona?.nombres ?? ''} ${emp.persona?.apellidos ?? ''}`;
+            const cedula = emp.persona?.numero_documento ?? '';
+            input.value = nombre + ' - ' + cedula;
+        }
+    }
 
     const norm = (t) => (t ?? "").toString().toLowerCase().trim();
 
     input.addEventListener("input", function () {
-
         const valor = norm(this.value);
-
         lista.innerHTML = "";
         hidden.value = "";
+        errDiv.style.display = "none";
 
-        if (valor.length < 1) {
-            lista.style.display = "none";
-            return;
-        }
+        if (valor.length < 1) { lista.style.display = "none"; return; }
 
         const filtrados = empleados.filter(e => {
-
             const nombre = norm(`${e.persona?.nombres ?? ''} ${e.persona?.apellidos ?? ''}`);
             const cedula = norm(e.persona?.numero_documento);
-
             return nombre.includes(valor) || cedula.includes(valor);
         });
 
-        if (filtrados.length === 0) {
-            lista.style.display = "none";
-            return;
-        }
+        if (filtrados.length === 0) { lista.style.display = "none"; return; }
 
         filtrados.forEach(emp => {
-
             const nombre = `${emp.persona?.nombres ?? ''} ${emp.persona?.apellidos ?? ''}`;
             const cedula = emp.persona?.numero_documento ?? '';
-
             const item = document.createElement("button");
             item.type = "button";
             item.className = "list-group-item list-group-item-action";
-
-            item.innerHTML = `
-                <strong>${nombre}</strong><br>
-                <small>${cedula}</small>
-            `;
-
+            item.innerHTML = `<strong>${nombre}</strong><br><small>${cedula}</small>`;
             item.onclick = function () {
-                input.value = nombre + " - " + cedula;
+                input.value  = nombre + " - " + cedula;
                 hidden.value = emp.id;
                 lista.style.display = "none";
+                errDiv.style.display = "none";
+                input.classList.remove("is-invalid");
             };
-
             lista.appendChild(item);
         });
 
@@ -210,6 +212,17 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("click", function (e) {
         if (!input.contains(e.target) && !lista.contains(e.target)) {
             lista.style.display = "none";
+        }
+    });
+
+    // Validar antes de enviar
+    form.addEventListener("submit", function (e) {
+        if (!hidden.value) {
+            e.preventDefault();
+            input.classList.add("is-invalid");
+            errDiv.style.display = "block";
+            input.focus();
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 
@@ -249,7 +262,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderFiles() {
         fileList.innerHTML = "";
-
         Array.from(fileInput.files).forEach((file, index) => {
             let div = document.createElement("div");
             div.className = "border rounded p-2 mb-2 d-flex justify-content-between";
@@ -263,13 +275,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.removeFile = function(index) {
         let newData = new DataTransfer();
-        let files = Array.from(fileInput.files);
-
-        files.splice(index, 1).forEach(f => newData.items.add(f));
-
+        let filesList = Array.from(fileInput.files);
+        filesList.splice(index, 1);
+        filesList.forEach(f => newData.items.add(f));
         dataTransfer = newData;
         fileInput.files = dataTransfer.files;
-
         renderFiles();
     }
 

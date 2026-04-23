@@ -20,9 +20,6 @@
         <a href="{{ route('admin.reportes.empleados.pdf', request()->all()) }}" class="btn btn-danger btn-sm px-3 shadow-sm">
             <i class="fas fa-file-pdf mr-2"></i>PDF
         </a>
-        <a href="{{ route('admin.reportes.empleados.excel', request()->all()) }}" class="btn btn-success btn-sm px-3 shadow-sm">
-            <i class="fas fa-file-excel mr-2"></i>Excel
-        </a>
     </div>
 </div>
 @stop

@@ -37,13 +37,25 @@
 
                 {{-- TIPO --}}
                 <div class="mb-3">
-                    <label>Tipo de Solicitud</label>
-                    <input type="text"
-                           name="tipo"
-                           class="form-control"
-                           value="{{ $solicitud->tipo }}"
-                           required>
+                    <label>Tipo de Solicitud <span class="text-danger">*</span></label>
+                    @php
+                        $tiposPredefinidos = ['Vacaciones', 'Incapacidad'];
+                        $esOtro = !in_array($solicitud->tipo, $tiposPredefinidos);
+                    @endphp
+                    <select name="tipo_select" id="tipo_select" class="form-control" required>
+                        <option value="Vacaciones" {{ $solicitud->tipo == 'Vacaciones' ? 'selected' : '' }}>Vacaciones</option>
+                        <option value="Incapacidad" {{ $solicitud->tipo == 'Incapacidad' ? 'selected' : '' }}>Incapacidad</option>
+                        <option value="Otro" {{ $esOtro ? 'selected' : '' }}>Otro (Especificar)</option>
+                    </select>
                 </div>
+
+                <div class="mb-3" id="div_tipo_otro" style="display: {{ $esOtro ? 'block' : 'none' }};">
+                    <label>Especifique el Tipo <span class="text-danger">*</span></label>
+                    <input type="text" name="tipo_otro" id="tipo_otro" class="form-control" 
+                           value="{{ $esOtro ? $solicitud->tipo : '' }}" placeholder="Ej: Permiso por luto...">
+                </div>
+
+                <input type="hidden" name="tipo" id="tipo_final" value="{{ $solicitud->tipo }}">
 
                 {{-- DESCRIPCIÓN --}}
                 <div class="mb-3">
@@ -71,22 +83,42 @@
                            required>
                 </div>
 
-                {{-- ARCHIVO ACTUAL --}}
-                <div class="mb-3">
-                    <label>Archivo actual</label><br>
+                {{-- ARCHIVOS ACTUALES --}}
+                <div class="col-12 mt-4">
+                    <h5 class="fw-bold mb-3" style="color: var(--text-main);">
+                        <i class="fas fa-folder-open text-primary me-2"></i> Archivos Adjuntos
+                    </h5>
 
-                    @if($solicitud->archivo)
-                        <a href="{{ Storage::url($solicitud->archivo) }}" target="_blank">
-                            {{ $solicitud->nombre_archivo }}
-                        </a>
-                    @else
-                        <span class="text-muted">Sin archivo</span>
-                    @endif
-                </div>
+                    <div class="mb-3">
+                        @forelse($solicitud->documentos as $doc)
+                            <div id="doc-{{ $doc->id }}"
+                                 class="d-flex align-items-center justify-content-between mb-2 p-2 border rounded"
+                                 style="max-width: 450px;">
 
-                <div class="mb-3">
-                    <label>Reemplazar archivo</label>
-                    <input type="file" name="archivo" class="form-control">
+                                <a href="{{ route('admin.documentos.view', $doc->id) }}"
+                                   target="_blank"
+                                   class="text-truncate"
+                                   title="{{ $doc->nombre_original }}">
+                                    📎 {{ $doc->nombre_original }}
+                                </a>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="removeExistingDoc({{ $doc->id }})">
+                                    Eliminar
+                                </button>
+                            </div>
+                        @empty
+                            <span class="text-muted">Sin archivos</span>
+                        @endforelse
+                    </div>
+
+                    {{-- OCULTOS --}}
+                    <div id="hiddenDeleteInputs"></div>
+
+                    {{-- NUEVOS --}}
+                    <label class="form-label mt-3">Anexar nuevos documentos</label>
+                    <input type="file" name="archivos[]" class="form-control" multiple>
                 </div>
 
                 <button class="btn btn-primary">
@@ -102,24 +134,44 @@
 
 {{-- DELETE AJAX --}}
 <script>
-function eliminarDoc(id) {
+document.addEventListener("DOMContentLoaded", function () {
+    const tipoSelect = document.getElementById('tipo_select');
+    const tipoOtroDiv = document.getElementById('div_tipo_otro');
+    const tipoOtroInput = document.getElementById('tipo_otro');
+    const tipoFinal = document.getElementById('tipo_final');
 
-    if (!confirm('¿Eliminar este documento?')) return;
+    function updateTipo() {
+        if (tipoSelect.value === 'Otro') {
+            tipoOtroDiv.style.display = 'block';
+            tipoOtroInput.required = true;
+            tipoFinal.value = tipoOtroInput.value;
+        } else {
+            tipoOtroDiv.style.display = 'none';
+            tipoOtroInput.required = false;
+            tipoFinal.value = tipoSelect.value;
+        }
+    }
 
-    fetch('/admin/documentos/' + id, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
+    tipoSelect.addEventListener('change', updateTipo);
+    tipoOtroInput.addEventListener('input', () => {
+        if (tipoSelect.value === 'Otro') {
+            tipoFinal.value = tipoOtroInput.value;
         }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('doc-' + id).remove();
-        }
-    })
-    .catch(err => console.log(err));
+    });
+});
+
+function removeExistingDoc(id) {
+    if (!confirm('¿Eliminar este archivo?')) return;
+
+    const element = document.getElementById('doc-' + id);
+    if (element) element.remove();
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'eliminar_documentos[]';
+    input.value = id;
+
+    document.getElementById('hiddenDeleteInputs').appendChild(input);
 }
 </script>
 @endsection

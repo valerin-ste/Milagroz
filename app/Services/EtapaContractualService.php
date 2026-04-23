@@ -9,6 +9,10 @@ class EtapaContractualService
 {
     public function store(array $data, ?array $files = null)
     {
+        if (isset($data['tipo_contrato']) && $data['tipo_contrato'] === 'Término Indefinido') {
+            $data['fecha_fin'] = null;
+        }
+
         $etapa = EtapaContractual::create($data);
 
         if ($files) {
@@ -25,6 +29,10 @@ class EtapaContractualService
 
     public function update(EtapaContractual $etapa, array $data, ?array $files = null)
     {
+        if (isset($data['tipo_contrato']) && $data['tipo_contrato'] === 'Término Indefinido') {
+            $data['fecha_fin'] = null;
+        }
+
         $etapa->update($data);
 
         if (isset($data['eliminar_documentos'])) {
