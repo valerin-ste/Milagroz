@@ -1,41 +1,54 @@
 @extends('adminlte::page')
 
 @section('content_header')
-
-<div class="d-flex justify-content-between align-items-center mb-2 px-2">
+<div class="page-header d-flex justify-content-between align-items-center mb-2 px-2">
     <div>
-        <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem;">
+        <h2 class="page-title fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem;">
             Etapa Precontractual
         </h2>
-        <p class="text-muted mb-0">
+        <p class="page-subtitle text-muted mb-0">
             Gestión y control de los registros precontractuales.
         </p>
     </div>
 
-    <a href="{{ route('admin.etapa_precontractual.create') }}" class="btn btn-orange">
-        <i class="fas fa-plus me-2"></i> Nuevo Registro
-    </a>
+    <div class="page-actions">
+        <a href="{{ route('admin.etapa_precontractual.create') }}" class="btn btn-orange">
+            <i class="fas fa-plus me-2"></i> Nuevo Registro
+        </a>
+    </div>
 </div>
 
-<form method="GET" action="{{ route('admin.etapa_precontractual.index') }}" class="mb-3 px-2">
-    <div class="input-group">
+<form method="GET" action="{{ route('admin.etapa_precontractual.index') }}" class="mb-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-3">
+            <div class="row g-3 align-items-end">
 
-        <input type="text" name="buscar" class="form-control"
-               placeholder="Buscar por nombre o número de documento..."
-               value="{{ request('buscar') }}">
+                {{-- CAMPO: BUSCAR --}}
+                <div class="col-md-6">
+                    <label class="text-muted small fw-bold mb-1">Buscar Candidato</label>
+                    <div class="search-container" style="border-radius: 10px; padding: 0;">
+                        <i class="fas fa-search search-icon" style="left: 15px;"></i>
+                        <input type="text" name="buscar" class="form-control search-input py-2" style="border-radius: 10px;"
+                               placeholder="Nombre o número de documento..." value="{{ request('buscar') }}">
+                    </div>
+                </div>
 
-        <button class="btn btn-primary">
-            Buscar
-        </button>
+                {{-- BOTONES --}}
+                <div class="col-md-6">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-orange flex-grow-1 fw-bold" style="border-radius: 10px; height: 42px;">
+                            <i class="fas fa-filter me-1"></i> Filtrar
+                        </button>
+                        <a href="{{ route('admin.etapa_precontractual.index') }}" class="btn btn-light border flex-grow-1 fw-bold text-secondary" style="border-radius: 10px; height: 42px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-sync-alt me-1"></i> Limpiar
+                        </a>
+                    </div>
+                </div>
 
-        @if(request('buscar'))
-            <a href="{{ route('admin.etapa_precontractual.index') }}" class="btn btn-secondary">
-                Limpiar
-            </a>
-        @endif
-
+            </div>
+        </div>
     </div>
-</form> 
+</form>
 @stop
 
 @section('content')
@@ -49,175 +62,169 @@
         </div>
     @endif
 
-    {{-- 🔥 NUEVO DISEÑO EN TARJETAS --}}
-    <div class="row p-3">
-
-        @forelse($etapas as $c)
-        <div class="col-md-6 col-lg-4 mb-4">
-
-            <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-body d-flex flex-column">
-
-                    {{-- EMPLEADO --}}
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                             style="width: 45px; height: 45px; background-color: rgba(19,182,236,0.1); color: var(--primary-blue);">
-                            <span class="fw-bold">
-                                {{ strtoupper(substr($c->persona->nombres ?? 'X', 0, 1)) }}
-                            </span>
-                        </div>
-
-                        <div>
-                            <div class="fw-bold">
-                                {{ $c->persona->nombres ?? '' }} {{ $c->persona->apellidos ?? '' }}
-                            </div>
-                            <small class="text-muted">
-                                CC: {{ $c->persona->numero_documento ?? '' }}
-                            </small>
-                        </div>
-                    </div>
-
-                    {{-- FECHA --}}
-                    <div class="mb-2">
-                        <small class="text-muted d-block">Fecha</small>
-                        <span>📅 {{ \Carbon\Carbon::parse($c->fecha_registro)->format('d M Y') }}</span>
-                    </div>
-
-                    {{-- ESTADO --}}
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Estado</small>
-
-                        @php
-                            $vencido = $c->fecha_fin && \Carbon\Carbon::parse($c->fecha_fin)->isPast();
-                        @endphp
-
-                        @if($c->estado == 0)
-                            <span class="badge bg-danger">Inactivo</span>
-                        @elseif($vencido)
-                            <span class="badge bg-warning text-dark">Vencido</span>
-                        @else
-                            <span class="badge bg-success">Vigente</span>
-                        @endif
-                    </div>
-
-                    {{-- ACCIONES --}}
-                    <div class="d-flex justify-content-between align-items-center mt-auto">
-
-            {{-- BOTÓN PRINCIPAL --}}
-            <button class="btn btn-outline-secondary btn-sm"
-                    data-toggle="modal"
-                    data-target="#docsModal{{ $c->id }}">
-                📂 Ver documentos ({{ $c->documentos->count() }})
-            </button>
-
-            {{-- ACCIONES --}}
-            <div class="d-flex align-items-center gap-2">
-
-            @if($c->estado == 1)
-
-                {{-- EDITAR --}}
-                <a href="{{ route('admin.etapa_precontractual.edit', $c) }}"
-                    class="btn btn-sm btn-icon btn-outline-primary"
-                    data-toggle="tooltip"
-                    title="Editar">
-                        <i class="fas fa-pen"></i>
-                </a>
-
-                {{-- ELIMINAR --}}
-                <form action="{{ route('admin.etapa_precontractual.destroy', $c) }}"
-                    method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-sm btn-icon btn-outline-danger"
-                            data-toggle="tooltip"
-                            title="Inactivar"
-                            onclick="return confirm('¿Inactivar registro?')">
-                        <i class="fas fa-toggle-off"></i>
-                    </button>
-                </form>
-
-            @else
-
-                {{-- REACTIVAR --}}
-                <form action="{{ route('admin.etapa_precontractual.toggle', $c->id) }}"
-                    method="POST">
-                    @csrf
-                    <button class="btn btn-sm btn-light border">
-                        🔄
-                    </button>
-                </form>
-
-            @endif
-
-        </div>
-    </div>
-</div>
-</div>
-</div>
-
-        {{-- MODAL DOCUMENTOS --}}
-        <div class="modal fade" id="docsModal{{ $c->id }}" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content rounded-4">
-
-                    <div class="modal-header">
-                        <h5 class="modal-title">Documentos</h5>
-                        <button type="button" class="btn-close" data-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <ul class="list-group">
-                            @forelse($c->documentos as $doc)
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                                <span class="text-truncate" style="max-width: 200px;">
-                                    📄 {{ $doc->nombre_original }}
-                                </span>
-
-                                <div class="d-flex gap-2">
-
-                                    <a href="{{ route('admin.documentos.view', $doc->id) }}"
-                                    target="_blank"
-                                    class="btn btn-sm btn-outline-primary">
-                                        👁️
-                                    </a>
-
-                                    <a href="{{ route('admin.documentos.download', $doc->id) }}"
-                                    class="btn btn-sm btn-outline-success">
-                                        ⬇️
-                                    </a>
-
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <tr>
+                            <th class="ps-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Candidato</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Fecha de Registro</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Estado Revisión</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Soporte Digital</th>
+                            <th class="text-center pe-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($etapas as $c)
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center" style="gap: 1rem;">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 45px; height: 45px; background-color: rgba(19,182,236,0.1); color: var(--primary-blue);">
+                                        <span class="fw-bold" style="font-size: 1.1rem;">
+                                            {{ strtoupper(substr($c->persona->nombres ?? 'X', 0, 1)) }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                            {{ $c->persona->nombres ?? '' }} {{ $c->persona->apellidos ?? '' }}
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.85rem;">
+                                            CC: {{ $c->persona->numero_documento ?? 'N/A' }}
+                                        </div>
+                                    </div>
                                 </div>
+                            </td>
 
-                            </li>
-                            @empty
-                            <li class="list-group-item text-muted">
-                                Sin documentos
-                            </li>
-                            @endforelse
-                        </ul>
-                    </div>
+                            <td class="py-3" style="color: #475569;">
+                                <div style="font-size: 0.9rem;">
+                                    📅 {{ \Carbon\Carbon::parse($c->fecha_registro)->format('d M Y') }}
+                                </div>
+                            </td>
 
-                </div>
+                            <td class="py-3">
+                                @php
+                                    $vencido = $c->fecha_fin && \Carbon\Carbon::parse($c->fecha_fin)->isPast();
+                                @endphp
+
+                                @if($c->estado == 0)
+                                    <span class="badge bg-warning text-dark">En Proceso</span>
+                                @elseif($c->estado == 1)
+                                    <span class="badge bg-success">Aprobado</span>
+                                @elseif($c->estado == 2)
+                                    <span class="badge bg-danger">Rechazado</span>
+                                @else
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                @endif
+                            </td>
+
+                            <td class="py-3">
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        data-toggle="modal"
+                                        data-target="#docsModal{{ $c->id }}">
+                                    📂 Ver documentos ({{ $c->documentos->count() }})
+                                </button>
+                            </td>
+
+                            <td class="text-center pe-4 py-3">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    @if($c->estado != 2)
+                                        <a href="{{ route('admin.etapa_precontractual.edit', $c) }}"
+                                           class="btn btn-sm btn-icon btn-outline-primary"
+                                           data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+
+                                        <form action="{{ route('admin.etapa_precontractual.destroy', $c) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-sm btn-icon btn-outline-danger"
+                                                    data-toggle="tooltip" title="Inactivar"
+                                                    onclick="return confirm('¿Confirma que desea INACTIVAR este registro?');">
+                                                <i class="fas fa-toggle-off"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('admin.etapa_precontractual.toggle', $c->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-light border btn-icon"
+                                                    data-toggle="tooltip" title="Reactivar">
+                                                🔄
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <h5>No hay registros</h5>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        @empty
-        <div class="col-12 text-center py-5 text-muted">
-            <h5>No hay registros</h5>
+        @if($etapas->hasPages())
+        <div class="card-footer bg-white border-top py-3 px-4 rounded-bottom-4">
+            {{ $etapas->links() }}
         </div>
-        @endforelse
-
+        @endif
     </div>
-
-    {{-- PAGINACIÓN --}}
-    @if($etapas->hasPages())
-    <div class="card-footer bg-white border-top py-3 px-4">
-        {{ $etapas->links() }}
-    </div>
-    @endif
 
 </div>
+
+{{-- MODALES DE DOCUMENTOS --}}
+@foreach($etapas as $c)
+    <div class="modal fade" id="docsModal{{ $c->id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content rounded-4">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Documentos</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <ul class="list-group">
+                        @forelse($c->documentos as $doc)
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                            <span class="text-truncate" style="max-width: 200px;">
+                                📄 {{ $doc->nombre_original }}
+                            </span>
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('admin.documentos.view', $doc->id) }}"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-primary">
+                                    👁️
+                                </a>
+
+                                <a href="{{ route('admin.documentos.download', $doc->id) }}"
+                                   class="btn btn-sm btn-outline-success">
+                                    ⬇️
+                                </a>
+                            </div>
+
+                        </li>
+                        @empty
+                        <li class="list-group-item text-muted">
+                            Sin documentos
+                        </li>
+                        @endforelse
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+@endforeach
+
 @endsection
 
 @push('scripts')
@@ -229,6 +236,63 @@
 .btn-icon:hover {
     transform: scale(1.1);
     transition: 0.2s;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 30px;
+    padding: 5px 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #ddd;
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    flex: 1;
+    padding-left: 35px;
+    border-radius: 30px;
+}
+
+.search-input:focus {
+    box-shadow: none;
+}
+
+.search-btn {
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+    transform: scale(1.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    color: #999;
+    font-size: 14px;
+}
+
+.btn-orange {
+    background-color: #ff6a00;
+    border: none;
+    color: #fff;
+}
+
+.btn-orange:hover {
+    background-color: #e65c00;
+    color: #fff;
 }
 </style>
 @endpush

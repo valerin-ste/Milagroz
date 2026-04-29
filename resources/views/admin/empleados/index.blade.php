@@ -1,389 +1,309 @@
 @extends('adminlte::page')
 
 @section('content_header')
-<div class="page-header">
+<div class="page-header d-flex justify-content-between align-items-center mb-2 px-2">
     <div>
-        <h2 class="page-title">
-            <i class="fas fa-users"></i>
+        <h2 class="page-title fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem;">
             Gestión de Empleados
         </h2>
-        <p class="page-subtitle">
-            Administración y control del personal médico y administrativo
+        <p class="page-subtitle text-muted mb-0">
+            Administración y control del personal médico y administrativo.
         </p>
     </div>
 
-    <div class="page-actions">
+    <div class="page-actions d-flex gap-2">
         <div class="dropdown">
-            <button class="btn btn-light btn-sm shadow-sm dropdown-toggle" data-toggle="dropdown">
-                <i class="fas fa-file-download"></i> Reportes
+            <button class="btn btn-light border dropdown-toggle" type="button" data-toggle="dropdown">
+                Reportes
             </button>
-            <div class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item" href="{{ route('admin.empleados.reporte.pdf', request()->all()) }}">
-                    <i class="fas fa-file-pdf text-danger"></i> Exportar PDF
+            <div class="dropdown-menu dropdown-menu-right shadow-sm border-0">
+                <a class="dropdown-item py-2" href="{{ route('admin.empleados.reporte.pdf', request()->all()) }}">
+                    Exportar PDF
                 </a>
             </div>
         </div>
 
-        {{-- 🔶 BOTÓN NARANJA --}}
-        <a href="{{ route('admin.empleados.create') }}" class="btn btn-orange btn-sm">
-            <i class="fas fa-plus"></i> Nuevo Empleado
+        <a href="{{ route('admin.empleados.create') }}" class="btn btn-orange">
+            Nuevo Empleado
         </a>
     </div>
 </div>
+
+<form method="GET" action="{{ route('admin.empleados.index') }}" class="mb-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-3">
+            <div class="row g-3 align-items-end">
+                
+                {{-- BÚSQUEDA GENERAL --}}
+                <div class="col-md-3">
+                    <label class="text-muted small fw-bold mb-1">Buscar Empleado</label>
+                    <div class="search-container" style="border-radius: 10px; padding: 0;">
+                        <input type="text" name="buscar" class="form-control search-input py-2" style="border-radius: 10px;"
+                               placeholder="Nombre o documento..." value="{{ request('buscar') }}">
+                    </div>
+                </div>
+
+                {{-- ESTADO --}}
+                <div class="col-md-2">
+                    <label class="text-muted small fw-bold mb-1">Estado</label>
+                    <div class="search-container" style="border-radius: 10px; padding: 0;">
+                        <select name="estado" class="form-control search-input py-2" style="border-radius: 10px; cursor: pointer; appearance: none; background-color: transparent;">
+                            <option value="">Todos</option>
+                            <option value="1" {{ request('estado') == '1' ? 'selected' : '' }}>Activo</option>
+                            <option value="0" {{ request('estado') == '0' ? 'selected' : '' }}>Inactivo</option>
+                        </select>
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 15px; color: #999; font-size: 12px; pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                {{-- ÁREA --}}
+                <div class="col-md-2">
+                    <label class="text-muted small fw-bold mb-1">Área</label>
+                    <div class="search-container" style="border-radius: 10px; padding: 0;">
+                        <select name="area_id" class="form-control search-input py-2" style="border-radius: 10px; cursor: pointer; appearance: none; background-color: transparent;">
+                            <option value="">Todas</option>
+                            @foreach($areas as $area)
+                                <option value="{{ $area->id }}" {{ request('area_id') == $area->id ? 'selected' : '' }}>
+                                    {{ $area->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 15px; color: #999; font-size: 12px; pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                {{-- SEDE --}}
+                <div class="col-md-2">
+                    <label class="text-muted small fw-bold mb-1">Sede</label>
+                    <div class="search-container" style="border-radius: 10px; padding: 0;">
+                        <select name="sede_id" class="form-control search-input py-2" style="border-radius: 10px; cursor: pointer; appearance: none; background-color: transparent;">
+                            <option value="">Todas</option>
+                            @foreach($sedes as $sede)
+                                <option value="{{ $sede->id }}" {{ request('sede_id') == $sede->id ? 'selected' : '' }}>
+                                    {{ $sede->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down" style="position: absolute; right: 15px; color: #999; font-size: 12px; pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                {{-- BOTONES ACCIÓN --}}
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-orange flex-grow-1 fw-bold" style="border-radius: 10px; height: 42px;">
+                            Filtrar
+                        </button>
+                        <a href="{{ route('admin.empleados.index') }}" class="btn btn-light border flex-grow-1 fw-bold text-secondary" style="border-radius: 10px; height: 42px; display: flex; align-items: center; justify-content: center;">
+                            Limpiar
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
 @stop
 
 @section('content')
-
-<div class="container-fluid">
+<div class="container-fluid px-2">
 
     @if(session('success'))
-        <div class="alert-success-modern">
-            <i class="fas fa-check-circle"></i>
-            <span>{{ session('success') }}</span>
+        <div class="alert alert-success d-flex align-items-center"
+             style="background-color: #ecfdf5; color: #047857; border: none;">
+            <i class="fas fa-check-circle fa-lg me-3"></i>
+            <div>{{ session('success') }}</div>
         </div>
     @endif
 
-    {{-- FILTROS --}}
-    <form method="GET" action="{{ route('admin.empleados.index') }}" class="filter-card">
-        <div class="filter-grid">
-
-            <input type="text" name="buscar" class="form-control"
-                   placeholder="Buscar empleado..."
-                   value="{{ request('buscar') }}">
-
-            <select name="estado" class="form-control">
-                <option value="">Estado</option>
-                <option value="1" {{ request('estado')=='1'?'selected':'' }}>Activo</option>
-                <option value="0" {{ request('estado')=='0'?'selected':'' }}>Inactivo</option>
-            </select>
-
-            <select name="area_id" class="form-control">
-                <option value="">Área</option>
-                @foreach($areas as $area)
-                    <option value="{{ $area->id }}">{{ $area->nombre }}</option>
-                @endforeach
-            </select>
-
-            <select name="sede_id" class="form-control">
-                <option value="">Sede</option>
-                @foreach($sedes as $sede)
-                    <option value="{{ $sede->id }}">{{ $sede->nombre }}</option>
-                @endforeach
-            </select>
-
-            <div class="filter-actions">
-
-                {{-- 🔶 BOTÓN NARANJA FILTRAR --}}
-                <button class="btn btn-orange btn-sm">
-                    <i class="fas fa-filter"></i>
-                </button>
-
-                <a href="{{ route('admin.empleados.index') }}" class="btn btn-light btn-sm">
-                    <i class="fas fa-undo"></i>
-                </a>
-
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white border-bottom py-3 px-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small fw-bold">
+                    {{ $empleados->total() }} EMPLEADOS ENCONTRADOS
+                </span>
+                <span class="text-muted small">
+                    Página {{ $empleados->currentPage() }}
+                </span>
             </div>
-
         </div>
-    </form>
-
-    {{-- TABLA --}}
-    <div class="table-card">
-
-        <div class="table-header">
-            <span>{{ $empleados->total() }} empleados encontrados</span>
-            <span>Página {{ $empleados->currentPage() }}</span>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table modern-table mb-0">
-
-                <thead>
-                    <tr>
-                        <th>Empleado</th>
-                        <th>Área</th>
-                        <th>Sede</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                @forelse($empleados as $e)
-                    <tr>
-
-                        <td>
-                            <div class="user-cell">
-
-                                {{-- ⚪ AVATAR GRIS --}}
-                                <div class="avatar-gray">
-                                    {{ strtoupper(substr($e->persona->nombres ?? 'U',0,1)) }}
-                                </div>
-
-                                <div>
-                                    <div class="name">
-                                        {{ $e->persona->nombres }} {{ $e->persona->apellidos }}
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <tr>
+                            <th class="ps-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Empleado</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Área / Sede</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Rol</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Estado</th>
+                            <th class="text-center pe-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($empleados as $e)
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center" style="gap: 1rem;">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 45px; height: 45px; background-color: rgba(19,182,236,0.1); color: var(--primary-blue);">
+                                        <span class="fw-bold" style="font-size: 1.1rem;">
+                                            {{ strtoupper(substr($e->persona->nombres ?? 'X', 0, 1)) }}
+                                        </span>
                                     </div>
-                                    <div class="doc">
-                                        {{ $e->persona->numero_documento }}
+                                    <div>
+                                        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                            {{ $e->persona->nombres }} {{ $e->persona->apellidos }}
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.85rem;">
+                                            CC: {{ $e->persona->numero_documento }}
+                                        </div>
                                     </div>
                                 </div>
+                            </td>
 
-                            </div>
-                        </td>
+                            <td class="py-3">
+                                <div class="mb-1" style="color: #334155; font-weight: 500;">
+                                    {{ $e->area->nombre ?? 'Sin área' }}
+                                </div>
+                                <div class="text-muted small">
+                                    {{ $e->sede->nombre ?? 'Sin sede' }}
+                                </div>
+                            </td>
 
-                        <td>{{ $e->area->nombre ?? 'Sin área' }}</td>
-                        <td>{{ $e->sede->nombre ?? 'Sin sede' }}</td>
+                            <td class="py-3">
+                                <span class="badge bg-light text-secondary border px-3 py-2" style="border-radius: 8px; font-weight: 500;">
+                                    {{ $e->rol->nombre ?? 'Sin rol' }}
+                                </span>
+                            </td>
 
-                        <td>
-                            <span class="badge-soft">
-                                {{ $e->rol->nombre ?? 'Sin rol' }}
-                            </span>
-                        </td>
-
-                        <td>
-                            @if($e->estado == 1)
-                                <span class="badge-success">Activo</span>
-                            @else
-                                <span class="badge-danger">Inactivo</span>
-                            @endif
-                        </td>
-
-                        <td>
-                            <div class="actions">
-
-                                <a href="{{ route('admin.empleados.show', $e) }}" class="icon-btn">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-
+                            <td class="py-3">
                                 @if($e->estado == 1)
-                                    <a href="{{ route('admin.empleados.edit', $e) }}" class="icon-btn">
-                                        <i class="fas fa-pen"></i>
+                                    <span class="badge bg-success">Activo</span>
+                                @else
+                                    <span class="badge bg-danger">Inactivo</span>
+                                @endif
+                            </td>
+
+                            <td class="text-center pe-4 py-3">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <a href="{{ route('admin.empleados.show', $e) }}"
+                                       class="btn btn-sm btn-icon btn-outline-info"
+                                       data-toggle="tooltip" title="Ver Perfil">
+                                        <i class="fas fa-eye"></i>
                                     </a>
 
-                                    <form method="POST" action="{{ route('admin.empleados.destroy', $e) }}">
-                                        @csrf @method('DELETE')
-                                        <button class="icon-btn danger"
-                                                onclick="return confirm('¿Desactivar empleado?')">
-                                            <i class="fas fa-user-slash"></i>
-                                        </button>
-                                    </form>
-                                @else
-                                    <form method="POST" action="{{ route('admin.empleados.toggle', $e->id) }}">
-                                        @csrf
-                                        <button class="icon-btn success">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                    </form>
-                                @endif
+                                    @if($e->estado == 1)
+                                        <a href="{{ route('admin.empleados.edit', $e) }}"
+                                           class="btn btn-sm btn-icon btn-outline-primary"
+                                           data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
 
-                            </div>
-                        </td>
-
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="empty">No hay empleados registrados</td>
-                    </tr>
-                @endforelse
-                </tbody>
-
-            </table>
+                                        <form method="POST" action="{{ route('admin.empleados.destroy', $e) }}" class="d-inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger"
+                                                    data-toggle="tooltip" title="Inactivar"
+                                                    onclick="return confirm('¿Confirma que desea inactivar este empleado?');">
+                                                <i class="fas fa-user-slash"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form method="POST" action="{{ route('admin.empleados.toggle', $e->id) }}" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-success"
+                                                    data-toggle="tooltip" title="Activar"
+                                                    onclick="return confirm('¿Desea activar este empleado nuevamente?');">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <h5>No se encontraron empleados con los filtros aplicados</h5>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <div class="mt-3">
-        {{ $empleados->links() }}
+        @if($empleados->hasPages())
+        <div class="card-footer bg-white border-top py-3 px-4 rounded-bottom-4">
+            {{ $empleados->links() }}
+        </div>
+        @endif
     </div>
 
 </div>
 @stop
 
-{{-- ================= CSS ================= --}}
-@section('css')
+@push('css')
 <style>
+.btn-icon { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s; }
+.btn-icon:hover { transform: scale(1.1); }
 
-/* BOTÓN NARANJA GLOBAL (MEJORADO) */
-.btn-orange{
-    background:#f97316;
-    color:#fff;
-    border:none;
-    height:38px;
-    padding:0 14px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    font-weight:500;
-    border-radius:8px;
-    transition:all .2s ease;
-    box-shadow:0 2px 6px rgba(249,115,22,0.25);
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 30px;
+    padding: 5px 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #ddd;
 }
 
-/* HOVER */
-.btn-orange:hover{
-    background:#ea580c;
-    color:#fff;
-    transform:translateY(-1px);
-    box-shadow:0 4px 10px rgba(234,88,12,0.35);
+.search-input {
+    border: none;
+    outline: none;
+    box-shadow: none;
+    flex: 1;
+    padding-left: 15px;
+    border-radius: 30px;
 }
 
-/* CLICK (EFECTO PRESIONADO) */
-.btn-orange:active{
-    transform:scale(0.98);
-    box-shadow:0 2px 5px rgba(234,88,12,0.25);
+.search-input:focus {
+    box-shadow: none;
 }
 
-/* FOCUS (ACCESIBILIDAD) */
-.btn-orange:focus{
-    outline:none;
-    box-shadow:0 0 0 3px rgba(249,115,22,0.25);
+.search-icon {
+    position: absolute;
+    left: 15px;
+    color: #999;
+    font-size: 14px;
 }
 
-/* HEADER */
-.page-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:15px;
+.btn-orange {
+    background-color: #ff6a00;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 600;
 }
 
-.page-title{
-    font-size:1.6rem;
-    font-weight:700;
+.btn-orange:hover {
+    background-color: #e65c00;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,106,0,0.25);
 }
 
-.page-title i{
-    color:#3b82f6;
-    margin-right:8px;
-}
-
-.page-subtitle{
-    font-size:0.85rem;
-    color:#6b7280;
-}
-
-.page-actions{
-    display:flex;
-    gap:10px;
-}
-
-/* ALERTA */
-.alert-success-modern{
-    background:#ecfdf5;
-    color:#047857;
-    padding:10px 15px;
-    border-radius:10px;
-    display:flex;
-    gap:10px;
-    align-items:center;
-    margin-bottom:15px;
-}
-
-/* FILTROS */
-.filter-card{
-    background:#fff;
-    padding:15px;
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.05);
-    margin-bottom:15px;
-}
-
-.filter-grid{
-    display:grid;
-    grid-template-columns:2fr 1fr 1fr 1fr auto;
-    gap:10px;
-}
-
-.filter-actions{
-    display:flex;
-    gap:6px;
-}
-
-/* TABLA */
-.table-card{
-    background:#fff;
-    border-radius:12px;
-    overflow:hidden;
-    box-shadow:0 2px 10px rgba(0,0,0,0.05);
-}
-
-.table-header{
-    display:flex;
-    justify-content:space-between;
-    padding:12px 15px;
-    font-size:0.8rem;
-    color:#64748b;
-    border-bottom:1px solid #eee;
-}
-
-/* AVATAR GRIS */
-.avatar-gray{
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    background:#9ca3af;
-    color:#fff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:600;
-}
-
-/* INFO USER */
-.user-cell{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.name{ font-weight:600; }
-.doc{ font-size:0.75rem; color:#94a3b8; }
-
-/* ACCIONES */
-.actions{
-    display:flex;
-    justify-content:center;
-    gap:6px;
-}
-
-.icon-btn{
-    width:32px;
-    height:32px;
-    border-radius:8px;
-    border:1px solid #e2e8f0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#fff;
-    transition:.2s;
-}
-
-.icon-btn:hover{
-    transform:scale(1.05);
-    background:#f1f5f9;
-}
-
-.icon-btn.danger{ color:#ef4444; }
-.icon-btn.success{ color:#22c55e; }
-
-/* BADGES */
-.badge-success{
-    background:#dcfce7;
-    color:#166534;
-    padding:3px 8px;
-    border-radius:6px;
-    font-size:0.75rem;
-}
-
-.badge-danger{
-    background:#fee2e2;
-    color:#991b1b;
-    padding:3px 8px;
-    border-radius:6px;
-    font-size:0.75rem;
-}
-
+.badge { font-size: 0.78rem; padding: 0.35em 0.7em; border-radius: 6px; font-weight: 600; }
 </style>
-@stop
+@endpush
+
+@push('scripts')
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+@endpush

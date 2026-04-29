@@ -94,12 +94,19 @@
                                     Tipo de Documento <span class="text-danger">*</span>
                                 </label>
 
-                                <input type="text"
-                                       name="tipo_documento"
-                                       class="form-control"
-                                       placeholder="Ej. Examen Médico, Formación..."
-                                       value="{{ old('tipo_documento') }}"
-                                       required>
+                                <select name="tipo_documento" class="form-control" required>
+                                    <option value="">Seleccione...</option>
+
+                                    <option value="Ingreso"
+                                        {{ old('tipo_documento') == 'Ingreso' ? 'selected' : '' }}>
+                                        Ingreso
+                                    </option>
+
+                                    <option value="Periódico"
+                                        {{ old('tipo_documento') == 'Periódico' ? 'selected' : '' }}>
+                                        Periódico
+                                    </option>
+                                </select>
                             </div>
 
                             {{-- FECHA --}}

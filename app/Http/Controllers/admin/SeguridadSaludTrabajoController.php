@@ -49,7 +49,7 @@ class SeguridadSaludTrabajoController extends Controller
     {
         $request->validate([
             'empleado_id'    => 'required|exists:empleados,id',
-            'tipo_documento' => 'required|string|max:100',
+            'tipo_documento' => 'required|string|in:Ingreso,Periódico',
             'documentos'     => 'nullable|array',
             'documentos.*'   => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'fecha'          => 'required|date',
@@ -75,7 +75,7 @@ class SeguridadSaludTrabajoController extends Controller
     {
         $request->validate([
             'empleado_id'    => 'required|exists:empleados,id',
-            'tipo_documento' => 'required|string|max:100',
+            'tipo_documento' => 'required|string|in:Ingreso,Periódico',
             'documentos'     => 'nullable|array',
             'documentos.*'   => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'fecha'          => 'required|date',

@@ -62,9 +62,20 @@
 
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold">Tipo de Documento <span class="text-danger">*</span></label>
-                                <input type="text" name="tipo_documento" class="form-control" 
-                                       value="{{ old('tipo_documento', $documento->tipo_documento) }}" required>
-                            </div>
+                                <select name="tipo_documento" class="form-control" required>
+                                    <option value="">Seleccione...</option>
+
+                                    <option value="Ingreso"
+                                        {{ old('tipo_documento', $documento->tipo_documento) == 'Ingreso' ? 'selected' : '' }}>
+                                        Ingreso
+                                    </option>
+
+                                    <option value="Periódico"
+                                        {{ old('tipo_documento', $documento->tipo_documento) == 'Periódico' ? 'selected' : '' }}>
+                                        Periódico
+                                    </option>
+                                </select>
+                            </div>  
 
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold">Fecha <span class="text-danger">*</span></label>

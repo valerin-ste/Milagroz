@@ -48,6 +48,11 @@ class SystemRoleController extends Controller
     public function edit(string $id)
     {
         $role = Role::findOrFail($id);
+
+        if ($role->estado == 0) {
+            return redirect()->route('admin.system_roles.index')->with('error', 'No se puede editar un registro inactivo.');
+        }
+
         $permissions = Permission::all();
         
         return view('admin.system_roles.edit', compact('role', 'permissions'));
@@ -60,6 +65,10 @@ class SystemRoleController extends Controller
     {
         $role = Role::findOrFail($id);
 
+        if ($role->estado == 0) {
+            return redirect()->route('admin.system_roles.index')->with('error', 'No se puede editar un registro inactivo.');
+        }
+
         $request->validate([
             'name' => "required|string|unique:system_roles,name,{$id}"
         ]);
@@ -71,18 +80,37 @@ class SystemRoleController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (Inactivate).
      */
     public function destroy(string $id)
     {
         $role = Role::findOrFail($id);
         
         if ($role->name === 'Admin') {
-            return redirect()->route('admin.system_roles.index')->with('error', 'No se puede eliminar el rol Administrador principal.');
+            return redirect()->route('admin.system_roles.index')->with('error', 'No se puede inactivar el rol Administrador principal.');
         }
 
-        $role->delete();
+        $role->update(['estado' => 0]);
 
-        return redirect()->route('admin.system_roles.index')->with('success', 'Rol de sistema eliminado correctamente.');
+        return redirect()->route('admin.system_roles.index')->with('success', 'Rol de sistema inactivado correctamente.');
+    }
+
+    /**
+     * Toggle the status of the specified resource.
+     */
+    public function toggleStatus($id)
+    {
+        $role = Role::findOrFail($id);
+        
+        if ($role->name === 'Admin') {
+            return redirect()->route('admin.system_roles.index')->with('error', 'No se puede cambiar el estado del rol Administrador principal.');
+        }
+
+        // Cambio de estado explícito
+        $role->estado = ($role->estado == 1) ? 0 : 1;
+        $role->save();
+
+        $mensaje = ($role->estado == 1) ? 'activado' : 'inactivado';
+        return redirect()->route('admin.system_roles.index')->with('success', "Rol {$mensaje} correctamente.");
     }
 }

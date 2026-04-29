@@ -57,6 +57,11 @@ class UserController extends Controller
     public function edit(string $id)
     {
         $user = User::findOrFail($id);
+
+        if ($user->estado == 0) {
+            return redirect()->route('admin.users.index')->with('error', 'No se puede editar un registro inactivo.');
+        }
+
         $roles = Role::all();
         
         return view('admin.users.edit', compact('user', 'roles'));
@@ -68,6 +73,10 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         $user = User::findOrFail($id);
+
+        if ($user->estado == 0) {
+            return redirect()->route('admin.users.index')->with('error', 'No se puede editar un registro inactivo.');
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -97,18 +106,37 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage (Inactivate).
      */
     public function destroy(string $id)
     {
         $user = User::findOrFail($id);
         
         if ($user->id === auth()->id()) {
-            return redirect()->route('admin.users.index')->with('error', 'No puedes eliminar tu propia cuenta.');
+            return redirect()->route('admin.users.index')->with('error', 'No puedes inactivar tu propia cuenta.');
         }
 
-        $user->delete();
+        $user->update(['estado' => 0]);
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado correctamente.');
+        return redirect()->route('admin.users.index')->with('success', 'Usuario inactivado correctamente.');
+    }
+
+    /**
+     * Toggle the status of the specified resource.
+     */
+    public function toggleStatus($id)
+    {
+        $user = User::findOrFail($id);
+        
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users.index')->with('error', 'No puedes cambiar el estado de tu propia cuenta.');
+        }
+
+        // Cambio de estado explícito
+        $user->estado = ($user->estado == 1) ? 0 : 1;
+        $user->save();
+
+        $mensaje = ($user->estado == 1) ? 'activado' : 'inactivado';
+        return redirect()->route('admin.users.index')->with('success', "Usuario {$mensaje} correctamente.");
     }
 }

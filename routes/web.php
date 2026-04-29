@@ -58,6 +58,8 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
         'seguridad_salud_trabajo' => SeguridadSaludTrabajoController::class,
         'evaluaciones_desempeno' => EvaluacionDesempenoController::class,
         'formaciones' => FormacionController::class,
+        'users' => UserController::class,
+        'system_roles' => SystemRoleController::class,
     ];
 
     foreach ($toggleRoutes as $uri => $controller) {

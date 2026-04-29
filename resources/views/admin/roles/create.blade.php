@@ -1,109 +1,106 @@
 @extends('adminlte::page')
 
-@section('content')
-<div class="container-fluid">
-
-    {{-- HEADER CON VOLVER --}}
-    <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-        <div>
-            <div class="mb-1 text-muted small">
-                Inicio / Roles / <span class="fw-semibold text-dark">Crear Rol</span>
-            </div>
-            <h3 class="fw-bold mb-0">Crear Nuevo Rol</h3>
-            <small class="text-muted">
-                Defina las responsabilidades del nuevo rol en el sistema
-            </small>
-        </div>
-
-        <a href="{{ route('admin.roles.index') }}" class="btn btn-light px-4">
-            <i class="fas fa-arrow-left me-2"></i> Volver
-        </a>
+@section('content_header')
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2 px-2">
+    <div>
+        <h2 class="fw-bold mb-1" style="color: var(--text-main); font-size: 1.75rem; letter-spacing: -0.5px;">
+            Crear Nuevo Rol
+        </h2>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">Defina las responsabilidades del nuevo rol en el sistema.</p>
     </div>
+    <a href="{{ route('admin.roles.index') }}" class="btn btn-light-custom px-4">
+        <i class="fas fa-arrow-left me-2"></i> Volver al listado
+    </a>
+</div>
+@stop
 
-    {{-- ERRORES --}}
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach($errors->all() as $error)
+@section('content')
+<div class="container-fluid px-2">
+
+    @if ($errors->any())
+        <div class="alert alert-danger" style="border-radius: var(--radius-md); border: none; background-color: #fef2f2; color: #991b1b;">
+            <div class="d-flex align-items-center border-bottom pb-2 mb-2" style="border-color: #fecaca !important;">
+                <i class="fas fa-exclamation-circle fa-lg me-2"></i>
+                <strong>Revise los siguientes errores:</strong>
+            </div>
+            <ul class="mb-0 mt-2 ps-3">
+                @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
         </div>
     @endif
 
-    {{-- CARD FORM --}}
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
+    <form action="{{ route('admin.roles.store') }}" method="POST">
+        @csrf
 
-            <form action="{{ route('admin.roles.store') }}" method="POST">
-                @csrf
-
-                <div class="row">
-
-                    {{-- NOMBRE --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">Nombre del rol</label>
-                        <input type="text"
-                               name="nombre"
-                               class="form-control"
-                               placeholder="Ej: Administrador"
-                               value="{{ old('nombre') }}"
-                               required>
+        <div class="row g-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header pt-4 px-4 pb-3">
+                        <h5 class="card-title d-flex align-items-center" style="color: var(--primary-blue);">
+                            <div class="d-flex align-items-center justify-content-center me-3"
+                                 style="width: 40px; height: 40px; background-color: rgba(19, 182, 236, 0.1); border-radius: 10px;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            Información del Rol
+                        </h5>
                     </div>
 
-                    {{-- ESTADO --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">Estado</label>
-                        <select name="estado" class="form-control">
-                            <option value="1">Activo</option>
-                            <option value="0">Inactivo</option>
-                        </select>
-                    </div>
+                    <div class="card-body px-4 pb-4 pt-2">
+                        <div class="row g-4">
 
-                    {{-- DESCRIPCIÓN --}}
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label fw-semibold">Descripción</label>
-                        <textarea name="descripcion"
-                                  rows="4"
-                                  class="form-control"
-                                  placeholder="Describa las funciones del rol...">{{ old('descripcion') }}</textarea>
-                    </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre del Rol <span class="text-danger">*</span></label>
+                                <input type="text" name="nombre" class="form-control"
+                                       placeholder="Ej: Administrador"
+                                       value="{{ old('nombre') }}" required>
+                            </div>
 
+                            <div class="col-md-6">
+                                <label class="form-label">Estado</label>
+                                <select name="estado" class="form-select">
+                                    <option value="1">Activo</option>
+                                    <option value="0">Inactivo</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label">Descripción</label>
+                                <textarea name="descripcion" rows="4" class="form-control"
+                                          placeholder="Describa las funciones del rol...">{{ old('descripcion') }}</textarea>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
-
-                {{-- FOOTER FORM --}}
-                <div class="d-flex justify-content-between align-items-center mt-4 pt-3"
-                     style="border-top:1px solid #f1f5f9;">
-
-                    <small class="text-muted fst-italic">
-                        * Complete los campos obligatorios
-                    </small>
-
-                    <div class="d-flex gap-2">
-
-                        {{-- CANCELAR --}}
-                        <a href="{{ route('admin.roles.index') }}"
-                           class="btn"
-                           style="background:#f1f5f9; color:#475569;">
-                            Cancelar
-                        </a>
-
-                        {{-- GUARDAR --}}
-                        <button type="submit"
-                                class="btn text-white px-4"
-                                style="background-color:#f97316;">
-                            <i class="fas fa-save me-1"></i>
-                            Guardar Rol
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </form>
-
+            </div>
         </div>
-    </div>
 
+        <div class="d-flex justify-content-end gap-3 mt-4 mb-5 pb-4 px-2">
+            <a href="{{ route('admin.roles.index') }}" class="btn btn-light-custom px-4">Cancelar</a>
+            <button type="submit" class="btn btn-orange px-5">
+                <i class="fas fa-save me-2"></i> Guardar Rol
+            </button>
+        </div>
+
+    </form>
 </div>
 @stop
+
+@push('css')
+<style>
+/* ── Botones ── */
+.btn-orange { background-color: #ff6a00; border: none; color: #fff; border-radius: 8px; transition: all 0.2s; font-weight: 600; }
+.btn-orange:hover { background-color: #e65c00; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,106,0,0.25); }
+.btn-light-custom { background-color: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; border-radius: 8px; transition: all 0.2s; font-weight: 500; }
+.btn-light-custom:hover { background-color: #e2e8f0; color: #334155; }
+/* ── Card ── */
+.card { border-radius: 1rem !important; }
+.card-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 1rem 1rem 0 0 !important; }
+/* ── Formulario ── */
+.form-label { font-weight: 600; color: #475569; font-size: 0.875rem; margin-bottom: 0.4rem; }
+.form-control, .form-select { border-radius: 8px; border: 1px solid #e2e8f0; color: #334155; transition: border-color 0.2s, box-shadow 0.2s; }
+.form-control:focus, .form-select:focus { border-color: #13b6ec; box-shadow: 0 0 0 3px rgba(19,182,236,0.12); }
+</style>
+@endpush
