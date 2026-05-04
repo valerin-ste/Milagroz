@@ -53,6 +53,22 @@
 
                         <div class="row g-4">
 
+                            <div class="col-12">
+                                <label class="form-label">Vincular con Persona/Empleado <span class="text-muted">(Opcional)</span></label>
+                                <select name="persona_id" id="persona_id" class="form-select select2 @error('persona_id') is-invalid @enderror">
+                                    <option value="">-- Usuario sin vinculación laboral --</option>
+                                    @foreach($personas as $persona)
+                                        <option value="{{ $persona->id }}" 
+                                                data-nombre="{{ $persona->full_name }}" 
+                                                data-email="{{ $persona->correo }}"
+                                                {{ old('persona_id', $user->persona_id) == $persona->id ? 'selected' : '' }}>
+                                            {{ $persona->full_name }} ({{ $persona->numero_documento }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('persona_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                            </div>
+
                             <div class="col-md-6">
                                 <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
                                 <input type="text" name="name"
@@ -131,6 +147,25 @@
 
 </div>
 @stop
+
+@push('js')
+<script>
+$(document).ready(function() {
+    $('#persona_id').on('change', function() {
+        var selected = $(this).find(':selected');
+        var nombre = selected.data('nombre');
+        var email = selected.data('email');
+        
+        if (nombre && !$('#name').val()) {
+            $('#name').val(nombre);
+        }
+        if (email && !$('#email').val()) {
+            $('#email').val(email);
+        }
+    });
+});
+</script>
+@endpush
 
 @push('css')
 <style>

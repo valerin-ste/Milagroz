@@ -41,6 +41,22 @@ class Persona extends Model
     }
 
     /**
+     * Get the user account for the persona.
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class);
+    }
+
+    /**
+     * Get the employee record for the persona.
+     */
+    public function empleado()
+    {
+        return $this->hasOne(Empleado::class);
+    }
+
+    /**
      * Get the etapa precontractual records for the persona.
      */
     public function etapaPrecontractuales()

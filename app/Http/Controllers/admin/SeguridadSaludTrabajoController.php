@@ -15,6 +15,10 @@ class SeguridadSaludTrabajoController extends Controller
     public function __construct(SeguridadSaludTrabajoService $service)
     {
         $this->service = $service;
+        $this->middleware('permission:ver-seguridad_salud_trabajo', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-seguridad_salud_trabajo', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-seguridad_salud_trabajo', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-seguridad_salud_trabajo', ['only' => ['destroy']]);
     }
 
     public function index(Request $request)

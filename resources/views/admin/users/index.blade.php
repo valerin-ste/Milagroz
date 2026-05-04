@@ -13,9 +13,11 @@
         </p>
     </div>
     <div class="page-actions">
+        @can('crear-usuarios')
         <a href="{{ route('admin.users.create') }}" class="btn btn-orange">
             <i class="fas fa-plus me-2"></i> Nuevo Usuario
         </a>
+        @endcan
     </div>
 </div>
 @stop
@@ -97,33 +99,37 @@
 
                             <td class="text-center pe-4 py-3">
                                 <div class="d-flex align-items-center justify-content-center gap-2">
-                                    {{-- BOTÓN EDITAR (Solo si está activo) --}}
-                                    @if($user->estado == 1)
-                                        <a href="{{ route('admin.users.edit', $user->id) }}"
-                                           class="btn btn-sm btn-icon btn-outline-primary"
-                                           data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-pen"></i>
-                                        </a>
-                                    @endif
-
-                                    {{-- BOTÓN ACTIVAR / INACTIVAR (Visible para todos, validado en backend) --}}
-                                    <form action="{{ route('admin.users.toggle', $user->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('PATCH')
+                                    {{-- BOTÓN EDITAR --}}
+                                    @can('editar-usuarios')
                                         @if($user->estado == 1)
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger"
-                                                    data-toggle="tooltip" title="Inactivar"
-                                                    onclick="return confirm('¿Confirma que desea inactivar este usuario?');">
-                                                <i class="fas fa-toggle-off"></i>
-                                            </button>
-                                        @else
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-success"
-                                                    data-toggle="tooltip" title="Activar"
-                                                    onclick="return confirm('¿Confirma que desea activar este usuario?');">
-                                                <i class="fas fa-toggle-on"></i>
-                                            </button>
+                                            <a href="{{ route('admin.users.edit', $user->id) }}"
+                                               class="btn btn-sm btn-icon btn-outline-primary"
+                                               data-toggle="tooltip" title="Editar">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
                                         @endif
-                                    </form>
+                                    @endcan
+
+                                    {{-- BOTÓN ACTIVAR / INACTIVAR --}}
+                                    @can('eliminar-usuarios')
+                                        <form action="{{ route('admin.users.toggle', $user->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            @if($user->estado == 1)
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger"
+                                                        data-toggle="tooltip" title="Inactivar"
+                                                        onclick="return confirm('¿Confirma que desea inactivar este usuario?');">
+                                                    <i class="fas fa-toggle-off"></i>
+                                                </button>
+                                            @else
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-success"
+                                                        data-toggle="tooltip" title="Activar"
+                                                        onclick="return confirm('¿Confirma que desea activar este usuario?');">
+                                                    <i class="fas fa-toggle-on"></i>
+                                                </button>
+                                            @endif
+                                        </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

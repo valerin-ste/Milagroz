@@ -68,8 +68,33 @@
 
                             <div class="col-md-12">
                                 <label class="form-label">Descripción</label>
-                                <textarea name="descripcion" rows="4" class="form-control"
+                                <textarea name="descripcion" rows="3" class="form-control"
                                           placeholder="Descripción del rol...">{{ old('descripcion', $role->descripcion) }}</textarea>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <label class="form-label fw-bold">Roles de Sistema asignados automáticamente</label>
+                                <p class="text-muted small mb-3">Seleccione qué roles de seguridad se otorgarán automáticamente a los usuarios con este cargo.</p>
+                                <div class="row g-2">
+                                    @foreach($system_roles as $s_role)
+                                        @php
+                                            $checked = (is_array(old('system_roles')) && in_array($s_role->id, old('system_roles')))
+                                                     || ($role->systemRoles->contains($s_role->id));
+                                        @endphp
+                                        <div class="col-md-4">
+                                            <div class="role-check-card {{ $checked ? 'selected' : '' }}">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="s_role_{{ $s_role->id }}" name="system_roles[]"
+                                                       value="{{ $s_role->id }}"
+                                                       {{ $checked ? 'checked' : '' }}
+                                                       onchange="this.closest('.role-check-card').classList.toggle('selected', this.checked)">
+                                                <label for="s_role_{{ $s_role->id }}" class="form-check-label ms-2 fw-semibold">
+                                                    {{ $s_role->name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
 
                         </div>
@@ -104,5 +129,9 @@
 .form-label { font-weight: 600; color: #475569; font-size: 0.875rem; margin-bottom: 0.4rem; }
 .form-control, .form-select { border-radius: 8px; border: 1px solid #e2e8f0; color: #334155; transition: border-color 0.2s, box-shadow 0.2s; }
 .form-control:focus, .form-select:focus { border-color: #13b6ec; box-shadow: 0 0 0 3px rgba(19,182,236,0.12); }
+/* ── Role Cards ── */
+.role-check-card { display: flex; align-items: center; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; cursor: pointer; transition: all 0.2s; }
+.role-check-card:hover { border-color: #13b6ec; background: #f0f9ff; }
+.role-check-card.selected { border-color: #13b6ec; background: #e0f2fe; }
 </style>
 @endpush

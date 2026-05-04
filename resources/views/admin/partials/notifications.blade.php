@@ -4,7 +4,8 @@
         $totalAlerts = ($alertasCount['contratos_vencidos'] ?? 0) + 
                       ($alertasCount['sst_vencidos'] ?? 0) + 
                       ($alertasCount['contratos_criticos'] ?? 0) + 
-                      ($alertasCount['sst_criticos'] ?? 0);
+                      ($alertasCount['sst_criticos'] ?? 0) +
+                      ($alertasCount['formaciones_vencidas'] ?? 0);
     }
 @endphp
 
@@ -77,6 +78,21 @@
                         <div class="flex-grow-1">
                             <p class="mb-0 text-sm font-weight-bold" style="color: var(--text-main);">SST Críticos (8d)</p>
                             <p class="mb-0 text-xs text-muted">{{ $alertasCount['sst_criticos'] }} documentos SST por expirar.</p>
+                        </div>
+                    </div>
+                </a>
+                <div class="dropdown-divider m-0"></div>
+            @endif
+
+            @if(($alertasCount['formaciones_vencidas'] ?? 0) > 0)
+                <a href="{{ route('admin.formaciones.index') }}" class="dropdown-item py-3">
+                    <div class="d-flex align-items-start">
+                        <div class="bg-soft-red rounded-circle p-2 mr-3">
+                            <i class="fas fa-graduation-cap text-soft-red" style="width: 15px; text-align: center;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <p class="mb-0 text-sm font-weight-bold" style="color: var(--text-main);">Formaciones Vencidas</p>
+                            <p class="mb-0 text-xs text-muted">Hay {{ $alertasCount['formaciones_vencidas'] }} formaciones con fecha vencida.</p>
                         </div>
                     </div>
                 </a>

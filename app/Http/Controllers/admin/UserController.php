@@ -5,10 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Persona;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-usuarios', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-usuarios', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-usuarios', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-usuarios', ['only' => ['destroy', 'toggleStatus']]);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -24,7 +32,8 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('admin.users.create', compact('roles'));
+        $personas = Persona::with('empleado.rol.systemRoles')->get();
+        return view('admin.users.create', compact('roles', 'personas'));
     }
 
     /**
@@ -39,6 +48,7 @@ class UserController extends Controller
         ]);
 
         $user = User::create([
+            'persona_id' => $request->persona_id,
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
@@ -63,8 +73,9 @@ class UserController extends Controller
         }
 
         $roles = Role::all();
+        $personas = Persona::all();
         
-        return view('admin.users.edit', compact('user', 'roles'));
+        return view('admin.users.edit', compact('user', 'roles', 'personas'));
     }
 
     /**
@@ -85,6 +96,7 @@ class UserController extends Controller
         ]);
 
         $data = [
+            'persona_id' => $request->persona_id,
             'name' => $request->name,
             'email' => $request->email,
         ];

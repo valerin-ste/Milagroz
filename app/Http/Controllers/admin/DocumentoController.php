@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-documentos', ['only' => ['view']]);
+        $this->middleware('permission:descargar-documentos', ['only' => ['download']]);
+        $this->middleware('permission:eliminar-documentos', ['only' => ['destroy']]);
+    }
     /**
      * Muestra el documento en el navegador si es posible.
      */

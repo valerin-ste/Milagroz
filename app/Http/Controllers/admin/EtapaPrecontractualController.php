@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Storage;
 
 class EtapaPrecontractualController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-etapa_precontractual', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-etapa_precontractual', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-etapa_precontractual', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-etapa_precontractual', ['only' => ['destroy', 'toggleStatus']]);
+    }
     public function index(Request $request)
     {
         $busqueda = $request->buscar;

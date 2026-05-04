@@ -12,6 +12,7 @@
     </div>
 
     <div class="page-actions d-flex gap-2">
+        @can('exportar-empleados')
         <div class="dropdown">
             <button class="btn btn-light border dropdown-toggle" type="button" data-toggle="dropdown">
                 Reportes
@@ -22,10 +23,13 @@
                 </a>
             </div>
         </div>
+        @endcan
 
+        @can('crear-empleados')
         <a href="{{ route('admin.empleados.create') }}" class="btn btn-orange">
             Nuevo Empleado
         </a>
+        @endcan
     </div>
 </div>
 
@@ -195,12 +199,15 @@
                                     </a>
 
                                     @if($e->estado == 1)
+                                        @can('editar-empleados')
                                         <a href="{{ route('admin.empleados.edit', $e) }}"
                                            class="btn btn-sm btn-icon btn-outline-primary"
                                            data-toggle="tooltip" title="Editar">
                                             <i class="fas fa-pen"></i>
                                         </a>
+                                        @endcan
 
+                                        @can('eliminar-empleados')
                                         <form method="POST" action="{{ route('admin.empleados.destroy', $e) }}" class="d-inline">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-icon btn-outline-danger"
@@ -209,7 +216,9 @@
                                                 <i class="fas fa-user-slash"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     @else
+                                        @can('editar-empleados')
                                         <form method="POST" action="{{ route('admin.empleados.toggle', $e->id) }}" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-icon btn-outline-success"
@@ -218,6 +227,7 @@
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     @endif
                                 </div>
                             </td>

@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 
 class AreaController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-areas', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-areas', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-areas', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-areas', ['only' => ['destroy', 'toggleStatus']]);
+    }
 
 public function index(Request $request)
 {

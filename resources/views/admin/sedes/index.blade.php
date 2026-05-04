@@ -80,6 +80,7 @@
                                                 · +{{ $areas->count() - $max }}
                                             @endif
                                         </span>
+                                        
 
                                         {{-- LISTA --}}
                                         <ul class="dropdown-menu shadow-sm p-2" style="min-width: 200px;">

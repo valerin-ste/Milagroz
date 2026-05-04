@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Storage;
 
 class ComunicacionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-comunicaciones', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-comunicaciones', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-comunicaciones', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-comunicaciones', ['only' => ['destroy', 'toggleStatus']]);
+    }
     public function index(Request $request)
     {
         $busqueda  = $request->buscar;

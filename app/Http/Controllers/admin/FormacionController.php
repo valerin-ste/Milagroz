@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\Storage;
 
 class FormacionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-formaciones', ['only' => ['index', 'show', 'vencimientos']]);
+        $this->middleware('permission:crear-formaciones', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-formaciones', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-formaciones', ['only' => ['destroy', 'toggleStatus']]);
+    }
     public function index(Request $request)
     {
         $buscar = $request->buscar;

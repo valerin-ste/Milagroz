@@ -16,6 +16,10 @@ class EtapaContractualController extends Controller
     public function __construct(EtapaContractualService $service)
     {
         $this->service = $service;
+        $this->middleware('permission:ver-etapa_contractual', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-etapa_contractual', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-etapa_contractual', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-etapa_contractual', ['only' => ['destroy', 'toggleStatus']]);
     }
 
     public function index(\Illuminate\Http\Request $request)

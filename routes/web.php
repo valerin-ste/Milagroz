@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\FormacionController;
 use App\Http\Controllers\Admin\DocumentoController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemRoleController;
+use App\Http\Controllers\Admin\AuditLogController;
 
 // 👇 Controller fuera de Admin
 use App\Http\Controllers\SolicitudController;
@@ -128,11 +129,10 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::get('empleados/reporte/pdf', [EmpleadoController::class, 'exportPdf'])->name('empleados.reporte.pdf');
 
     // ======================
-    // 🔥 CONFIGURACIÓN / ACCESOS (SOLO ADMIN)
+    // 🔥 CONFIGURACIÓN / ACCESOS (SEGURIDAD)
     // ======================
-    Route::middleware(['role:Admin'])->group(function () {
-        Route::resource('users', UserController::class);
-        Route::resource('system_roles', SystemRoleController::class);
-    });
+    Route::resource('users', UserController::class);
+    Route::resource('system_roles', SystemRoleController::class);
+    Route::resource('audit', AuditLogController::class)->only(['index', 'show']);
 
 });

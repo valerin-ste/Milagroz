@@ -320,6 +320,7 @@ return [
                 'url' => 'admin/empleados',
                 'icon' => 'fas fa-user text-info',
                 'classes' => 'text-info',
+                'can' => 'ver-empleados',
             ],
             [
                 'text' => 'Etapa Precontractual',
@@ -327,6 +328,7 @@ return [
                 'icon' => 'fas fa-fw fa-file-contract text-warning',
                 'classes' => 'text-warning',
                 'active' => ['admin/etapa_precontractual*'],
+                'can' => 'ver-etapa_precontractual',
             ],
             [
                 'text' => 'Etapa Contractual',
@@ -334,6 +336,7 @@ return [
                 'icon' => 'fas fa-fw fa-handshake text-success',
                 'classes' => 'text-success',
                 'active' => ['admin/etapa_contractual*'],
+                'can' => 'ver-etapa_contractual',
             ],
             [
                 'text' => 'Seguridad y Salud en el Trabajo',
@@ -341,6 +344,7 @@ return [
                 'icon' => 'fas fa-heartbeat text-danger',
                 'classes' => 'text-danger',
                 'active' => ['admin/seguridad_salud_trabajo*'],
+                'can' => 'ver-seguridad_salud_trabajo',
             ],
             [
                 'text' => 'Comunicaciones',
@@ -348,6 +352,7 @@ return [
                 'icon' => 'fas fa-bullhorn text-secondary',
                 'classes' => 'text-secondary',
                 'active' => ['admin/comunicaciones*'],
+                'can' => 'ver-comunicaciones',
             ],  
             [
                 'text' => 'Solicitudes',
@@ -355,6 +360,7 @@ return [
                 'icon' => 'fas fa-envelope-open-text text-primary',
                 'classes' => 'text-primary',
                 'active' => ['admin/solicitudes*'],
+                'can' => 'ver-solicitudes',
             ],
             [
                 'text' => 'Evaluación de Desempeño',
@@ -362,6 +368,7 @@ return [
                 'icon' => 'fas fa-chart-line text-info',
                 'classes' => 'text-info',
                 'active' => ['admin/evaluaciones_desempeno*'],
+                'can' => 'ver-evaluaciones_desempeno',
             ],
             [
                 'text'    => 'Formación',
@@ -373,6 +380,7 @@ return [
                         'url'  => 'admin/formaciones',
                         'icon' => 'fas fa-list-ul',
                         'key'  => 'formaciones_general',
+                        'can'  => 'ver-formaciones',
                     ],
                 ],
             ],
@@ -389,30 +397,42 @@ return [
                 'url' => 'admin/users',
                 'icon' => 'fas fa-users text-purple',
                 'classes' => 'text-purple',
+                'can' => 'ver-usuarios',
             ],
             [
                 'text' => 'Roles y Accesos',
                 'url' => 'admin/system_roles',
                 'icon' => 'fas fa-key text-success',
                 'classes' => 'text-success',
+                'can' => 'ver-roles',
             ],
             [
                 'text' => 'Sedes',
                 'url' => 'admin/sedes',
                 'icon' => 'fas fa-hospital text-danger',
                 'classes' => 'text-danger',
+                'can' => 'ver-sedes',
             ],
             [
                 'text' => 'Áreas',
                 'url' => 'admin/areas',
                 'icon' => 'fas fa-sitemap text-primary',
                 'classes' => 'text-primary',
+                'can' => 'ver-areas',
             ],
             [
                 'text' => 'Perfiles de Cargo',
                 'url' => 'admin/roles',
                 'icon' => 'fas fa-user-tie text-warning',
                 'classes' => 'text-warning',
+                'can' => 'ver-perfiles_cargo',
+            ],
+            [
+                'text' => 'Auditoría del Sistema',
+                'url' => 'admin/audit',
+                'icon' => 'fas fa-clipboard-list text-info',
+                'classes' => 'text-info',
+                'can' => 'ver-auditoria',
             ],
         ],
     ],

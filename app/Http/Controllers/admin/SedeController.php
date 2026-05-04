@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 
 class SedeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-sedes', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-sedes', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-sedes', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-sedes', ['only' => ['destroy', 'toggleStatus']]);
+    }
     /**
      * Mostrar listado de sedes con paginación
      */

@@ -4,10 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use Spatie\Permission\Models\Role as SystemRole;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-perfiles_cargo', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-perfiles_cargo', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-perfiles_cargo', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-perfiles_cargo', ['only' => ['destroy', 'toggleStatus']]);
+    }
     public function index()
     {
         $roles = Role::all();
@@ -16,7 +24,8 @@ class RoleController extends Controller
 
     public function create()
     {
-        return view('admin.roles.create');
+        $system_roles = SystemRole::all();
+        return view('admin.roles.create', compact('system_roles'));
     }
 
     public function store(Request $request)
@@ -26,8 +35,13 @@ class RoleController extends Controller
             'descripcion' => 'nullable|max:255',
         ]);
 
-        Role::create($request->all());
-        return redirect()->route('admin.roles.index')->with('success');
+        $role = Role::create($request->all());
+
+        if ($request->has('system_roles')) {
+            $role->systemRoles()->sync($request->system_roles);
+        }
+
+        return redirect()->route('admin.roles.index')->with('success', 'Perfil de cargo creado correctamente.');
     }
 
     public function edit(Role $role)
@@ -35,7 +49,9 @@ class RoleController extends Controller
         if ($role->estado != 1) {
             return redirect()->route('admin.roles.index')->with('error', 'No se puede editar un rol que está inactivo.');
         }
-        return view('admin.roles.edit', compact('role'));
+
+        $system_roles = SystemRole::all();
+        return view('admin.roles.edit', compact('role', 'system_roles'));
     }
 
     public function update(Request $request, Role $role)
@@ -50,6 +66,13 @@ class RoleController extends Controller
         ]);
 
         $role->update($request->all());
+
+        if ($request->has('system_roles')) {
+            $role->systemRoles()->sync($request->system_roles);
+        } else {
+            $role->systemRoles()->sync([]);
+        }
+
         return redirect()->route('admin.roles.index')->with('success', 'Rol actualizado correctamente.');
     }
 

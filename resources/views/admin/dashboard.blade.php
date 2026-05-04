@@ -20,9 +20,12 @@
             <i class="fas fa-exclamation-triangle me-1"></i> {{ $totalAlertasCriticas }} Alertas
         </div>
         @endif
+        
+        @can('crear-empleados')
         <a href="{{ route('admin.empleados.create') }}" class="btn btn-primary-modern shadow-sm">
             <i class="fas fa-user-plus me-1"></i> Nuevo Empleado
         </a>
+        @endcan
     </div>
 </div>
 @stop

@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\Storage;
 
 class SolicitudController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-solicitudes', ['only' => ['index', 'show', 'viewArchivo', 'downloadArchivo']]);
+        $this->middleware('permission:crear-solicitudes', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-solicitudes', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-solicitudes', ['only' => ['destroy', 'toggle']]);
+        $this->middleware('permission:gestionar_estado-solicitudes', ['only' => ['cambiarEstado']]);
+    }
     // 📄 LISTADO
     public function index(Request $request)
     {

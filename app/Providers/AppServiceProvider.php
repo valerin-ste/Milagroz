@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 🔍 AUDITORÍA: Observador para Roles de Sistema (Spatie)
+        \Spatie\Permission\Models\Role::observe(\App\Observers\SystemRoleObserver::class);
+
         // Inyectar alertas en la navbar globalmente (campana de notificaciones)
         \Illuminate\Support\Facades\View::composer('adminlte::partials.navbar.navbar', function($view) {
             $now       = \Carbon\Carbon::now();
@@ -38,9 +41,18 @@ class AppServiceProvider extends ServiceProvider
                 'sst_criticos'          => \App\Models\SeguridadSaludTrabajo::whereBetween('fecha', [$today->copy()->addDay(), $eightDays])->where('estado', 1)->count(),
                 'solicitudes_pendientes'=> \App\Models\Solicitud::where('estado', 'Pendiente')->count(),
                 'evaluaciones_pendientes'=> \App\Models\EvaluacionDesempeno::where('estado', 0)->count(),
+                'formaciones_vencidas'  => \App\Models\Formacion::where('vence', 1)->where('estado', 1)->where('fecha_fin', '<=', $today)->count(),
             ];
             $view->with('alertasCount', $alertasCount);
         });
+
+        // 🔒 AUDITORÍA: Eventos de Autenticación
+        Event::listen([
+            \Illuminate\Auth\Events\Login::class,
+            \Illuminate\Auth\Events\Logout::class,
+            \Illuminate\Auth\Events\PasswordReset::class,
+            \Illuminate\Auth\Events\Failed::class,
+        ], \App\Listeners\AuditAuthListener::class);
 
         // 🛡️ INYECTAR BADGE DINÁMICO EN EL MENÚ (FORMACIÓN)
         Event::listen(BuildingMenu::class, function (BuildingMenu $event) {

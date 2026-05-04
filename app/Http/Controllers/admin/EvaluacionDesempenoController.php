@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\Storage;
 
 class EvaluacionDesempenoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-evaluaciones_desempeno', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-evaluaciones_desempeno', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-evaluaciones_desempeno', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-evaluaciones_desempeno', ['only' => ['destroy', 'toggleStatus']]);
+    }
     public function index(Request $request)
     {
         $buscar = $request->buscar;

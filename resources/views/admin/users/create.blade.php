@@ -52,6 +52,27 @@
                     <div class="card-body px-4 pb-4 pt-2">
                         <div class="row g-4">
 
+                            <div class="col-12">
+                                <label class="form-label">Vincular con Persona/Empleado <span class="text-muted">(Opcional)</span></label>
+                                <select name="persona_id" id="persona_id" class="form-select select2 @error('persona_id') is-invalid @enderror">
+                                    <option value="">-- Usuario sin vinculación laboral --</option>
+                                    @foreach($personas as $persona)
+                                        @php
+                                            $suggestedRoles = $persona->empleado?->rol?->systemRoles->pluck('name')->toArray() ?? [];
+                                        @endphp
+                                        <option value="{{ $persona->id }}" 
+                                                data-nombre="{{ $persona->full_name }}" 
+                                                data-email="{{ $persona->correo }}"
+                                                data-roles="{{ json_encode($suggestedRoles) }}"
+                                                {{ old('persona_id') == $persona->id ? 'selected' : '' }}>
+                                            {{ $persona->full_name }} ({{ $persona->numero_documento }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('persona_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                                <p class="text-muted small mt-1 mb-0">Si selecciona una persona, el nombre y correo se completarán automáticamente.</p>
+                            </div>
+
                             <div class="col-md-6">
                                 <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
                                 <input type="text" name="name"
@@ -119,6 +140,36 @@
     </form>
 </div>
 @stop
+
+@push('js')
+<script>
+$(document).ready(function() {
+    $('#persona_id').on('change', function() {
+        var selected = $(this).find(':selected');
+        var nombre = selected.data('nombre');
+        var email = selected.data('email');
+        var roles = selected.data('roles'); // Es un array
+        
+        if (nombre) {
+            $('#name').val(nombre);
+        }
+        if (email) {
+            $('#email').val(email);
+        }
+
+        // Limpiar roles actuales si se selecciona una persona nueva
+        if (roles) {
+            $('input[name="roles[]"]').prop('checked', false).closest('.role-check-card').removeClass('selected');
+            
+            roles.forEach(function(roleName) {
+                var checkbox = $('input[name="roles[]"][value="' + roleName + '"]');
+                checkbox.prop('checked', true).closest('.role-check-card').addClass('selected');
+            });
+        }
+    });
+});
+</script>
+@endpush
 
 @push('css')
 <style>

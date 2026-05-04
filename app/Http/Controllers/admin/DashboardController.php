@@ -85,16 +85,18 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Formaciones próximas a vencer (30 días)
-        $formacionesProximas = Formacion::with('empleado.persona:id,nombres,apellidos')
+        // Formaciones con vencimiento relevante (Vencidas + Próximas 30 días)
+        $formacionesRel = Formacion::with('empleado.persona:id,nombres,apellidos')
             ->select('id', 'empleado_id', 'nombre_curso', 'fecha_fin', 'vence', 'estado')
             ->where('estado', 1)
             ->where('vence', 1)
             ->whereNotNull('fecha_fin')
-            ->whereDate('fecha_fin', '>=', $hoy)
             ->whereDate('fecha_fin', '<=', $en30d)
             ->orderBy('fecha_fin')
             ->get();
+
+        $formacionesVencidas = $formacionesRel->where('fecha_fin', '<=', $hoy);
+        $formacionesProximas = $formacionesRel->where('fecha_fin', '>', $hoy);
 
         $alertasSST = $sstRel->map(function($s) use ($hoy) {
             $vencido = Carbon::parse($s->fecha)->isPast() || Carbon::parse($s->fecha)->isToday();
@@ -118,12 +120,13 @@ class DashboardController extends Controller
             ];
         })->take(5);
 
-        $alertasFormaciones = $formacionesProximas->map(function($f) {
+        $alertasFormaciones = $formacionesRel->map(function($f) use ($hoy) {
+            $vencido = Carbon::parse($f->fecha_fin)->isPast() || Carbon::parse($f->fecha_fin)->isToday();
             return (object) [
                 'empleado' => $f->empleado->persona->full_name ?? 'N/A',
-                'tipo'     => 'Formación por vencer',
+                'tipo'     => $vencido ? 'Formación vencida' : 'Formación por vencer',
                 'fecha'    => Carbon::parse($f->fecha_fin)->format('d/m/Y'),
-                'critico'  => false,
+                'critico'  => $vencido,
                 'link'     => route('admin.empleados.show', $f->empleado_id)
             ];
         })->take(5);
@@ -131,10 +134,11 @@ class DashboardController extends Controller
         $alertas = compact(
             'contratosVencidos', 'contratosCriticos', 'contratosPreventivos', 'contratosProximos',
             'sstVencidos', 'sstCriticos', 'solicitudesPendientesDetalle', 'formacionesProximas',
+            'formacionesVencidas',
             'alertasSST', 'alertasContratos', 'alertasFormaciones'
         );
 
-        $totalAlertasCriticas = $contratosVencidos->count() + $sstVencidos->count() + $contratosCriticos->count();
+        $totalAlertasCriticas = $contratosVencidos->count() + $sstVencidos->count() + $contratosCriticos->count() + $formacionesVencidas->count();
 
         // ── 3. GRÁFICAS ───────────────────────────────────────────
         // Empleados por Área

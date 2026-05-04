@@ -15,6 +15,14 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class EmpleadoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-empleados', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-empleados', ['only' => ['create', 'store']]);
+        $this->middleware('permission:editar-empleados', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:eliminar-empleados', ['only' => ['destroy', 'toggleStatus']]);
+        $this->middleware('permission:exportar-empleados', ['only' => ['exportPdf']]);
+    }
     public function index(Request $request)
     {
         $busqueda = $request->buscar;
