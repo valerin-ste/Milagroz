@@ -12,15 +12,27 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Check if column exists (it might have been created in a failed previous attempt)
             if (!Schema::hasColumn('users', 'persona_id')) {
-                $table->integer('persona_id')->nullable()->after('id');
+                $table->unsignedBigInteger('persona_id')->nullable()->after('id');
             } else {
-                $table->integer('persona_id')->nullable()->change();
+                $table->unsignedBigInteger('persona_id')->nullable()->change();
             }
-            
-            $table->foreign('persona_id')->references('id')->on('personas')->onDelete('set null');
         });
+
+        // Add FK only if it doesn't already exist
+        $fkExists = collect(\DB::select("
+            SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'users'
+              AND COLUMN_NAME = 'persona_id'
+              AND REFERENCED_TABLE_NAME = 'personas'
+        "))->isNotEmpty();
+
+        if (!$fkExists) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->foreign('persona_id')->references('id')->on('personas')->onDelete('set null');
+            });
+        }
     }
 
     /**

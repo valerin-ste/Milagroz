@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use JeroenNoten\LaravelAdminLte\Events\BuildingMenu;
 use App\Models\Formacion;
+use Illuminate\Pagination\Paginator;
 use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force Bootstrap 5 pagination
+        Paginator::useBootstrapFive();
+
         // 🔍 AUDITORÍA: Observador para Roles de Sistema (Spatie)
         \Spatie\Permission\Models\Role::observe(\App\Observers\SystemRoleObserver::class);
 

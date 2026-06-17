@@ -17,6 +17,7 @@ class Empleado extends Model
         'sede_id',
         'rol_id',
         'cargo',
+        'tipo_contrato',
         'fecha_ingreso',
         'estado'
     ];
@@ -70,6 +71,11 @@ class Empleado extends Model
         return $this->hasMany(Formacion::class);
     }
 
+    public function certificaciones()
+    {
+        return $this->hasMany(Certificacion::class);
+    }
+
     public function comunicaciones()
     {
         return $this->hasMany(Comunicacion::class);
@@ -80,5 +86,38 @@ class Empleado extends Model
         return $this->hasMany(Solicitud::class);
     }
 
-   
+    public function fechasEspeciales()
+    {
+        return $this->hasMany(FechaEspecial::class);
+    }
+
+    public function dotaciones()
+    {
+        return $this->hasMany(Dotacion::class);
+    }
+
+    public function productividades()
+    {
+        return $this->hasMany(Productividad::class, 'empleado_id');
+    }
+
+    public function calidadDocumentos()
+    {
+        return $this->hasMany(\App\Models\CalidadDocumento::class);
+    }
+
+    public function capacidadInstaladas()
+    {
+        return $this->hasMany(CapacidadInstalada::class, 'empleado_id');
+    }
+
+    public function reportesNovedadesNomina()
+    {
+        return $this->hasMany(ReporteNovedadNomina::class, 'empleado_id');
+    }
+
+    public function plantaPersonalSena()
+    {
+        return $this->hasMany(PlantaPersonalSena::class, 'empleado_id');
+    }
 }

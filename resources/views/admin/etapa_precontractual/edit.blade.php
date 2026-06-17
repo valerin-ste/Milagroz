@@ -75,8 +75,10 @@
                             {{-- FECHA REGISTRO (readonly) --}}
                             <div class="col-md-6">
                                 <label class="form-label">Fecha de Registro</label>
-                                <input type="date" class="form-control bg-light" readonly
-                                    value="{{ $etapa_precontractual->fecha_registro }}">
+                                <input type="date"
+                                    name="fecha_registro"
+                                    class="form-control"
+                                    value="{{ old('fecha_registro', $etapa_precontractual->fecha_registro) }}">
                             </div>
 
                             {{-- DOCUMENTOS --}}

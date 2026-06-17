@@ -25,11 +25,18 @@ class RolePermissionSeeder extends Seeder
             'comunicaciones' => ['ver', 'crear', 'editar', 'eliminar'],
             'solicitudes' => ['ver', 'crear', 'editar', 'eliminar', 'gestionar_estado'],
             'evaluaciones_desempeno' => ['ver', 'crear', 'editar', 'eliminar'],
+            'fechas_especiales' => ['ver', 'crear', 'editar', 'eliminar'],
             'formaciones' => ['ver', 'crear', 'editar', 'eliminar'],
+            'certificaciones' => ['ver', 'crear', 'editar', 'eliminar'],
+            'dotaciones' => ['ver', 'crear', 'editar', 'eliminar'],
+            'productividad' => ['ver', 'crear', 'editar', 'eliminar'],
             'usuarios' => ['ver', 'crear', 'editar', 'eliminar'], // Módulo users en web.php
             'roles' => ['ver', 'crear', 'editar', 'eliminar'],    // Módulo system_roles en web.php
             'documentos' => ['ver', 'descargar', 'eliminar'],
-            'auditoria' => ['ver'],
+            'capacidad_instalada' => ['ver', 'crear', 'editar', 'eliminar'],
+            'reportes_novedades_nomina' => ['ver', 'crear', 'editar', 'eliminar'],
+            'planta_personal_sena' => ['ver', 'crear', 'editar', 'eliminar'],
+            'calidad' => ['ver', 'crear', 'editar', 'eliminar'],
         ];
 
         // Crear permisos
@@ -57,7 +64,15 @@ class RolePermissionSeeder extends Seeder
             // Gestión de vida del empleado
             'ver-seguridad_salud_trabajo', 'crear-seguridad_salud_trabajo', 'editar-seguridad_salud_trabajo',
             'ver-evaluaciones_desempeno', 'crear-evaluaciones_desempeno', 'editar-evaluaciones_desempeno',
+            'ver-fechas_especiales', 'crear-fechas_especiales', 'editar-fechas_especiales', 'eliminar-fechas_especiales',
             'ver-formaciones', 'crear-formaciones', 'editar-formaciones',
+            'ver-certificaciones', 'crear-certificaciones', 'editar-certificaciones',
+            'ver-dotaciones', 'crear-dotaciones', 'editar-dotaciones',
+            'ver-productividad', 'crear-productividad', 'editar-productividad',
+            'ver-capacidad_instalada', 'crear-capacidad_instalada', 'editar-capacidad_instalada',
+            'ver-reportes_novedades_nomina', 'crear-reportes_novedades_nomina', 'editar-reportes_novedades_nomina',
+            'ver-planta_personal_sena', 'crear-planta_personal_sena', 'editar-planta_personal_sena',
+            'ver-calidad', 'crear-calidad', 'editar-calidad',
             
             // Comunicaciones y Solicitudes
             'ver-comunicaciones', 'crear-comunicaciones', 'editar-comunicaciones',

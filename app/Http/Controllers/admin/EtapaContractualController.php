@@ -34,7 +34,12 @@ class EtapaContractualController extends Controller
             'Contrato indefinido',
             'Obra o labor',
             'Temporal',
-            'Prestación de servicios'
+            'Prestación de servicios',
+            'Antecedentes Judiciales',
+            'Rethus - Aplica',
+            'Rethus - No aplica',
+            'Vacunas',
+            'Otros'
         ];
 
         $contratos = EtapaContractual::with(['empleado.persona', 'documentos'])

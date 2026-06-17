@@ -14,7 +14,8 @@ class EvaluacionDesempeno extends Model
         'empleado_id',
         'observaciones',
         'archivo',
-        'fecha'
+        'fecha',
+        'estado'
     ];
 
     protected $casts = [

@@ -153,6 +153,17 @@
                                 <input type="text" name="cargo" class="form-control rounded-3" placeholder="Ej. Enfermero Jefe" required value="{{ old('cargo') }}">
                             </div>
 
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Tipo de Contrato <span class="text-danger">*</span></label>
+                                <select name="tipo_contrato" class="form-select rounded-3" required>
+                                    <option value="" disabled selected>Seleccione el contrato</option>
+                                    <option value="Contrato fijo" {{ old('tipo_contrato') == 'Contrato fijo' ? 'selected' : '' }}>Contrato fijo</option>
+                                    <option value="Contrato indefinido" {{ old('tipo_contrato') == 'Contrato indefinido' ? 'selected' : '' }}>Contrato indefinido</option>
+                                    <option value="Prestación de servicios" {{ old('tipo_contrato') == 'Prestación de servicios' ? 'selected' : '' }}>Prestación de servicios</option>
+                                    <option value="Temporal" {{ old('tipo_contrato') == 'Temporal' ? 'selected' : '' }}>Temporal</option>
+                                </select>
+                            </div>
+
                             <div class="col-12 mt-4">
                                 <label class="form-label text-muted small fw-bold d-block mb-3">Estado del Empleado <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-3">

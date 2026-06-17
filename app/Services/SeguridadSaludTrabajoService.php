@@ -13,9 +13,17 @@ class SeguridadSaludTrabajoService
 
         if ($files) {
             foreach ($files as $file) {
+                $folder = strtolower(\Illuminate\Support\Str::slug($registro->tipo_documento));
+                $path = "empleados/{$registro->empleado_id}/{$folder}";
+                
+                // Solo ARL y Periódicos llevan subcarpeta de año
+                if (in_array($registro->tipo_documento, ['Periódicos', 'ARL'])) {
+                    $path .= "/" . \Carbon\Carbon::parse($registro->fecha)->format('Y');
+                }
+
                 $registro->documentos()->create([
                     'nombre_original' => $file->getClientOriginalName(),
-                    'ruta' => $file->store('seguridad_salud_trabajo', 'public'),
+                    'ruta' => $file->store($path, 'public'),
                     'tipo_documento' => $registro->tipo_documento,
                 ]);
             }
@@ -43,9 +51,17 @@ class SeguridadSaludTrabajoService
 
         if ($files) {
             foreach ($files as $file) {
+                $folder = strtolower(\Illuminate\Support\Str::slug($registro->tipo_documento));
+                $path = "empleados/{$registro->empleado_id}/{$folder}";
+                
+                // Solo ARL y Periódicos llevan subcarpeta de año
+                if (in_array($registro->tipo_documento, ['Periódicos', 'ARL'])) {
+                    $path .= "/" . \Carbon\Carbon::parse($registro->fecha)->format('Y');
+                }
+
                 $registro->documentos()->create([
                     'nombre_original' => $file->getClientOriginalName(),
-                    'ruta' => $file->store('seguridad_salud_trabajo', 'public'),
+                    'ruta' => $file->store($path, 'public'),
                     'tipo_documento' => $registro->tipo_documento,
                 ]);
             }

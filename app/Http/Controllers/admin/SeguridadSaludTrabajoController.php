@@ -26,7 +26,8 @@ class SeguridadSaludTrabajoController extends Controller
         $busqueda = $request->buscar;
         $tipo     = $request->tipo_documento;
 
-        $documentos = SeguridadSaludTrabajo::with(['empleado.persona', 'documentos'])
+        // 1. Obtener los IDs de los registros representativos con filtros aplicados
+        $representativeIds = SeguridadSaludTrabajo::query()
             ->when($busqueda, function ($query, $busqueda) {
                 $query->whereHas('empleado.persona', function ($q) use ($busqueda) {
                     $q->where('nombres', 'like', "%$busqueda%")
@@ -36,9 +37,32 @@ class SeguridadSaludTrabajoController extends Controller
             ->when($tipo, function ($query, $tipo) {
                 $query->where('tipo_documento', 'like', "%$tipo%");
             })
+            ->selectRaw('MAX(id) as id')
+            ->groupBy('empleado_id', 'tipo_documento', \DB::raw('YEAR(fecha)'))
+            ->pluck('id');
+
+        // 2. Cargar los registros representativos
+        $documentos = SeguridadSaludTrabajo::with(['empleado.persona', 'documentos'])
+            ->whereIn('id', $representativeIds)
             ->orderByDesc('fecha')
             ->paginate(10)
             ->withQueryString();
+
+        // 3. Cargar todos los documentos para cada grupo
+        foreach ($documentos as $doc) {
+            $anio = $doc->fecha->format('Y');
+            
+            $allIdsInGroup = SeguridadSaludTrabajo::where('empleado_id', $doc->empleado_id)
+                ->where('tipo_documento', $doc->tipo_documento)
+                ->whereYear('fecha', $anio)
+                ->pluck('id');
+
+            $allDocs = \App\Models\Documento::where('documentable_type', SeguridadSaludTrabajo::class)
+                ->whereIn('documentable_id', $allIdsInGroup)
+                ->get();
+
+            $doc->setRelation('documentos', $allDocs);
+        }
 
         return view('admin.seguridad_salud_trabajo.index', compact('documentos', 'busqueda', 'tipo'));
     }
@@ -53,7 +77,7 @@ class SeguridadSaludTrabajoController extends Controller
     {
         $request->validate([
             'empleado_id'    => 'required|exists:empleados,id',
-            'tipo_documento' => 'required|string|in:Ingreso,Periódico',
+            'tipo_documento' => 'required|string|in:Ingresos,Periódicos,ARL,Retiros',
             'documentos'     => 'nullable|array',
             'documentos.*'   => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'fecha'          => 'required|date',
@@ -79,7 +103,7 @@ class SeguridadSaludTrabajoController extends Controller
     {
         $request->validate([
             'empleado_id'    => 'required|exists:empleados,id',
-            'tipo_documento' => 'required|string|in:Ingreso,Periódico',
+            'tipo_documento' => 'required|string|in:Ingresos,Periódicos,ARL,Retiros',
             'documentos'     => 'nullable|array',
             'documentos.*'   => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'fecha'          => 'required|date',
@@ -91,13 +115,13 @@ class SeguridadSaludTrabajoController extends Controller
             ->with('success', 'Registro actualizado correctamente.');
     }
 
-    public function destroy(SeguridadSaludTrabajo $seguridad_salud_trabajo)
+    public function destroy($id)
     {
-        // En lugar de desactivar, eliminamos el registro si el usuario lo solicita (o mantenemos inactivación lógica si se prefiere ocultar)
-        // Por consistencia con la solicitud de "eliminar campo estado", trataremos los registros como siempre vigentes
-        // pero permitiremos el borrado físico si se desea limpiar datos. 
-        // El usuario pidió "Eliminar el campo estado", así que quitamos la lógica de toggles.
-        $seguridad_salud_trabajo->delete();
-        return back()->with('success', 'Registro eliminado correctamente.');
+        $registro = SeguridadSaludTrabajo::findOrFail($id);
+
+        $registro->estado = $registro->estado == 1 ? 0 : 1;
+        $registro->save();
+
+        return redirect()->route('admin.seguridad_salud_trabajo.index')->with('success', 'Estado actualizado correctamente.');
     }
 }

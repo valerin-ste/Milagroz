@@ -62,7 +62,7 @@ class EmpleadoController extends Controller
         $empleado->load([
             'persona:id,tipo_documento,numero_documento,nombres,apellidos,telefono,correo,direccion,fecha_nacimiento',
             'area:id,nombre',
-            'sede:id,nombre',
+            'sede:id,nombre,ciudad',
             'rol:id,nombre',
             'etapaPrecontractuales.documentos',
             'etapaContractuales.documentos',
@@ -70,11 +70,78 @@ class EmpleadoController extends Controller
             'evaluacionesDesempeno.documentos',
             'formaciones.documentos',
             'comunicaciones.documentos',
-            'solicitudes.documentos'
+            'solicitudes.documentos',
+            'dotaciones.documentos',
+            'productividades',
+            'calidadDocumentos'
         ]);
-        
 
         return view('admin.empleados.show', compact('empleado'));
+    }
+
+    /**
+     * Escanea recursivamente carpetas de tipo (arl/retiro) -> Año -> Archivos
+     */
+    private function scanEmployeeFolders($empleadoId, $type)
+    {
+        $basePath = "empleados/{$empleadoId}/{$type}";
+        $structure = [];
+
+        if (\Storage::disk('public')->exists($basePath)) {
+            $years = \Storage::disk('public')->directories($basePath);
+            foreach ($years as $yearPath) {
+                $year = basename($yearPath);
+                $files = \Storage::disk('public')->files($yearPath);
+                
+                $fileData = [];
+                foreach ($files as $file) {
+                    $fileData[] = [
+                        'name' => basename($file),
+                        'path' => base64_encode($file), // Ofuscamos la ruta para la URL
+                    ];
+                }
+                $structure[$year] = $fileData;
+            }
+            krsort($structure); // Años más recientes primero
+        }
+        return $structure;
+    }
+
+    /**
+     * Ver archivo del filesystem (ARL/Retiro)
+     */
+    public function viewFile($empleadoId, $pathEncoded)
+    {
+        $path = base64_decode($pathEncoded);
+        // Validación básica de seguridad: asegurar que la ruta pertenece al empleado
+        if (!str_starts_with($path, "empleados/{$empleadoId}/")) {
+            abort(403, 'Acceso no autorizado.');
+        }
+
+        $fullPath = storage_path('app/public/' . $path);
+        if (!file_exists($fullPath)) abort(404);
+
+        while (ob_get_level() > 0) ob_end_clean();
+        
+        return response()->file($fullPath, [
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
+        ]);
+    }
+
+    /**
+     * Descargar archivo del filesystem (ARL/Retiro)
+     */
+    public function downloadFile($empleadoId, $pathEncoded)
+    {
+        $path = base64_decode($pathEncoded);
+        if (!str_starts_with($path, "empleados/{$empleadoId}/")) {
+            abort(403, 'Acceso no autorizado.');
+        }
+
+        $fullPath = storage_path('app/public/' . $path);
+        if (!file_exists($fullPath)) abort(404);
+
+        return response()->download($fullPath, basename($path));
     }
 
     public function create()
@@ -112,6 +179,7 @@ class EmpleadoController extends Controller
             'sede_id' => $validated['sede_id'],
             'rol_id' => $validated['rol_id'],
             'cargo' => $validated['cargo'],
+            'tipo_contrato' => $validated['tipo_contrato'],
             'fecha_ingreso' => $validated['fecha_ingreso'],
             'estado' => $validated['estado'],
         ]);
@@ -153,6 +221,7 @@ class EmpleadoController extends Controller
             'sede_id' => $validated['sede_id'],
             'rol_id' => $validated['rol_id'],
             'cargo' => $validated['cargo'],
+            'tipo_contrato' => $validated['tipo_contrato'],
             'fecha_ingreso' => $validated['fecha_ingreso'],
             'estado' => $validated['estado'],
         ]);

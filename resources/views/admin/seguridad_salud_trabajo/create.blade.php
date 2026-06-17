@@ -97,14 +97,24 @@
                                 <select name="tipo_documento" class="form-control" required>
                                     <option value="">Seleccione...</option>
 
-                                    <option value="Ingreso"
-                                        {{ old('tipo_documento') == 'Ingreso' ? 'selected' : '' }}>
-                                        Ingreso
+                                    <option value="Ingresos"
+                                        {{ old('tipo_documento') == 'Ingresos' ? 'selected' : '' }}>
+                                        Ingresos
                                     </option>
 
-                                    <option value="Periódico"
-                                        {{ old('tipo_documento') == 'Periódico' ? 'selected' : '' }}>
-                                        Periódico
+                                    <option value="Periódicos"
+                                        {{ old('tipo_documento') == 'Periódicos' ? 'selected' : '' }}>
+                                        Periódicos
+                                    </option>
+
+                                    <option value="ARL"
+                                        {{ old('tipo_documento') == 'ARL' ? 'selected' : '' }}>
+                                        ARL
+                                    </option>
+
+                                    <option value="Retiros"
+                                        {{ old('tipo_documento') == 'Retiros' ? 'selected' : '' }}>
+                                        Retiros
                                     </option>
                                 </select>
                             </div>

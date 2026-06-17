@@ -45,7 +45,8 @@
                     <label>Tipo de Solicitud <span class="text-danger">*</span></label>
                     <select name="tipo_select" id="tipo_select" class="form-control" required>
                         <option value="Vacaciones" {{ old('tipo_select') == 'Vacaciones' ? 'selected' : '' }}>Vacaciones</option>
-                        <option value="Incapacidad" {{ old('tipo_select') == 'Incapacidad' ? 'selected' : '' }}>Incapacidad</option>
+                        <option value="Solicitud" {{ old('tipo_select') == 'Solicitud' ? 'selected' : '' }}>Solicitud</option>
+                        <option value="Ausentismo" {{ old('tipo_select') == 'Ausentismo' ? 'selected' : '' }}>Ausentismo</option>
                         <option value="Otro" {{ old('tipo_select') == 'Otro' ? 'selected' : '' }}>Otro (Especificar)</option>
                     </select>
                 </div>

@@ -36,6 +36,34 @@
     $nEvals       = $empleado->evaluacionesDesempeno->count();
     $nFormaciones = $empleado->formaciones->count();
     $contratoActivo = $empleado->etapaContractuales->where('estado', 1)->sortByDesc('fecha_fin')->first();
+
+    // Agrupar evaluaciones por año
+    $evaluacionesPorAño = $empleado->evaluacionesDesempeno->sortByDesc('fecha')->groupBy(fn($ev) => \Carbon\Carbon::parse($ev->fecha)->format('Y'));
+
+    $mesesNombre = [
+        1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio',
+        7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+    ];
+
+    $groupByYearAndMonth = function($collection, $dateField) {
+        return $collection->sortByDesc($dateField)->groupBy(function($item) use ($dateField) {
+            return \Carbon\Carbon::parse($item->{$dateField})->format('Y');
+        })->map(function($yearItems) use ($dateField) {
+            return $yearItems->groupBy(function($item) use ($dateField) {
+                return (int)\Carbon\Carbon::parse($item->{$dateField})->format('n');
+            })->sortKeysDesc();
+        });
+    };
+
+    $productividadesPorAnioMes = $groupByYearAndMonth($empleado->productividades->where('estado', 1), 'fecha');
+    $capacidadPorAnioMes = $groupByYearAndMonth($empleado->capacidadInstaladas, 'fecha');
+    $nominaPorAnioMes = $groupByYearAndMonth($empleado->reportesNovedadesNomina, 'fecha');
+    $formacionesPorAnioMes = $groupByYearAndMonth($empleado->formaciones, 'fecha_inicio');
+    $calidadPorAnioMes = $groupByYearAndMonth($empleado->calidadDocumentos->where('estado', 1), 'fecha_emision');
+    $senaPorAnioMes = $groupByYearAndMonth($empleado->plantaPersonalSena, 'fecha_reporte');
+    $dotacionesPorAnioMes = $groupByYearAndMonth($empleado->dotaciones, 'fecha');
+    $certificacionesPorAnioMes = $groupByYearAndMonth($empleado->certificaciones, 'fecha_expedicion');
+    $fechasEspecialesPorAnioMes = $groupByYearAndMonth($empleado->fechasEspeciales->where('estado', 1), 'fecha');
 @endphp
 
 <div class="container-fluid px-2 pb-5">
@@ -78,10 +106,6 @@
                     <div class="mini-stat">
                         <div class="val">{{ number_format($diasEmpresa) }}</div>
                         <div class="lbl">Días</div>
-                    </div>
-                    <div class="mini-stat">
-                        <div class="val">{{ $nContratos }}</div>
-                        <div class="lbl">Contratos</div>
                     </div>
                 </div>
             </div>
@@ -155,6 +179,16 @@
                             <span>{{ $empleado->cargo }}</span>
                         </div>
                     </div>
+                    <div class="card-info-item">
+                        <div class="icon"><i class="fas fa-building"></i></div>
+                        <div class="cont">
+                            <label>Sede</label>
+                            <span>
+                                {{ $empleado->sede->nombre ?? 'Sin sede' }} - 
+                                {{ $empleado->sede->ciudad ?? ''}}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -163,7 +197,10 @@
         <div class="col-lg-9">
             <div class="main-tabs-card">
                 <nav>
-                    <div class="nav nav-tabs profile-nav-tabs px-3 border-0" id="emp-tabs" role="tablist">
+                    <div class="nav nav-tabs profile-nav-tabs px-3 border-0 flex-nowrap"
+                        id="emp-tabs"
+                        role="tablist"
+                        style="overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
                         <a class="nav-link active" data-toggle="tab" href="#tab-precontractual" role="tab">
                             <i class="fas fa-file-contract me-2"></i> Precontractual
                         </a>
@@ -179,14 +216,39 @@
                         <a class="nav-link" data-toggle="tab" href="#tab-formacion" role="tab">
                             <i class="fas fa-graduation-cap me-2"></i> Formación
                         </a>
+                        <a class="nav-link" data-toggle="tab" href="#tab-certificaciones" role="tab">
+                            <i class="fas fa-certificate me-2"></i> Certificaciones
+                        </a>
                         <a class="nav-link" data-toggle="tab" href="#tab-comunicaciones" role="tab">
                             <i class="fas fa-bullhorn me-2"></i> Comunicados
                         </a>
                         <a class="nav-link" data-toggle="tab" href="#tab-solicitudes" role="tab">
                             <i class="fas fa-tasks me-2"></i> Solicitudes
                         </a>
+                        <a class="nav-link" data-toggle="tab" href="#tab-dotacion" role="tab">
+                            <i class="fas fa-tshirt me-2"></i> Dotación
+                        </a>
+                        <a class="nav-link" data-toggle="tab" href="#tab-fechas" role="tab">
+                            <i class="fas fa-calendar-alt me-2"></i> Fechas Especiales
+                        </a>
+                        <a class="nav-link" data-toggle="tab" href="#tab-capacidad" role="tab">
+                            <i class="fas fa-industry me-2"></i> Capacidad Instalada
+                        </a>
+
+                        <a class="nav-link" data-toggle="tab" href="#tab-nomina" role="tab">
+                            <i class="fas fa-file-invoice-dollar me-2"></i> Novedades Nómina
+                        </a>
+
+                        <a class="nav-link" data-toggle="tab" href="#tab-sena" role="tab">
+                            <i class="fas fa-users me-2"></i> Planta Personal SENA
+                        </a>
+                        <a class="nav-link" data-toggle="tab" href="#tab-productividad" role="tab">
+                            <i class="fas fa-chart-line me-2"></i> Productividad
+                        </a>
+                        <a class="nav-link" data-toggle="tab" href="#tab-calidad" role="tab">
+                            <i class="fas fa-check-circle me-2"></i> Calidad
                     </div>
-                </nav>
+                </nav>  
 
                 <div class="tab-content main-tabs-body p-4" id="nav-tabContent">
 
@@ -231,7 +293,31 @@
                             <h5 class="fw-bold mb-1">Historial Contractual</h5>
                             <p class="text-muted small mb-0">Contratos, renovaciones y anexos laborales.</p>
                         </div>
-                        @forelse($empleado->etapaContractuales->sortByDesc('fecha_inicio') as $c)
+                        @php
+                            $normalContracts = $empleado->etapaContractuales->filter(function($c) {
+                                return !in_array($c->tipo_contrato, ['Antecedentes Judiciales', 'Rethus - Aplica', 'Rethus - No aplica', 'Vacunas', 'Otros']);
+                            })->sortByDesc('fecha_inicio');
+
+                            $antecedentes = $empleado->etapaContractuales->filter(function($c) {
+                                return $c->tipo_contrato === 'Antecedentes Judiciales';
+                            })->sortByDesc('fecha_inicio')->groupBy(fn($i) => \Carbon\Carbon::parse($i->fecha_inicio)->format('Y'));
+
+                            $rethus = $empleado->etapaContractuales->filter(function($c) {
+                                return str_starts_with($c->tipo_contrato, 'Rethus');
+                            })->sortByDesc('fecha_inicio')->groupBy(fn($i) => \Carbon\Carbon::parse($i->fecha_inicio)->format('Y'));
+
+                            $vacunas = $empleado->etapaContractuales->filter(function($c) {
+                                return $c->tipo_contrato === 'Vacunas';
+                            })->sortByDesc('fecha_inicio');
+
+                            $otrosDocs = $empleado->etapaContractuales->filter(function($c) {
+                                return $c->tipo_contrato === 'Otros';
+                            })->sortByDesc('fecha_inicio');
+
+                            $totalOtrosCount = $antecedentes->flatten()->count() + $rethus->flatten()->count() + $vacunas->count() + $otrosDocs->count();
+                        @endphp
+
+                        @forelse($normalContracts as $c)
                             @php $badge = $c->getStatusBadge($c->fecha_fin); @endphp
                             <div class="modern-doc-block mb-3">
                                 <div class="row align-items-center">
@@ -242,8 +328,9 @@
                                             {{ \Carbon\Carbon::parse($c->fecha_inicio)->format('d/m/Y') }}
                                             &mdash;
                                             {{ $c->fecha_fin ? \Carbon\Carbon::parse($c->fecha_fin)->format('d/m/Y') : 'Indefinido' }}
-                                            <span class="mx-2 text-silver">|</span>
-                                            <i class="fas fa-coins me-1"></i> $ {{ number_format($c->salario) }}
+                                            @if($c->salario && $c->salario > 0)
+                                                <i class="fas fa-coins me-1"></i> $ {{ number_format($c->salario) }}
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="col-md-auto text-end mt-2 mt-md-0">
@@ -268,96 +355,400 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="empty-tab-state"><i class="fas fa-handshake mb-3"></i><p>No se encontraron contratos registrados.</p></div>
+                            <div class="empty-tab-state mb-4"><i class="fas fa-handshake mb-3"></i><p>No se encontraron contratos registrados.</p></div>
                         @endforelse
+
+                        <hr class="my-4" style="border-color: #e2e8f0;">
+
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Documentos Adicionales</h5>
+                            <p class="text-muted small mb-0">Otros documentos relacionados a la etapa contractual.</p>
+                        </div>
+
+                        {{-- CARPETA: ANTECEDENTES JUDICIALES --}}
+                        <div class="folder-container mb-3">
+                            <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-antecedentes">
+                                <div class="folder-info">
+                                    <i class="fas fa-folder folder-icon text-warning"></i>
+                                    <span class="folder-title">Antecedentes Judiciales</span>
+                                    <span class="folder-count">{{ $antecedentes->flatten()->count() }} registros</span>
+                                </div>
+                                <i class="fas fa-chevron-down folder-arrow"></i>
+                            </div>
+                            <div id="folder-antecedentes" class="collapse folder-content">
+                                @forelse($antecedentes as $year => $yearItems)      
+                                    <div class="folder-container mb-2" style="border-style: dashed;">
+                                        <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-antecedentes-{{ $year }}">
+                                                    <div class="folder-info">
+                                                        <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                        <span class="folder-title" style="font-size: 0.9rem;">Año {{ $year }}</span>
+                                                    </div>
+                                                    <i class="fas fa-chevron-down folder-arrow small"></i>
+                                                </div>
+                                                <div id="folder-antecedentes-{{ $year }}" class="collapse folder-content py-2">
+                                                    @foreach($yearItems as $item)
+                                                        <div class="modern-doc-block border-0 bg-light mb-2 p-3">
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($item->fecha_inicio)->format('d/m/Y') }}</small>
+                                                            </div>
+                                                            @foreach($item->documentos as $doc)
+                                                                <div class="file-item-pill py-2">
+                                                                    <div class="file-info"><i class="fas fa-file-pdf text-danger me-2"></i><span class="file-name" style="font-size: 0.8rem;">{{ $doc->nombre_original }}</span></div>
+                                                                    <div class="file-btn-group">
+                                                                        <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view btn-sm"><i class="fas fa-eye"></i></a>
+                                                                        <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download btn-sm"><i class="fas fa-download"></i></a>
+                                                                     </div>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-center py-3 text-muted small italic">
+                                                <i class="fas fa-info-circle me-1"></i> No hay documentos de Antecedentes Judiciales.
+                                            </div>
+                                        @endforelse
+                            </div>
+                        </div>
+
+                        {{-- CARPETA: RETHUS --}}
+                        <div class="folder-container mb-3">
+                            <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-rethus">
+                                <div class="folder-info">
+                                    <i class="fas fa-folder folder-icon text-warning"></i>
+                                    <span class="folder-title">Rethus</span>
+                                    <span class="folder-count">{{ $rethus->flatten()->count() }} registros</span>
+                                </div>
+                                <i class="fas fa-chevron-down folder-arrow"></i>
+                            </div>
+                            <div id="folder-rethus" class="collapse folder-content">
+                                @forelse($rethus as $year => $yearItems)
+                                    <div class="folder-container mb-2" style="border-style: dashed;">
+                                        <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-rethus-{{ $year }}">
+                                                    <div class="folder-info">
+                                                        <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                        <span class="folder-title" style="font-size: 0.9rem;">Año {{ $year }}</span>
+                                                    </div>
+                                                    <i class="fas fa-chevron-down folder-arrow small"></i>
+                                                </div>
+                                                <div id="folder-rethus-{{ $year }}" class="collapse folder-content py-2">
+                                                    @foreach($yearItems as $item)
+                                                        <div class="modern-doc-block border-0 bg-light mb-2 p-3">
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($item->fecha_inicio)->format('d/m/Y') }}</small>
+                                                                @if($item->tipo_contrato == 'Rethus - Aplica')
+                                                                    <span class="badge bg-soft-success text-success rounded-pill px-2 small">
+                                                                        ✅ Aplica
+                                                                    </span>
+                                                                @else
+                                                                    <span class="badge bg-soft-danger text-danger rounded-pill px-2 small">
+                                                                        ❌ No aplica
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                            @foreach($item->documentos as $doc)
+                                                                <div class="file-item-pill py-2 mt-2">
+                                                                    <div class="file-info"><i class="fas fa-file-pdf text-danger me-2"></i><span class="file-name" style="font-size: 0.8rem;">{{ $doc->nombre_original }}</span></div>
+                                                                    <div class="file-btn-group">
+                                                                        <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view btn-sm"><i class="fas fa-eye"></i></a>
+                                                                        <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download btn-sm"><i class="fas fa-download"></i></a>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-center py-3 text-muted small italic">
+                                                <i class="fas fa-info-circle me-1"></i> No hay registros de Rethus.
+                                            </div>
+                                        @endforelse
+                            </div>
+                        </div>
+
+                        {{-- CARPETA: VACUNAS --}}
+                        <div class="folder-container mb-3">
+                            <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-vacunas">
+                                <div class="folder-info">
+                                    <i class="fas fa-folder folder-icon text-warning"></i>
+                                    <span class="folder-title">Vacunas</span>
+                                    <span class="folder-count">{{ $vacunas->count() }} documentos</span>
+                                </div>
+                                <i class="fas fa-chevron-down folder-arrow"></i>
+                            </div>
+                            <div id="folder-vacunas" class="collapse folder-content">
+                                @forelse($vacunas as $item)
+                                            <div class="modern-doc-block border-0 bg-light mb-2 p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($item->fecha_inicio)->format('d/m/Y') }}</small>
+                                                </div>
+                                                @foreach($item->documentos as $doc)
+                                                    <div class="file-item-pill py-2">
+                                                        <div class="file-info"><i class="fas fa-file-pdf text-danger me-2"></i><span class="file-name" style="font-size: 0.8rem;">{{ $doc->nombre_original }}</span></div>
+                                                        <div class="file-btn-group">
+                                                            <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view btn-sm"><i class="fas fa-eye"></i></a>
+                                                            <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download btn-sm"><i class="fas fa-download"></i></a>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @empty
+                                            <div class="text-center py-3 text-muted small italic">
+                                                <i class="fas fa-info-circle me-1"></i> No hay documentos de Vacunas.
+                                            </div>
+                                        @endforelse
+                            </div>
+                        </div>
+
+                        {{-- CARPETA: OTROS DOCUMENTOS --}}
+                        <div class="folder-container mb-3">
+                            <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-otros-docs">
+                                <div class="folder-info">
+                                    <i class="fas fa-folder folder-icon text-warning"></i>
+                                    <span class="folder-title">Otros</span>
+                                    <span class="folder-count">{{ $otrosDocs->count() }} documentos</span>
+                                </div>
+                                <i class="fas fa-chevron-down folder-arrow"></i>
+                            </div>
+                            <div id="folder-otros-docs" class="collapse folder-content">
+                                @forelse($otrosDocs as $item)
+                                            <div class="modern-doc-block border-0 bg-light mb-2 p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($item->fecha_inicio)->format('d/m/Y') }}</small>
+                                                </div>
+                                                @foreach($item->documentos as $doc)
+                                                    <div class="file-item-pill py-2">
+                                                        <div class="file-info"><i class="fas fa-file-pdf text-danger me-2"></i><span class="file-name" style="font-size: 0.8rem;">{{ $doc->nombre_original }}</span></div>
+                                                        <div class="file-btn-group">
+                                                            <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view btn-sm"><i class="fas fa-eye"></i></a>
+                                                            <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download btn-sm"><i class="fas fa-download"></i></a>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @empty
+                                            <div class="text-center py-3 text-muted small italic">
+                                                <i class="fas fa-info-circle me-1"></i> No hay otros documentos registrados.
+                                            </div>
+                                        @endforelse
+                            </div>
+                        </div>
+
                     </div>
 
-                    {{-- ■ TAB: SST ■ --}}
+                    {{-- ■ TAB: Seguridad y Salud en el Trabajo■ --}}
                     <div class="tab-pane fade" id="tab-sst" role="tabpanel">
                         <div class="tab-section-header mb-4">
                             <h5 class="fw-bold mb-1">Seguridad y Salud en el Trabajo</h5>
                             <p class="text-muted small mb-0">Exámenes médicos, EPPs y documentos preventivos.</p>
                         </div>
-
                         @php
-                            $sstGroups = $empleado->seguridadSaludTrabajo->sortByDesc('fecha')->groupBy(function($item) {
-                                $tipo = strtolower($item->tipo_documento);
-                                if (str_contains($tipo, 'ingreso')) return 'Ingreso';
-                                if (str_contains($tipo, 'periódic') || str_contains($tipo, 'periodic')) return 'Periódicos';
-                                return 'Otros';
-                            });
+                            $predefinedTypes = ['Ingresos', 'Periódicos', 'ARL', 'Retiros'];
+
+                            $actualGroups = $empleado->seguridadSaludTrabajo
+                                ->sortByDesc('fecha')
+                                ->groupBy(function($item) {
+                                    $tipo = strtolower($item->tipo_documento);
+
+                                    if (str_contains($tipo, 'ingreso')) return 'Ingresos';
+                                    if (str_contains($tipo, 'periódic') || str_contains($tipo, 'periodic')) return 'Periódicos';
+                                    if (str_contains($tipo, 'retiro')) return 'Retiros';
+                                    if (str_contains($tipo, 'arl')) return 'ARL';
+
+                                    return 'Otros';
+                                });
+
+                            $sstGroups = collect();
+
+                            foreach ($predefinedTypes as $type) {
+                                $sstGroups->put($type, $actualGroups->get($type, collect()));
+                            }
                         @endphp
-                        @forelse($sstGroups as $groupName => $items)
-                            <div class="folder-container">
+
+
+                        @foreach($sstGroups as $groupName => $items)
+                            @php
+                                $groupIcon = match($groupName) {
+                                    'Ingresos'   => ['icon' => 'fas fa-folder', 'color' => 'text-warning'],
+                                    'Periódicos' => ['icon' => 'fas fa-folder', 'color' => 'text-warning'],
+                                    'ARL'        => ['icon' => 'fas fa-folder', 'color' => 'text-warning'],
+                                    'Retiros'    => ['icon' => 'fas fa-folder', 'color' => 'text-warning'],
+                                    default      => ['icon' => 'fas fa-folder', 'color' => 'text-warning']
+                                };
+
+                                $hasYears = in_array($groupName, ['ARL', 'Periódicos']);
+
+                                $yearGroups = $hasYears
+                                    ? $items->groupBy(fn($i) => \Carbon\Carbon::parse($i->fecha)->format('Y'))
+                                    : collect(['all' => $items]);
+                            @endphp
+
+                            <div class="folder-container mb-3">
                                 <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-sst-{{ Str::slug($groupName) }}">
                                     <div class="folder-info">
-                                        <i class="fas fa-folder folder-icon"></i>
+                                        <i class="{{ $groupIcon['icon'] }} folder-icon {{ $groupIcon['color'] }}"></i>
                                         <span class="folder-title">{{ $groupName }}</span>
                                         <span class="folder-count">{{ $items->count() }} registros</span>
                                     </div>
                                     <i class="fas fa-chevron-down folder-arrow"></i>
                                 </div>
                                 <div id="folder-sst-{{ Str::slug($groupName) }}" class="collapse folder-content">
-                                    @foreach($items as $sst)
-                                        @php $sstBadge = $sst->getStatusBadge($sst->fecha); @endphp
-                                        <div class="modern-doc-block">
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <div>
-                                                    <h6 class="fw-bold mb-1 text-dark">{{ $sst->tipo_documento }}</h6>
-                                                    <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> Fecha: {{ \Carbon\Carbon::parse($sst->fecha)->format('d/m/Y') }}</small>
-                                                </div>
-                                                <span class="badge {{ $sst->estado == 1 ? $sstBadge['class'] : 'bg-soft-danger text-danger' }} rounded-pill px-3">
-                                                    {{ $sst->estado == 1 ? $sstBadge['label'] : 'Inactivo' }}
-                                                </span>
-                                            </div>
-                                            @foreach($sst->documentos as $doc)
-                                                <div class="file-item-pill">
-                                                    <div class="file-info"><i class="fas fa-file-medical text-danger me-3"></i><span class="file-name">{{ $doc->nombre_original }}</span></div>
-                                                    <div class="file-btn-group">
-                                                        <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view"><i class="fas fa-eye"></i></a>
-                                                        <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download"><i class="fas fa-download"></i></a>
+                                    @forelse($yearGroups as $year => $yearItems)
+                                        @if($hasYears && $year !== 'all')
+                                            <div class="folder-container mb-2" style="border-style: dashed;">
+                                                <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-sst-{{ Str::slug($groupName) }}-{{ $year }}">
+                                                    <div class="folder-info">
+                                                        <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                        <span class="folder-title" style="font-size: 0.9rem;">Año {{ $year }}</span>
                                                     </div>
+                                                    <i class="fas fa-chevron-down folder-arrow small"></i>
+                                                </div>
+                                                <div id="folder-sst-{{ Str::slug($groupName) }}-{{ $year }}" class="collapse folder-content py-2">
+                                                    @foreach($yearItems as $sst)
+                                                        @php $sstBadge = $sst->getStatusBadge($sst->fecha); @endphp
+                                                        <div class="modern-doc-block border-0 bg-light mb-2 p-3">
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <small class="text-muted"><i class="far fa-calend
+                                                                ar-alt me-1"></i> {{ \Carbon\Carbon::parse($sst->fecha)->format('d/m/Y') }}</small>
+                                                                <span class="badge {{ $sst->estado == 1 ? $sstBadge['class'] : 'bg-soft-danger text-danger' }} rounded-pill px-2 small">
+                                                                    {{ $sst->estado == 1 ? $sstBadge['label'] : 'Inactivo' }}
+                                                                </span>
+                                                            </div>
+                                                            @foreach($sst->documentos as $doc)
+                                                                <div class="file-item-pill py-2">
+                                                                    <div class="file-info"><i class="fas fa-file-pdf text-danger me-2"></i><span class="file-name" style="font-size: 0.8rem;">{{ $doc->nombre_original }}</span></div>
+                                                                    <div class="file-btn-group">
+                                                                        <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view btn-sm"><i class="fas fa-eye"></i></a>
+                                                                        <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download btn-sm"><i class="fas fa-download"></i></a>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                       
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @else
+                                            @foreach($yearItems as $sst)
+                                                @php $sstBadge = $sst->getStatusBadge($sst->fecha); @endphp
+                                                <div class="modern-doc-block border-0 bg-light mb-2 p-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($sst->fecha)->format('d/m/Y') }}</small>
+                                                        <span class="badge {{ $sst->estado == 1 ? $sstBadge['class'] : 'bg-soft-danger text-danger' }} rounded-pill px-2 small">
+                                                            {{ $sst->estado == 1 ? $sstBadge['label'] : 'Inactivo' }}
+                                                        </span>
+                                                    </div>
+                                                    @foreach($sst->documentos as $doc)
+                                                        <div class="file-item-pill py-2">
+                                                            <div class="file-info"><i class="fas fa-file-pdf text-danger me-2"></i><span class="file-name" style="font-size: 0.8rem;">{{ $doc->nombre_original }}</span></div>
+                                                            <div class="file-btn-group">
+                                                                <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view btn-sm"><i class="fas fa-eye"></i></a>
+                                                                <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download btn-sm"><i class="fas fa-download"></i></a>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
                                                 </div>
                                             @endforeach
+                                        @endif
+                                    @empty
+                                        <div class="text-center py-3 text-muted small italic">
+                                            <i class="fas fa-info-circle me-1"></i> No hay documentos disponibles en esta categoría.
                                         </div>
-                                    @endforeach
+                                    @endforelse
                                 </div>
                             </div>
-                        @empty
-                            <div class="empty-tab-state"><i class="fas fa-heartbeat mb-3"></i><p>Sin registros de SST.</p></div>
-                        @endforelse
+                        @endforeach
                     </div>
 
                     {{-- ■ TAB: EVALUACIONES ■ --}}
                     <div class="tab-pane fade" id="tab-evaluaciones" role="tabpanel">
-                        <div class="tab-section-header mb-4"><h5 class="fw-bold mb-1">Evaluaciones de Desempeño</h5><p class="text-muted small mb-0">Historial de rendimiento laboral.</p></div>
-                        @forelse($empleado->evaluacionesDesempeno->sortByDesc('fecha') as $ev)
-                            <div class="modern-doc-block mb-3">
-                                <div class="row align-items-center">
-                                    <div class="col-md">
-                                        <h6 class="fw-bold mb-1">Evaluación Periodo {{ \Carbon\Carbon::parse($ev->fecha)->format('d/m/Y') }}</h6>
-                                        <p class="text-muted small italic mb-0">"{{ $ev->observaciones ?? 'Sin observaciones registradas.' }}"</p>
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Evaluaciones de Desempeño</h5>
+                            <p class="text-muted small mb-0">Expediente histórico de evaluaciones y rendimiento laboral.</p>
+                        </div>
+
+                        @forelse($evaluacionesPorAño as $year => $evaluaciones)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header {{ $loop->first ? '' : 'collapsed' }}" data-toggle="collapse" data-target="#folder-eval-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">{{ $evaluaciones->count() }} documentos</span>
                                     </div>
-                                    <div class="col-md-auto text-end">
-                                        <div class="calificacion-pill shadow-sm {{ $ev->calificacion >= 8 ? 'good' : ($ev->calificacion >= 5 ? 'warn' : 'bad') }}">
-                                            <span>Calificación: </span><strong>{{ $ev->calificacion }}/10</strong>
-                                        </div>
-                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
                                 </div>
-                                <div class="mt-3">
-                                    @foreach($ev->documentos as $doc)
-                                        <div class="file-item-pill">
-                                            <div class="file-info"><i class="fas fa-chart-line text-info me-3"></i><span class="file-name">{{ $doc->nombre_original }}</span></div>
-                                            <div class="file-btn-group">
-                                                <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view"><i class="fas fa-eye"></i></a>
-                                                <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download"><i class="fas fa-download"></i></a>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                                <div id="folder-eval-{{ $year }}" class="collapse {{ $loop->first ? 'show' : '' }} folder-content">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle border-0 mb-0">
+                                            <thead>
+                                                <tr class="text-muted small text-uppercase fw-bold" style="background: #f8fafc; border-bottom: 2px solid #f1f5f9;">
+                                                    <th class="border-0 px-3 py-3">Nombre del Documento</th>
+                                                    <th class="border-0 px-3 py-3">Fecha de Creación</th>
+                                                    <th class="border-0 px-3 py-3">Estado</th>
+                                                    <th class="border-0 px-3 py-3 text-end">Opciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($evaluaciones as $ev)
+                                                    @php
+                                                        $statusMap = [
+                                                            1 => ['lbl' => 'Pendiente', 'cls' => 'bg-soft-warning text-warning'],
+                                                            2 => ['lbl' => 'En proceso', 'cls' => 'bg-soft-primary text-primary'],
+                                                            3 => ['lbl' => 'Finalizada', 'cls' => 'bg-soft-success text-success']
+                                                        ];
+                                                        $st = $statusMap[$ev->estado] ?? ['lbl' => 'Registrada', 'cls' => 'bg-light text-muted'];
+                                                    @endphp
+                                                    <tr class="eval-row-hover">
+                                                        <td class="px-3 py-3">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="eval-icon-circle me-3">
+                                                                    <i class="fas fa-file-alt text-primary-modern"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <span class="fw-bold d-block text-dark">{{ $ev->observaciones ? Str::limit($ev->observaciones, 50) : 'Evaluación de Desempeño' }}</span>
+                                                                    <small class="text-muted">ID: #EVAL-{{ str_pad($ev->id, 4, '0', STR_PAD_LEFT) }}</small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-3 py-3">
+                                                            <span class="text-muted small fw-bold"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($ev->fecha)->format('d/m/Y') }}</span>
+                                                        </td>
+                                                        <td class="px-3 py-3">
+                                                            <span class="badge {{ $st['cls'] }} rounded-pill px-3 py-2 small fw-bold">
+                                                                {{ $st['lbl'] }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-3 py-3 text-end">
+                                                            <div class="d-flex justify-content-end gap-2">
+                                                                @if($ev->documentos->count() > 0)
+                                                                    <a href="{{ route('admin.documentos.view', $ev->documentos->first()->id) }}" target="_blank" class="file-btn view btn-sm" title="Visualizar">
+                                                                        <i class="fas fa-eye"></i>
+                                                                    </a>
+                                                                    <a href="{{ route('admin.documentos.download', $ev->documentos->first()->id) }}" class="file-btn download btn-sm" title="Descargar">
+                                                                        <i class="fas fa-download"></i>
+                                                                    </a>
+                                                                @else
+                                                                    <span class="text-muted small italic">Sin adjunto</span>
+                                                                @endif
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         @empty
-                            <div class="empty-tab-state"><i class="fas fa-chart-bar mb-3"></i><p>No se han registrado evaluaciones activas.</p></div>
+                            <div class="empty-tab-state">
+                                <div class="empty-icon-box mb-4">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <h6 class="fw-bold">No hay evaluaciones registradas</h6>
+                                <p class="text-muted">Este empleado no cuenta con registros de evaluación en su expediente.</p>
+                            </div>
                         @endforelse
                     </div>
 
@@ -368,92 +759,185 @@
                             <p class="text-muted small mb-0">Expediente digital de capacitaciones y certificaciones.</p>
                         </div>
 
-                        {{-- CARPETA: CURSOS QUE VENCEN --}}
-                        <div class="folder-container">
-                            <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-form-vence">
-                                <div class="folder-info">
-                                    <i class="fas fa-folder folder-icon" style="color: #f97316;"></i>
-                                    <span class="folder-title">Cursos que vencen</span>
-                                    <span class="folder-count">{{ $empleado->formaciones->where('vence', 1)->count() }} registros</span>
-                                </div>
-                                <i class="fas fa-chevron-down folder-arrow"></i>
-                            </div>
-                            <div id="folder-form-vence" class="collapse folder-content">
-                                @forelse($empleado->formaciones->where('vence', 1)->sortByDesc('fecha_inicio') as $f)
-                                    <div class="modern-doc-block">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-graduation-cap me-2 text-muted"></i>{{ $f->nombre_curso }}</h6>
-                                            @if($f->fecha_fin)
-                                                @php $badge = $f->getStatusBadge($f->fecha_fin); @endphp
-                                                <span class="badge {{ $badge['class'] }} rounded-pill px-3">
-                                                    <i class="fas fa-clock me-1"></i> {{ $badge['label'] }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <div class="text-muted small mb-3">
-                                            <i class="far fa-calendar-alt me-1"></i> 
-                                            {{ $f->fecha_inicio ? \Carbon\Carbon::parse($f->fecha_inicio)->format('d/m/Y') : 'N/A' }}
-                                            <span class="mx-2 text-silver">|</span>
-                                            <span class="fw-bold text-danger">Vence: {{ \Carbon\Carbon::parse($f->fecha_fin)->format('d/m/Y') }}</span>
-                                        </div>
-                                        @foreach($f->documentos as $doc)
-                                            <div class="file-item-pill">
-                                                <div class="file-info">
-                                                    <i class="fas fa-file-pdf text-danger me-2"></i>
-                                                    <span class="file-name">{{ $doc->nombre_original }}</span>
-                                                </div>
-                                                <div class="file-btn-group">
-                                                    <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view" title="Ver"><i class="fas fa-eye"></i></a>
-                                                    <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download" title="Descargar"><i class="fas fa-download"></i></a>
-                                                </div>
-                                            </div>
-                                        @endforeach
+                        @forelse($formacionesPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-form-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
                                     </div>
-                                @empty
-                                    <div class="text-center py-3 text-muted small">No hay cursos con vencimiento.</div>
-                                @endforelse
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-form-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-form-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-form-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $f)
+                                                    <div class="modern-doc-block">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-graduation-cap me-2 text-muted"></i>{{ $f->nombre_curso }}</h6>
+                                                            @if($f->vence == 1)
+                                                                @if($f->fecha_fin)
+                                                                    @php $badge = $f->getStatusBadge($f->fecha_fin); @endphp
+                                                                    <span class="badge {{ $badge['class'] }} rounded-pill px-3">
+                                                                        <i class="fas fa-clock me-1"></i> {{ $badge['label'] }}
+                                                                    </span>
+                                                                @endif
+                                                            @else
+                                                                <span class="badge bg-soft-success text-success rounded-pill px-3">Permanente</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="text-muted small mb-3">
+                                                            <i class="far fa-calendar-alt me-1"></i> 
+                                                            {{ $f->fecha_inicio ? \Carbon\Carbon::parse($f->fecha_inicio)->format('d/m/Y') : 'N/A' }}
+                                                            @if($f->vence == 1 && $f->fecha_fin)
+                                                                <span class="mx-2 text-silver">|</span>
+                                                                <span class="fw-bold text-danger">Vence: {{ \Carbon\Carbon::parse($f->fecha_fin)->format('d/m/Y') }}</span>
+                                                            @endif
+                                                        </div>
+                                                        @foreach($f->documentos as $doc)
+                                                            <div class="file-item-pill">
+                                                                <div class="file-info">
+                                                                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                                    <span class="file-name">{{ $doc->nombre_original }}</span>
+                                                                </div>
+                                                                <div class="file-btn-group">
+                                                                    <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view" title="Ver"><i class="fas fa-eye"></i></a>
+                                                                    <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download" title="Descargar"><i class="fas fa-download"></i></a>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
+                        @empty
+                            <div class="empty-tab-state text-center py-4">
+                                <div class="empty-icon-box mb-3 mx-auto">
+                                    <i class="fas fa-graduation-cap text-muted fa-2x"></i>
+                                </div>
+                                <p class="text-muted">No hay registros de formación académica para este empleado.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- ■ TAB: CERTIFICACIONES ■ --}}
+                    <div class="tab-pane fade" id="tab-certificaciones" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Certificaciones Oficiales</h5>
+                            <p class="text-muted small mb-0">Certificados de idoneidad, licencias y documentos legales de capacitación.</p>
                         </div>
 
-                        {{-- CARPETA: CURSOS QUE NO VENCEN --}}
-                        <div class="folder-container">
-                            <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-form-novence">
-                                <div class="folder-info">
-                                    <i class="fas fa-folder folder-icon" style="color: #10b981;"></i>
-                                    <span class="folder-title">Cursos que no vencen</span>
-                                    <span class="folder-count">{{ $empleado->formaciones->where('vence', 0)->count() }} registros</span>
-                                </div>
-                                <i class="fas fa-chevron-down folder-arrow"></i>
-                            </div>
-                            <div id="folder-form-novence" class="collapse folder-content">
-                                @forelse($empleado->formaciones->where('vence', 0)->sortByDesc('fecha_inicio') as $f)
-                                    <div class="modern-doc-block">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-graduation-cap me-2 text-muted"></i>{{ $f->nombre_curso }}</h6>
-                                            <span class="badge bg-soft-success text-success rounded-pill px-3">Permanente</span>
-                                        </div>
-                                        <div class="text-muted small mb-3">
-                                            <i class="far fa-calendar-alt me-1"></i> 
-                                            {{ $f->fecha_inicio ? \Carbon\Carbon::parse($f->fecha_inicio)->format('d/m/Y') : 'N/A' }}
-                                        </div>
-                                        @foreach($f->documentos as $doc)
-                                            <div class="file-item-pill">
-                                                <div class="file-info">
-                                                    <i class="fas fa-file-pdf text-danger me-2"></i>
-                                                    <span class="file-name">{{ $doc->nombre_original }}</span>
-                                                </div>
-                                                <div class="file-btn-group">
-                                                    <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view" title="Ver"><i class="fas fa-eye"></i></a>
-                                                    <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download" title="Descargar"><i class="fas fa-download"></i></a>
-                                                </div>
-                                            </div>
-                                        @endforeach
+                        @forelse($certificacionesPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-cert-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
                                     </div>
-                                @empty
-                                    <div class="text-center py-3 text-muted small">No hay cursos permanentes.</div>
-                                @endforelse
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-cert-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-cert-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-cert-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $cert)
+                                                    @php $badge = $cert->getStatusBadge($cert->fecha_vencimiento); @endphp
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <div>
+                                                                <h6 class="fw-bold text-dark mb-1">
+                                                                    <i class="fas fa-certificate me-2 text-primary"></i>{{ $cert->nombre_certificacion }}
+                                                                </h6>
+                                                                <div class="text-muted small">
+                                                                    <i class="fas fa-university me-1"></i> {{ $cert->institucion }}
+                                                                    @if($cert->codigo_certificado)
+                                                                        <span class="mx-2">|</span>
+                                                                        <i class="fas fa-hashtag me-1"></i> {{ $cert->codigo_certificado }}
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            <span class="badge {{ $cert->estado == 1 ? $badge['class'] : 'bg-soft-danger text-danger' }} rounded-pill px-3">
+                                                                <i class="{{ $badge['icon'] }} me-1"></i> {{ $cert->estado == 1 ? $badge['label'] : 'Inactivo' }}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        <div class="row align-items-center">
+                                                            <div class="col-md">
+                                                                <div class="text-muted small">
+                                                                    <span class="me-3">
+                                                                        <i class="far fa-calendar-alt me-1"></i> 
+                                                                        <strong>Expedición:</strong> {{ $cert->fecha_expedicion->format('d/m/Y') }}
+                                                                    </span>
+                                                                    <span>
+                                                                        <i class="fas fa-hourglass-end me-1"></i> 
+                                                                        <strong>Vencimiento:</strong> {{ $cert->fecha_vencimiento ? $cert->fecha_vencimiento->format('d/m/Y') : 'Permanente' }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-auto text-end mt-3 mt-md-0">
+                                                                @if($cert->archivo)
+                                                                    <div class="file-btn-group">
+                                                                        <a href="{{ asset('storage/' . $cert->archivo) }}" target="_blank" class="file-btn view" title="Ver Certificado">
+                                                                            <i class="fas fa-eye"></i>
+                                                                        </a>
+                                                                        <a href="{{ asset('storage/' . $cert->archivo) }}" download class="file-btn download" title="Descargar">
+                                                                            <i class="fas fa-download"></i>
+                                                                        </a>
+                                                                    </div>
+                                                                @else
+                                                                    <span class="text-muted small italic">Sin soporte digital</span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+
+                                                        @if($cert->observaciones)
+                                                            <div class="mt-3 p-2 bg-light rounded border-start border-4 border-primary" style="font-size: 0.85rem;">
+                                                                <i class="fas fa-info-circle me-1 text-primary"></i> <strong>Nota:</strong> {{ $cert->observaciones }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
+                        @empty
+                            <div class="empty-tab-state">
+                                <i class="fas fa-certificate mb-3"></i>
+                                <p>No se han registrado certificaciones para este empleado.</p>
+                            </div>
+                        @endforelse
                     </div>
 
                     {{-- ■ TAB: COMUNICACIONES ■ --}}
@@ -541,6 +1025,680 @@
                         @endforelse
                     </div>
 
+                    {{-- ■ TAB: DOTACIÓN ■ --}}
+                    <div class="tab-pane fade" id="tab-dotacion" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Registro de Dotación</h5>
+                            <p class="text-muted small mb-0">Historial de uniformes, calzado y equipos entregados.</p>
+                        </div>
+
+                        @forelse($dotacionesPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-dot-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-dot-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-dot-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-dot-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $dot)
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <div>
+                                                                <h6 class="fw-bold text-dark mb-1">
+                                                                    <i class="fas fa-tshirt me-2 text-warning"></i>{{ $dot->tipo_dotacion }}
+                                                                </h6>
+                                                                <div class="text-muted small">
+                                                                    <span class="me-3"><strong>Talla:</strong> {{ $dot->talla }}</span>
+                                                                    <span><strong>Cantidad:</strong> {{ $dot->cantidad }} unds.</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <div class="text-muted small mb-1">
+                                                                    <i class="far fa-calendar-alt me-1"></i> {{ $dot->fecha->format('d/m/Y') }}
+                                                                </div>
+                                                                <span class="badge {{ $dot->estado == 1 ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }} rounded-pill px-3">
+                                                                    {{ $dot->estado == 1 ? 'Activo' : 'Inactivo' }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        @if($dot->observaciones)
+                                                            <p class="text-muted small mb-3 italic">"{{ $dot->observaciones }}"</p>
+                                                        @endif
+
+                                                        @foreach($dot->documentos as $doc)
+                                                            <div class="file-item-pill">
+                                                                <div class="file-info">
+                                                                    <i class="fas fa-file-invoice text-danger me-3"></i>
+                                                                    <span class="file-name">{{ $doc->nombre_original }}</span>
+                                                                </div>
+                                                                <div class="file-btn-group">
+                                                                    <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view" title="Ver"><i class="fas fa-eye"></i></a>
+                                                                    <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download" title="Descargar"><i class="fas fa-download"></i></a>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-tab-state">
+                                <div class="empty-icon-box mb-4">
+                                    <i class="fas fa-tshirt"></i>
+                                </div>
+                                <h6 class="fw-bold">Sin registros de dotación</h6>
+                                <p class="text-muted">No se han registrado entregas de dotación para este empleado.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- ■ TAB: FECHAS ESPECIALES ■ --}}
+                    <div class="tab-pane fade" id="tab-fechas" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Fechas Especiales</h5>
+                            <p class="text-muted small mb-0">Permisos, eventos familiares y fechas importantes.</p>
+                        </div>
+
+                        @forelse($fechasEspecialesPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-fechas-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-fechas-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-fechas-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-fechas-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $fecha)
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <h6 class="fw-bold mb-1">
+                                                                    🎉 {{ $fecha->tipo }}
+                                                                </h6>
+                                                                <small class="text-muted d-block mb-2">
+                                                                    <i class="far fa-calendar-alt me-1"></i>
+                                                                    {{ \Carbon\Carbon::parse($fecha->fecha)->format('d/m/Y') }}
+                                                                </small>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <span class="badge rounded-pill bg-info mb-2">
+                                                                    Evento Especial
+                                                                </span>
+
+                                                                @if($fecha->archivo)
+                                                                    <div class="file-btn-group justify-content-end mt-2">
+                                                                        <a href="{{ asset('storage/' . $fecha->archivo) }}"
+                                                                        target="_blank"
+                                                                        class="file-btn view"
+                                                                        title="Ver archivo">
+                                                                            <i class="fas fa-eye"></i>
+                                                                        </a>
+                                                                        <a href="{{ asset('storage/' . $fecha->archivo) }}"
+                                                                        download
+                                                                        class="file-btn download"
+                                                                        title="Descargar archivo">
+                                                                            <i class="fas fa-download"></i>
+                                                                        </a>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-tab-state">
+                                <i class="fas fa-calendar-star mb-3"></i>
+                                <p>No hay fechas especiales registradas para este empleado.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- ■ TAB: PRODUCTIVIDAD ■ --}}
+                    <div class="tab-pane fade" id="tab-productividad" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Productividad</h5>
+                            <p class="text-muted small mb-0">Seguimientos, observaciones y actividades.</p>
+                        </div>
+
+                        @forelse($productividadesPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-prod-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-prod-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-prod-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-prod-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $prod)
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div>
+                                                                <h6 class="fw-bold mb-1">{{ $prod->titulo }}</h6>
+                                                                <div class="text-muted small mb-2">
+                                                                    <i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($prod->fecha)->format('d/m/Y') }}
+                                                                    @if($prod->tipo)
+                                                                        <span class="ms-2"><i class="fas fa-tag me-1"></i> {{ $prod->tipo }}</span>
+                                                                    @endif
+                                                                </div>
+                                                                <p class="mb-2 text-dark small">{{ $prod->descripcion }}</p>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <span class="badge bg-soft-success text-success border border-success rounded-pill px-3 py-1" style="font-size: 0.75rem;">Activo</span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        @if($prod->archivo)
+                                                            @php
+                                                                $ext = pathinfo($prod->archivo, PATHINFO_EXTENSION);
+                                                                $icon = 'fas fa-file-alt text-secondary';
+                                                                if(in_array(strtolower($ext), ['pdf'])) $icon = 'fas fa-file-pdf text-danger';
+                                                                elseif(in_array(strtolower($ext), ['jpg','jpeg','png','gif'])) $icon = 'fas fa-file-image text-success';
+                                                                elseif(in_array(strtolower($ext), ['doc','docx'])) $icon = 'fas fa-file-word text-primary';
+                                                                elseif(in_array(strtolower($ext), ['xls','xlsx'])) $icon = 'fas fa-file-excel text-success';
+                                                                
+                                                                $fileName = basename($prod->archivo);
+                                                                if (strlen($fileName) > 25) {
+                                                                    $fileName = substr($fileName, 0, 10) . '...' . substr($fileName, -10);
+                                                                }
+                                                            @endphp
+                                                            <div class="file-item-pill mt-3">
+                                                                <div class="file-info d-flex align-items-center">
+                                                                    <i class="{{ $icon }} fa-lg me-3"></i>
+                                                                    <div>
+                                                                        <span class="d-block text-muted small fw-bold mb-0">Archivo adjunto</span>
+                                                                        <span class="file-name text-dark fw-medium" style="font-size: 0.85rem;">{{ $fileName }}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="file-btn-group">
+                                                                    <a href="{{ route('admin.productividades.archivo.view', $prod->id) }}" target="_blank" class="file-btn view" title="Ver"><i class="fas fa-eye"></i></a>
+                                                                    <a href="{{ route('admin.productividades.archivo.download', $prod->id) }}" class="file-btn download" title="Descargar"><i class="fas fa-download"></i></a>
+                                                                </div>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-tab-state text-center py-4">
+                                <div class="empty-icon-box mb-3 mx-auto">
+                                    <i class="fas fa-chart-line text-muted fa-2x"></i>
+                                </div>
+                                <p class="text-muted">No hay registros de productividad para este empleado.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- ■ TAB: CAPACIDAD INSTALADA ■ --}}
+                    <div class="tab-pane fade" id="tab-capacidad" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Capacidad Instalada</h5>
+                            <p class="text-muted small mb-0">Información de capacidad disponible y utilizada.</p>
+                        </div>
+
+                        @forelse($capacidadPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-cap-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-cap-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-cap-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-cap-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $item)
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <div class="doc-date">
+                                                                <i class="far fa-calendar-alt me-2 text-primary"></i>
+                                                                {{ \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') }}
+                                                            </div>
+
+                                                            <span class="badge {{ $item->estado == 1 ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }} rounded-pill px-3">
+                                                                {{ $item->estado == 1 ? 'Activo' : 'Inactivo' }}
+                                                            </span>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-md-4">
+                                                                <strong>Proceso:</strong><br>
+                                                                {{ $item->proceso }}
+                                                            </div>
+
+                                                            <div class="col-md-4">
+                                                                <strong>Capacidad Disponible:</strong><br>
+                                                                {{ $item->capacidad_disponible }}
+                                                            </div>
+
+                                                            <div class="col-md-4">
+                                                                <strong>Capacidad Utilizada:</strong><br>
+                                                                {{ $item->capacidad_utilizada }}
+                                                            </div>
+                                                        </div>
+
+                                                        @if($item->observaciones)
+                                                            <hr>
+                                                            <strong>Observaciones:</strong>
+                                                            <p class="mb-0">{{ $item->observaciones }}</p>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-tab-state">
+                                <i class="fas fa-folder-open mb-3"></i>
+                                <p>No hay registros de capacidad instalada.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- ■ TAB: REPORTES NOVEDADES NOMINA ■ --}}
+                    <div class="tab-pane fade" id="tab-nomina" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Reportes Novedades Nómina</h5>
+                            <p class="text-muted small mb-0">Historial de novedades reportadas para nómina.</p>
+                        </div>
+
+                        @forelse($nominaPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-nom-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-nom-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-nom-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-nom-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $item)
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <div class="doc-date">
+                                                                <i class="far fa-calendar-alt me-2 text-primary"></i>
+                                                                {{ \Carbon\Carbon::parse($item->fecha)->format('d/m/Y') }}
+                                                            </div>
+
+                                                            <span class="badge {{ $item->estado == 1 ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }} rounded-pill px-3">
+                                                                {{ $item->estado == 1 ? 'Activo' : 'Inactivo' }}
+                                                            </span>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <strong>Tipo de Novedad:</strong><br>
+                                                                {{ $item->tipo_novedad }}
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <strong>Cantidad:</strong><br>
+                                                                {{ $item->cantidad }}
+                                                            </div>
+                                                        </div>
+
+                                                        @if($item->observaciones)
+                                                            <hr>
+                                                            <strong>Observaciones:</strong>
+                                                            <p class="mb-0">{{ $item->observaciones }}</p>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-tab-state">
+                                <i class="fas fa-folder-open mb-3"></i>
+                                <p>No hay reportes de novedades de nómina.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- ■ TAB: PLANTA PERSONAL SENA ■ --}}
+                    <div class="tab-pane fade" id="tab-sena" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Planta Personal SENA</h5>
+                            <p class="text-muted small mb-0">Información reportada al SENA.</p>
+                        </div>
+
+                        @forelse($senaPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-sena-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-sena-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-sena-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-sena-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $item)
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <div class="doc-date">
+                                                                <i class="far fa-calendar-alt me-2 text-primary"></i>
+                                                                {{ \Carbon\Carbon::parse($item->fecha_reporte)->format('d/m/Y') }}
+                                                            </div>
+
+                                                            <span class="badge {{ $item->estado == 1 ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }} rounded-pill px-3">
+                                                                {{ $item->estado == 1 ? 'Activo' : 'Inactivo' }}
+                                                            </span>
+                                                        </div>
+
+                                                        <strong>Observaciones:</strong>
+                                                        <p class="mb-0">
+                                                            {{ $item->observaciones ?: 'Sin observaciones registradas.' }}
+                                                        </p>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-tab-state">
+                                <i class="fas fa-folder-open mb-3"></i>
+                                <p>No hay registros de Planta Personal SENA.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+
+
+                    {{-- ■ TAB: calidad_documentos ■ --}}
+                    <div class="tab-pane fade" id="tab-calidad" role="tabpanel">
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Calidad Documentos</h5>
+                            <p class="text-muted small mb-0">Documentación de calidad asociada al empleado.</p>
+                        </div>
+
+                        @forelse($calidadPorAnioMes as $year => $months)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-cal-{{ $year }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">Año {{ $year }}</span>
+                                        <span class="folder-count">
+                                            {{ $months->flatten(1)->count() }} registros
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
+                                </div>
+                                <div id="folder-cal-{{ $year }}" class="collapse folder-content">
+                                    @foreach($months as $monthNum => $items)
+                                        <div class="folder-container mb-2" style="border-style: dashed;">
+                                            <div class="folder-header collapsed py-2" data-toggle="collapse" data-target="#folder-cal-{{ $year }}-{{ $monthNum }}">
+                                                <div class="folder-info">
+                                                    <i class="fas fa-folder-open folder-icon small text-muted"></i>
+                                                    <span class="folder-title" style="font-size: 0.9rem;">{{ $mesesNombre[$monthNum] }}</span>
+                                                    <span class="folder-count" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                        {{ $items->count() }} registros
+                                                    </span>
+                                                </div>
+                                                <i class="fas fa-chevron-down folder-arrow small"></i>
+                                            </div>
+                                            <div id="folder-cal-{{ $year }}-{{ $monthNum }}" class="collapse folder-content py-2">
+                                                @foreach($items as $doc)
+                                                    <div class="modern-doc-block mb-3">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div>
+                                                                <h6 class="fw-bold mb-1">
+                                                                    {{ $doc->nombre_documento }}
+                                                                </h6>
+
+                                                                <div class="text-muted small mb-2">
+                                                                    <i class="fas fa-folder me-1"></i>
+                                                                    {{ $doc->categoria ?? 'General' }}
+
+                                                                    @if($doc->codigo)
+                                                                        <span class="ms-2">
+                                                                            <i class="fas fa-barcode me-1"></i>
+                                                                            {{ $doc->codigo }}
+                                                                        </span>
+                                                                    @endif
+
+                                                                    @if($doc->version)
+                                                                        <span class="ms-2">
+                                                                            <i class="fas fa-code-branch me-1"></i>
+                                                                            Versión {{ $doc->version }}
+                                                                        </span>
+                                                                    @endif
+                                                                </div>
+
+                                                                <div class="text-muted small">
+                                                                    <span>
+                                                                        <i class="far fa-calendar-alt me-1"></i>
+                                                                        Emisión:
+                                                                        {{ \Carbon\Carbon::parse($doc->fecha_emision)->format('d/m/Y') }}
+                                                                    </span>
+
+                                                                    @if($doc->fecha_vencimiento)
+                                                                        <span class="ms-3">
+                                                                            <i class="fas fa-hourglass-end me-1"></i>
+                                                                            Vence:
+                                                                            {{ \Carbon\Carbon::parse($doc->fecha_vencimiento)->format('d/m/Y') }}
+                                                                        </span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="text-end">
+                                                                @php
+                                                                    $hoy = \Carbon\Carbon::now();
+                                                                    $vence = $doc->fecha_vencimiento
+                                                                        ? \Carbon\Carbon::parse($doc->fecha_vencimiento)
+                                                                        : null;
+                                                                @endphp
+
+                                                                @if($vence && $vence->isPast())
+                                                                    <span class="badge bg-danger rounded-pill px-3 py-1"
+                                                                        style="font-size: 0.75rem;">
+                                                                        Vencido
+                                                                    </span>
+                                                                @elseif($vence && $hoy->diffInDays($vence, false) <= 30)
+                                                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1"
+                                                                        style="font-size: 0.75rem;">
+                                                                        Próximo a vencer
+                                                                    </span>
+                                                                @else
+                                                                    <span class="badge bg-soft-success text-success border border-success rounded-pill px-3 py-1"
+                                                                        style="font-size: 0.75rem;">
+                                                                        Vigente
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+
+                                                        @if($doc->archivo)
+                                                            @php
+                                                                $ext = pathinfo($doc->archivo, PATHINFO_EXTENSION);
+                                                                $icon = 'fas fa-file-alt text-secondary';
+                                                                if(in_array(strtolower($ext), ['pdf'])) {
+                                                                    $icon = 'fas fa-file-pdf text-danger';
+                                                                }
+                                                                elseif(in_array(strtolower($ext), ['jpg','jpeg','png','gif'])) {
+                                                                    $icon = 'fas fa-file-image text-success';
+                                                                }
+                                                                elseif(in_array(strtolower($ext), ['doc','docx'])) {
+                                                                    $icon = 'fas fa-file-word text-primary';
+                                                                }
+                                                                elseif(in_array(strtolower($ext), ['xls','xlsx'])) {
+                                                                    $icon = 'fas fa-file-excel text-success';
+                                                                }
+
+                                                                $fileName = basename($doc->archivo);
+                                                                if(strlen($fileName) > 25) {
+                                                                    $fileName = substr($fileName, 0, 10)
+                                                                        . '...'
+                                                                        . substr($fileName, -10);
+                                                                }
+                                                            @endphp
+
+                                                            <div class="file-item-pill mt-3">
+                                                                <div class="file-info d-flex align-items-center">
+                                                                    <i class="{{ $icon }} fa-lg me-3"></i>
+                                                                    <div>
+                                                                        <span class="d-block text-muted small fw-bold mb-0">
+                                                                            Archivo adjunto
+                                                                        </span>
+                                                                        <span class="file-name text-dark fw-medium"
+                                                                            style="font-size: 0.85rem;">
+                                                                            {{ $fileName }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="file-btn-group">
+                                                                    <a href="{{ route('admin.calidad-documentos.archivo.view', $doc->id) }}"
+                                                                    target="_blank"
+                                                                    class="file-btn view"
+                                                                    title="Ver">
+                                                                        <i class="fas fa-eye"></i>
+                                                                    </a>
+                                                                    <a href="{{ route('admin.calidad-documentos.archivo.download', $doc->id) }}"
+                                                                    class="file-btn download"
+                                                                    title="Descargar">
+                                                                        <i class="fas fa-download"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @empty
+                            <div class="empty-tab-state text-center py-4">
+                                <div class="empty-icon-box mb-3 mx-auto">
+                                    <i class="fas fa-folder-open text-muted fa-2x"></i>
+                                </div>
+                                <p class="text-muted">
+                                    No hay documentos de calidad para este empleado.
+                                </p>
+                            </div>
+                        @endforelse
+                    </div>
+
+
+
                 </div>{{-- /tab-content --}}
             </div>{{-- /main-tabs-card --}}
         </div>{{-- /col-9 --}}
@@ -551,13 +1709,40 @@
 
 @section('css')
 <style>
+    .profile-nav-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    padding-bottom: 8px;
+}
+
+.profile-nav-tabs::-webkit-scrollbar {
+    height: 6px;
+}
+
+.profile-nav-tabs::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 20px;
+}
+
+.profile-nav-tabs::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 20px;
+}
+
+.profile-nav-tabs .nav-link {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 :root {
-    --primary-modern: #6366f1; /* Indigo vibrante profesional */
+    --primary-modern: #6366f1;
     --primary-hover: #4f46e5;
     --primary-light: rgba(99, 102, 241, 0.1);
-    --bg-page: #f1f5f9; /* Slate 100 para mejor contraste */
-    --text-main: #0f172a; /* Slate 900 */
-    --text-muted: #64748b; /* Slate 500 */
+    --bg-page: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
     --text-light: #94a3b8; /* Slate 400 */
     --glass-bg: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(255, 255, 255, 0.6);
@@ -730,6 +1915,20 @@ body { background-color: var(--bg-page) !important; color: #334155; font-family:
 .calificacion-pill.good { background: #dcfce7; color: #166534; }
 .calificacion-pill.warn { background: #fef3c7; color: #92400e; }
 .calificacion-pill.bad { background: #fee2e2; color: #991b1b; }
+
+.eval-icon-circle {
+    width: 45px; height: 45px; border-radius: 12px; background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    flex-shrink: 0; transition: all 0.3s;
+}
+.eval-row-hover:hover .eval-icon-circle { background: #eef2ff; transform: rotate(5deg) scale(1.05); }
+.eval-row-hover:hover { background-color: #fbfbfc !important; }
+
+.empty-icon-box {
+    width: 80px; height: 80px; background: #f8fafc; border-radius: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto; font-size: 2.5rem; color: #cbd5e1;
+}
 
 /* Animations */
 @keyframes fadeInSlide {

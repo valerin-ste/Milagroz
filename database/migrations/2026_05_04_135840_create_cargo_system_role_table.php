@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cargo_system_role', function (Blueprint $table) {
-            $table->id();
-            // Matching the types of the existing tables
-            $table->integer('cargo_id');
-            $table->unsignedBigInteger('system_role_id');
-            $table->timestamps();
+        if (!Schema::hasTable('cargo_system_role')) {
+            Schema::create('cargo_system_role', function (Blueprint $table) {
+                $table->id();
+                // Matching the types of the existing tables
+                $table->unsignedBigInteger('cargo_id');
+                $table->unsignedBigInteger('system_role_id');
+                $table->timestamps();
 
-            // Foreign keys
-            $table->foreign('cargo_id')->references('id')->on('roles')->onDelete('cascade');
-            $table->foreign('system_role_id')->references('id')->on('system_roles')->onDelete('cascade');
-        });
+                // Foreign keys
+                $table->foreign('cargo_id')->references('id')->on('roles')->onDelete('cascade');
+                $table->foreign('system_role_id')->references('id')->on('system_roles')->onDelete('cascade');
+            });
+        }
     }
 
     /**

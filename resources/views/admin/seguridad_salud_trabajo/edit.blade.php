@@ -65,14 +65,24 @@
                                 <select name="tipo_documento" class="form-control" required>
                                     <option value="">Seleccione...</option>
 
-                                    <option value="Ingreso"
-                                        {{ old('tipo_documento', $documento->tipo_documento) == 'Ingreso' ? 'selected' : '' }}>
-                                        Ingreso
+                                    <option value="Ingresos"
+                                        {{ old('tipo_documento', $documento->tipo_documento) == 'Ingresos' || old('tipo_documento', $documento->tipo_documento) == 'Ingreso' ? 'selected' : '' }}>
+                                        Ingresos
                                     </option>
 
-                                    <option value="Periódico"
-                                        {{ old('tipo_documento', $documento->tipo_documento) == 'Periódico' ? 'selected' : '' }}>
-                                        Periódico
+                                    <option value="Periódicos"
+                                        {{ old('tipo_documento', $documento->tipo_documento) == 'Periódicos' || old('tipo_documento', $documento->tipo_documento) == 'Periódico' ? 'selected' : '' }}>
+                                        Periódicos
+                                    </option>
+
+                                    <option value="ARL"
+                                        {{ old('tipo_documento', $documento->tipo_documento) == 'ARL' ? 'selected' : '' }}>
+                                        ARL
+                                    </option>
+
+                                    <option value="Retiros"
+                                        {{ old('tipo_documento', $documento->tipo_documento) == 'Retiros' || old('tipo_documento', $documento->tipo_documento) == 'Retiro' ? 'selected' : '' }}>
+                                        Retiros
                                     </option>
                                 </select>
                             </div>  

@@ -44,7 +44,8 @@
                     @endphp
                     <select name="tipo_select" id="tipo_select" class="form-control" required>
                         <option value="Vacaciones" {{ $solicitud->tipo == 'Vacaciones' ? 'selected' : '' }}>Vacaciones</option>
-                        <option value="Incapacidad" {{ $solicitud->tipo == 'Incapacidad' ? 'selected' : '' }}>Incapacidad</option>
+                        <option value="Solicitud" {{ $solicitud->tipo == 'Solicitud' ? 'selected' : '' }}>Solicitud</option>
+                        <option value="Ausentismo" {{ $solicitud->tipo == 'Ausentismo' ? 'selected' : '' }}>Ausentismo</option>
                         <option value="Otro" {{ $esOtro ? 'selected' : '' }}>Otro (Especificar)</option>
                     </select>
                 </div>

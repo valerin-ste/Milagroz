@@ -137,22 +137,44 @@
 
                             {{-- ACCIONES --}}
                             <td class="text-center pe-4 py-3">
-                                <div class="d-flex justify-content-center gap-2">
+                                <div class="d-flex justify-content-center align-items-center gap-2">
+
+                                    {{-- EDITAR --}}
                                     <a href="{{ route('admin.comunicaciones.edit', $c) }}"
-                                       class="btn btn-sm btn-icon btn-outline-primary"
-                                       data-toggle="tooltip" data-placement="top" title="Editar">
+                                    class="btn btn-sm btn-outline-primary d-flex justify-content-center align-items-center"
+                                    style="width:38px; height:38px;">
                                         <i class="fas fa-pen"></i>
                                     </a>
 
-                                    <form action="{{ route('admin.comunicaciones.destroy', $c) }}" method="POST" class="d-inline">
+                                    {{-- ACTIVAR / INACTIVAR --}}
+                                    <form action="{{ route('admin.comunicaciones.destroy', $c) }}"
+                                        method="POST"
+                                        class="m-0 p-0 d-flex">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-icon btn-outline-danger"
-                                                data-toggle="tooltip" data-placement="top" title="Eliminar"
-                                                onclick="return confirm('¿Confirma que desea ELIMINAR esta comunicación?');">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
+
+                                        @if($c->estado == 1)
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-warning d-flex justify-content-center align-items-center"
+                                                    style="width:38px; height:38px;"
+                                                    onclick="return confirm('¿Desea inactivar esta comunicación?')">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+
+                                        @else
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success d-flex justify-content-center align-items-center"
+                                                    style="width:38px; height:38px;"
+                                                    onclick="return confirm('¿Desea activar esta comunicación?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+
+                                        @endif
+
                                     </form>
+
                                 </div>
                             </td>
                         </tr>

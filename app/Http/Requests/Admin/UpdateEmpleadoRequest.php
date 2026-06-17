@@ -53,6 +53,7 @@ class UpdateEmpleadoRequest extends FormRequest
             'sede_id' => 'required|exists:sedes,id',
             'rol_id' => 'required|exists:roles,id',
             'cargo' => 'required|string|max:150',
+            'tipo_contrato' => 'required|string|max:100',
             'fecha_ingreso' => 'required|date',
             'estado' => 'required|boolean',
         ];

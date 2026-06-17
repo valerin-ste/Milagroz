@@ -96,10 +96,11 @@
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark" style="font-size: 0.95rem;">
-                                            {{ $e->empleado->persona->nombres ?? '' }} {{ $e->empleado->persona->apellidos ?? '' }}
+                                            {{ $e->empleado->persona->nombres ?? 'Empleado no encontrado' }}
+                                            {{ $e->empleado->persona->apellidos ?? '' }}
                                         </div>
                                         <div class="text-muted" style="font-size: 0.85rem;">
-                                            {{ $e->empleado->cargo }}
+                                            {{ $e->empleado->cargo ?? 'Sin cargo' }}
                                         </div>
                                     </div>
                                 </div>
@@ -134,14 +135,28 @@
                                         <i class="fas fa-pen"></i>
                                     </a>
 
-                                    <form action="{{ route('admin.evaluaciones_desempeno.destroy', $e) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('admin.evaluaciones_desempeno.destroy', $e) }}" 
+                                        method="POST" 
+                                        class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-icon btn-outline-danger"
-                                                data-toggle="tooltip" data-placement="top" title="Eliminar"
-                                                onclick="return confirm('¿Confirma que desea ELIMINAR esta evaluación?');">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
+
+                                        @if($e->estado == 1)
+                                            {{-- INACTIVAR --}}
+                                            <button class="btn btn-sm btn-outline-warning"
+                                                    title="Inactivar"
+                                                    onclick="return confirm('¿Desea inactivar esta evaluación?')">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        @else
+                                            {{-- ACTIVAR --}}
+                                            <button class="btn btn-sm btn-outline-success"
+                                                    title="Activar"
+                                                    onclick="return confirm('¿Desea activar esta evaluación?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        @endif
+
                                     </form>
                                 </div>
                             </td>

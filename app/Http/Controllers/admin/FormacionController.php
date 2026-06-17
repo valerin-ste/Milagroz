@@ -23,7 +23,7 @@ class FormacionController extends Controller
         $estado = $request->estado;
 
         $formaciones = Formacion::with(['empleado.persona:id,nombres,apellidos', 'documentos:id,documentable_id,documentable_type,nombre_original'])
-            ->select('id', 'empleado_id', 'nombre_curso', 'fecha_inicio', 'fecha_fin', 'vence', 'estado')
+            ->select('id', 'empleado_id', 'nombre_curso', 'estado_curso', 'fecha_inicio', 'fecha_fin', 'vence', 'estado')
             ->when($buscar, function($query) use ($buscar) {
                 $query->whereHas('empleado.persona', function($q) use ($buscar) {
                     $q->where('nombres', 'LIKE', "%$buscar%")
@@ -49,7 +49,7 @@ class FormacionController extends Controller
         $en30d = \Carbon\Carbon::now()->addDays(30)->endOfDay();
 
         $formaciones = Formacion::with(['empleado.persona:id,nombres,apellidos,numero_documento', 'documentos:id,documentable_id,documentable_type,nombre_original'])
-            ->select('id', 'empleado_id', 'nombre_curso', 'fecha_inicio', 'fecha_fin', 'vence', 'estado')
+            ->select('id', 'empleado_id', 'nombre_curso', 'estado_curso', 'fecha_inicio', 'fecha_fin', 'vence', 'estado')
             ->where('vence', 1)
             ->when($buscar, function($query) use ($buscar) {
                 $query->whereHas('empleado.persona', function($q) use ($buscar) {
@@ -79,22 +79,25 @@ class FormacionController extends Controller
         $request->validate([
             'empleado_id' => 'required|exists:empleados,id',
             'nombre_curso' => 'required|string|max:150',
+            'estado_curso' => 'required|string|in:en curso,finalizado,pendiente',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required_if:vence,1|nullable|date',
             'vence' => 'required|integer|in:0,1',
-            'documento' => 'required|file|mimes:pdf|max:2048',
+            'documento' => 'nullable|file|mimes:pdf|max:2048',
+            'observaciones' => 'nullable|string'
         ], [
             'fecha_fin.required_if' => 'La fecha de vencimiento es obligatoria si el curso vence.',
-            'documento.required' => 'El soporte PDF es obligatorio para registrar la formación.',
             'documento.mimes' => 'El soporte debe ser un archivo de tipo PDF.',
         ]);
 
         $data = [
             'empleado_id' => $request->empleado_id,
             'nombre_curso' => $request->nombre_curso,
+            'estado_curso' => $request->estado_curso,
             'fecha_inicio' => $request->fecha_inicio,
             'fecha_fin' => ($request->vence == 0) ? null : $request->fecha_fin,
             'vence' => $request->vence,
+            'observaciones' => $request->observaciones,
             'estado' => 1
         ];
         
@@ -135,16 +138,18 @@ class FormacionController extends Controller
 
         $request->validate([
             'nombre_curso' => 'required|string|max:150',
+            'estado_curso' => 'required|string|in:en curso,finalizado,pendiente',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required_if:vence,1|nullable|date',
             'vence' => 'required|integer|in:0,1',
             'documento' => 'nullable|file|mimes:pdf|max:2048',
+            'observaciones' => 'nullable|string'
         ], [
             'fecha_fin.required_if' => 'La fecha de vencimiento es obligatoria si el curso vence.',
             'documento.mimes' => 'El soporte debe ser un archivo de tipo PDF.',
         ]);
 
-        $data = $request->only(['nombre_curso', 'fecha_inicio', 'fecha_fin', 'vence']);
+        $data = $request->only(['nombre_curso', 'estado_curso', 'fecha_inicio', 'fecha_fin', 'vence', 'observaciones']);
         if ($data['vence'] == 0) $data['fecha_fin'] = null;
 
         $formacion->update($data);
@@ -173,13 +178,8 @@ class FormacionController extends Controller
             }
         }
 
-        // ⚠️ VALIDACIÓN POST-UPDATE: Asegurar que al menos un documento quede registrado
-        if ($formacion->documentos()->count() === 0) {
-             // Si el usuario borró todo y no subió nada nuevo, podríamos lanzar un error o advertencia.
-             // Pero según el requerimiento, "No permitir guardar un curso sin documento".
-             // Así que lanzaremos una excepción o redirigiremos con error.
-             return back()->with('error', 'El registro de formación debe tener al menos un documento de soporte (PDF).');
-        }
+        // Removida validación post-update de documento obligatorio
+        // ya que el archivo o soporte es opcional según los requerimientos.
 
         return redirect()->route('admin.formaciones.index')->with('success', 'Formación actualizada correctamente.');
     }

@@ -141,6 +141,7 @@
                             <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Área / Sede</th>
                             <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Rol</th>
                             <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Estado</th>
+                            <th class="text-center pe-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Tipo Contrato</th>
                             <th class="text-center pe-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Acciones</th>
                         </tr>
                     </thead>
@@ -187,6 +188,18 @@
                                     <span class="badge bg-success">Activo</span>
                                 @else
                                     <span class="badge bg-danger">Inactivo</span>
+                                @endif
+                            </td>
+
+                            <td class="text-center py-3">
+                                @if($e->tipo_contrato)
+                                    <span class="badge bg-info text-dark px-3 py-2">
+                                        {{ $e->tipo_contrato }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary px-3 py-2">
+                                        Sin contrato
+                                    </span>
                                 @endif
                             </td>
 

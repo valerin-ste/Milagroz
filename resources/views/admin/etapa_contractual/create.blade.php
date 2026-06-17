@@ -29,7 +29,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.etapa_contractual.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.etapa_contractual.store') }}" method="POST" enctype="multipart/form-data" id="contratoForm">
         @csrf
 
         <div class="row g-4">
@@ -47,46 +47,64 @@
                     <div class="card-body px-4 pb-4 pt-2">
                         <div class="row g-4">
 
-                            {{-- 🔥 EMPLEADO CON BUSCADOR --}}
+                            {{-- 🔥 EMPLEADO CON BUSCADOR (FILA 1) --}}
                             <div class="col-md-12 position-relative">
                                 <label class="form-label">Empleado / Candidato <span class="text-danger">*</span></label>
 
                                 <input type="text"
                                        id="buscarEmpleado"
+                                       name="buscarEmpleado_text"
                                        class="form-control"
-                                       placeholder="Escriba nombre o cédula...">
+                                       placeholder="Escriba nombre o cédula y seleccione de la lista..."
+                                       autocomplete="off"
+                                       value="{{ old('buscarEmpleado_text') }}">
 
-                                <input type="hidden" name="empleado_id" id="empleado_id" required>
+                                <input type="hidden" name="empleado_id" id="empleado_id" value="{{ old('empleado_id') }}">
 
                                 <div id="listaEmpleados"
-                                     class="list-group position-absolute w-100"
+                                     class="list-group position-absolute w-100 shadow-sm"
                                      style="z-index: 999; display:none; max-height: 250px; overflow-y: auto;">
+                                </div>
+                                <div id="empleadoError" class="text-danger mt-1" style="display:none; font-size: 0.875em;">
+                                    Debe seleccionar un empleado de la lista.
                                 </div>
                             </div>
 
-                            <div class="col-md-12">
-                                <label class="form-label">Tipo de Contrato <span class="text-danger">*</span></label>
-                                <select name="tipo_contrato" id="tipo_contrato" class="form-select" required>
+                            {{-- 🔥 FILA 2: TIPO, INICIO, FIN --}}
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
+                                <select id="tipo_documento_select" class="form-select" required>
                                     <option value="" disabled selected>Seleccione</option>
-                                    <option value="Contrato indefinido" {{ old('tipo_contrato') == 'Contrato indefinido' ? 'selected' : '' }}>Contrato indefinido</option>
-                                    <option value="Contrato fijo" {{ old('tipo_contrato') == 'Contrato fijo' ? 'selected' : '' }}>Contrato fijo</option>
-                                    <option value="Obra o labor" {{ old('tipo_contrato') == 'Obra o labor' ? 'selected' : '' }}>Obra o labor</option>
-                                    <option value="Temporal" {{ old('tipo_contrato') == 'Temporal' ? 'selected' : '' }}>Temporal</option>
-                                    <option value="Prestación de servicios" {{ old('tipo_contrato') == 'Prestación de servicios' ? 'selected' : '' }}>Prestación de servicios</option>
+                                    <option value="Antecedentes Judiciales">Antecedentes Judiciales</option>
+                                    <option value="Rethus">Rethus</option>
+                                    <option value="Vacunas">Vacunas</option>
+                                    <option value="Otros">Otros</option>
                                 </select>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Fecha de Inicio <span class="text-danger">*</span></label>
                                 <input type="date" name="fecha_inicio" class="form-control" required value="{{ old('fecha_inicio', now()->toDateString()) }}">
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Fecha de Fin (Opcional)</label>
                                 <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="{{ old('fecha_fin') }}">
                             </div>
 
-                            <div class="col-12 mt-5">
+                            {{-- 🔥 RETHUS --}}
+                            <div class="col-md-12" id="div_rethus" style="display:none;">
+                                <label class="form-label">¿Aplica Rethus? <span class="text-danger">*</span></label>
+                                <select id="rethus_select" class="form-select">
+                                    <option value="" disabled selected>Seleccione</option>
+                                    <option value="Aplica">Sí aplica</option>
+                                    <option value="No aplica">No aplica</option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" name="tipo_contrato" id="tipo_contrato_final" required value="{{ old('tipo_contrato') }}">
+
+                            <div class="col-12 mt-4">
                                 <h5 class="fw-bold mb-3">
                                     <i class="fas fa-folder-open text-primary me-2"></i> Anexar Documentos
                                 </h5>
@@ -129,16 +147,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const input = document.getElementById("buscarEmpleado");
     const hidden = document.getElementById("empleado_id");
     const lista = document.getElementById("listaEmpleados");
+    const errorMsg = document.getElementById("empleadoError");
 
     input.addEventListener("input", function () {
-
         let valor = this.value.toLowerCase().trim();
 
+        // Al cambiar el texto, borramos el ID oculto para obligar a seleccionar de nuevo
+        hidden.value = "";
+        errorMsg.style.display = "none";
+        
         lista.innerHTML = "";
 
         if (valor.length < 1) {
             lista.style.display = "none";
-            hidden.value = "";
             return;
         }
 
@@ -155,7 +176,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         filtrados.forEach(emp => {
-
             let nombre = emp.persona.nombres + " " + emp.persona.apellidos;
 
             let item = document.createElement("button");
@@ -164,9 +184,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             item.innerHTML = `<strong>${nombre}</strong><br><small>${emp.persona.numero_documento}</small>`;
 
-            item.onclick = function () {
+            // Usar onmousedown para evitar que el blur del input lo oculte antes de procesar el clic
+            item.onmousedown = function (e) {
+                e.preventDefault();
+
                 input.value = nombre + " - " + emp.persona.numero_documento;
-                hidden.value = emp.id;
+                hidden.value = parseInt(emp.id);
+
+                errorMsg.style.display = "none";
                 lista.style.display = "none";
             };
 
@@ -176,6 +201,13 @@ document.addEventListener("DOMContentLoaded", function () {
         lista.style.display = "block";
     });
 
+    // Si el usuario abandona el input y no ha seleccionado nada, limpiamos el input visual
+    input.addEventListener("change", function() {
+        if (!hidden.value) {
+            input.value = "";
+        }
+    });
+
     document.addEventListener("click", function (e) {
         if (!input.contains(e.target)) {
             lista.style.display = "none";
@@ -183,24 +215,83 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // =========================
-    // 🛡️ LÓGICA FECHA FIN (INDEFINIDO)
+    // 🛡️ LÓGICA FECHA FIN Y TIPOS
     // =========================
-    const selectContrato = document.getElementById('tipo_contrato');
+    const divRethus = document.getElementById('div_rethus');
+    
+    const tipoDocumentoSelect = document.getElementById('tipo_documento_select');
+    const rethusSelect = document.getElementById('rethus_select');
+    const tipoContratoFinal = document.getElementById('tipo_contrato_final');
+
     const inputFechaFin = document.getElementById('fecha_fin');
 
-    function checkFechaFin() {
-        if (selectContrato.value === 'Contrato indefinido') {
-            inputFechaFin.value = "";
-            inputFechaFin.disabled = true;
-            inputFechaFin.style.opacity = "0.6";
+    tipoDocumentoSelect.addEventListener('change', function() {
+        if (this.value === 'Rethus') {
+            divRethus.style.display = 'block';
+            rethusSelect.required = true;
         } else {
-            inputFechaFin.disabled = false;
-            inputFechaFin.style.opacity = "1";
+            divRethus.style.display = 'none';
+            rethusSelect.required = false;
+        }
+        updateFinalValue();
+    });
+
+    rethusSelect.addEventListener('change', updateFinalValue);
+
+    function updateFinalValue() {
+        if (tipoDocumentoSelect.value) {
+            if (tipoDocumentoSelect.value === 'Rethus') {
+                tipoContratoFinal.value = rethusSelect.value ? 'Rethus - ' + rethusSelect.value : '';
+            } else {
+                tipoContratoFinal.value = tipoDocumentoSelect.value;
+            }
+        } else {
+            tipoContratoFinal.value = '';
+        }
+        checkFechaFin();
+    }
+
+    function checkFechaFin() {
+        if (tipoContratoFinal.value === 'Contrato indefinido') {
+            inputFechaFin.value = "";
+            // Eliminamos la restricción estricta porque el backend lo acepta nulo
+            // y visualmente se puede dejar vacío si es indefinido.
         }
     }
 
-    selectContrato.addEventListener('change', checkFechaFin);
-    checkFechaFin(); // Ejecutar al cargar por si hay valor previo
+    // Inicializar estado visual si hay valor antiguo
+    if (tipoContratoFinal.value) {
+        let val = tipoContratoFinal.value;
+        if (val.startsWith('Rethus')) {
+            tipoDocumentoSelect.value = 'Rethus';
+            divRethus.style.display = 'block';
+            if(val.includes('Aplica') && !val.includes('No')) rethusSelect.value = 'Aplica';
+            else if(val.includes('No aplica')) rethusSelect.value = 'No aplica';
+        } else {
+            tipoDocumentoSelect.value = val;
+        }
+    }
+    checkFechaFin();
+
+    // =========================
+    // 🔍 VALIDACIÓN PRE-SUBMIT SOLICITADA
+    // =========================
+    const form = document.getElementById('contratoForm');
+    form.addEventListener('submit', function(e) {
+        const empleadoHidden = document.getElementById('empleado_id');
+        
+        // Validar que tenga valor el empleado
+        if (!empleadoHidden.value) {
+            e.preventDefault();
+            errorMsg.style.display = "block";
+            input.focus();
+            return false;
+        }
+
+        // Asegurarnos que los campos deshabilitados (si los hubiese) se envíen
+        const disabledInputs = form.querySelectorAll(':disabled');
+        disabledInputs.forEach(input => input.disabled = false);
+    });
 
 });
 </script>

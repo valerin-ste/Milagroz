@@ -16,6 +16,7 @@ class Solicitud extends Model
         'estado',
         'fecha',
         'archivo',
+        'activo',
         'nombre_archivo'
     ];  
     

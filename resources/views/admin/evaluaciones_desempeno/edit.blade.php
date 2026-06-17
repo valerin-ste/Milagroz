@@ -18,6 +18,7 @@
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-lg">
+
             <div class="card-body p-5">
                 <form action="{{ route('admin.evaluaciones_desempeno.update', $evaluacion->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
@@ -29,7 +30,8 @@
                     </div>
 
                     <div class="row g-4">
-                        <div class="col-md-12 mb-4">
+                        {{-- FECHA --}}
+                        <div class="col-md-6 mb-4">
                             <label for="fecha" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha de Evaluación <span class="text-danger">*</span></label>
                             <input type="date" name="fecha" id="fecha" 
                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('fecha') is-invalid @enderror" 
@@ -38,6 +40,29 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+
+                        {{-- ESTADO --}}
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                Estado <span class="text-danger">*</span>
+                            </label>
+                            <select name="estado" class="form-control border-light bg-light py-2 px-3 shadow-none" required>
+                                <option value="1" {{ old('estado', $evaluacion->estado) == 1 ? 'selected' : '' }}>Pendiente</option>
+                                <option value="2" {{ old('estado', $evaluacion->estado) == 2 ? 'selected' : '' }}>En proceso</option>
+                                <option value="3" {{ old('estado', $evaluacion->estado) == 3 ? 'selected' : '' }}>Finalizada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- OBSERVACIONES --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                            Observaciones / Comentarios
+                        </label>
+                        <textarea name="observaciones" rows="4"
+                                  class="form-control border-light bg-light py-2 px-3 shadow-none"
+                                  placeholder="Detalle el rendimiento del empleado...">{{ old('observaciones', $evaluacion->observaciones) }}</textarea>
                     </div>
 
                     <div class="mb-4">

@@ -96,6 +96,7 @@ class EtapaPrecontractualController extends Controller
         DB::beginTransaction();
         try {
             $etapa->estado = $request->estado;
+            $etapa->fecha_registro = $request->fecha_registro;
             $etapa->save();
 
             // ✅ ELIMINAR DOCUMENTOS SELECCIONADOS

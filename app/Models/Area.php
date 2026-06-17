@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Empleado;
 
 class Area extends Model
 {
@@ -10,7 +11,7 @@ class Area extends Model
         'nombre',
         'descripcion',
         'sede_id',
-        'estado' // 🔥 IMPORTANTE
+        'estado'
     ];
 
     public function sede()
@@ -20,6 +21,6 @@ class Area extends Model
 
     public function empleados()
     {
-        return $this->hasMany(Empleado::class);
+        return $this->hasMany(Empleado::class, 'area_id');
     }
 }

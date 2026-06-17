@@ -18,7 +18,14 @@ use App\Http\Controllers\Admin\FormacionController;
 use App\Http\Controllers\Admin\DocumentoController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemRoleController;
-use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\FechaEspecialController;
+use App\Http\Controllers\Admin\CertificacionController;
+use App\Http\Controllers\Admin\DotacionController;
+use App\Http\Controllers\Admin\ProductividadController;
+use App\Http\Controllers\Admin\CalidadDocumentoController;
+use App\Http\Controllers\Admin\CapacidadInstaladaController;
+use App\Http\Controllers\Admin\ReporteNovedadNominaController;
+use App\Http\Controllers\Admin\PlantaPersonalSenaController;
 
 // 👇 Controller fuera de Admin
 use App\Http\Controllers\SolicitudController;
@@ -61,6 +68,14 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
         'formaciones' => FormacionController::class,
         'users' => UserController::class,
         'system_roles' => SystemRoleController::class,
+        'fechas_especiales' => FechaEspecialController::class,
+        'certificaciones' => CertificacionController::class,
+        'dotaciones' => DotacionController::class,
+        'productividades'      => ProductividadController::class,
+        'calidad_documentos'  => CalidadDocumentoController::class,
+        'capacidad_instalada' => CapacidadInstaladaController::class,
+        'reportes-novedades-nomina' => ReporteNovedadNominaController::class,
+        'planta_personal_sena' => PlantaPersonalSenaController::class,
     ];
 
     foreach ($toggleRoutes as $uri => $controller) {
@@ -113,6 +128,30 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
         ->parameters([
             'solicitudes' => 'solicitud'
         ]);
+
+    Route::resource('fechas_especiales', FechaEspecialController::class);
+    Route::resource('certificaciones', CertificacionController::class);
+    Route::resource('dotaciones', DotacionController::class);
+    Route::resource('productividades', ProductividadController::class);
+    Route::resource('capacidad_instalada', CapacidadInstaladaController::class);
+    Route::resource('reportes-novedades-nomina', ReporteNovedadNominaController::class);
+    Route::resource('planta_personal_sena', PlantaPersonalSenaController::class);
+    
+    Route::get('reportes-novedades-nomina/{id}/archivo/view', [ReporteNovedadNominaController::class, 'viewArchivo'])->name('reportes-novedades-nomina.archivo.view');
+    Route::get('reportes-novedades-nomina/{id}/archivo/download', [ReporteNovedadNominaController::class, 'downloadArchivo'])->name('reportes-novedades-nomina.archivo.download');
+
+    Route::get('productividades/{id}/archivo/view', [ProductividadController::class, 'viewArchivo'])->name('productividades.archivo.view');
+    Route::get('productividades/{id}/archivo/download', [ProductividadController::class, 'downloadArchivo'])->name('productividades.archivo.download');
+
+    // ======================
+    // 🔥 CALIDAD DOCUMENTOS
+    // ======================
+    Route::resource('calidad_documentos', CalidadDocumentoController::class);
+
+    Route::get('calidad_documentos/{id}/archivo/view', [CalidadDocumentoController::class, 'viewArchivo'])
+        ->name('calidad_documentos.archivo.view');
+    Route::get('calidad_documentos/{id}/archivo/download', [CalidadDocumentoController::class, 'downloadArchivo'])
+        ->name('calidad_documentos.archivo.download');
     
 
     // ======================
@@ -127,12 +166,13 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     // 🔥 EXPORTACIÓN DE REPORTES (EMPLEADOS)
     // ======================
     Route::get('empleados/reporte/pdf', [EmpleadoController::class, 'exportPdf'])->name('empleados.reporte.pdf');
+    Route::get('empleados/{id}/file-view/{path}', [EmpleadoController::class, 'viewFile'])->name('empleados.file.view')->where('path', '.*');
+    Route::get('empleados/{id}/file-download/{path}', [EmpleadoController::class, 'downloadFile'])->name('empleados.file.download')->where('path', '.*');
 
     // ======================
     // 🔥 CONFIGURACIÓN / ACCESOS (SEGURIDAD)
     // ======================
     Route::resource('users', UserController::class);
     Route::resource('system_roles', SystemRoleController::class);
-    Route::resource('audit', AuditLogController::class)->only(['index', 'show']);
 
 });

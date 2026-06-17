@@ -45,11 +45,12 @@ class EvaluacionDesempenoController extends Controller
         $request->validate([
             'empleado_id' => 'required|exists:empleados,id',
             'fecha' => 'required|date',
+            'estado' => 'required|in:1,2,3',
             'archivos.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 
         $evaluacion = EvaluacionDesempeno::create($request->only([
-            'empleado_id', 'observaciones', 'fecha'
+            'empleado_id', 'observaciones', 'fecha', 'estado'
         ]));
 
         if ($request->hasFile('archivos')) {
@@ -81,10 +82,12 @@ class EvaluacionDesempenoController extends Controller
     {
         $request->validate([
             'fecha' => 'required|date',
+            'estado' => 'required|in:1,2,3',
             'archivos.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
         ]);
 
-        $evaluacion->update($request->only(['observaciones', 'fecha']));
+        $evaluacion = EvaluacionDesempeno::findOrFail($id);
+        $evaluacion->update($request->only(['observaciones', 'fecha', 'estado']));
 
         if ($request->hasFile('archivos')) {
             $files = $request->file('archivos');
@@ -117,14 +120,13 @@ class EvaluacionDesempenoController extends Controller
             ->with('success', 'Evaluación actualizada correctamente.');
     }
 
-    public function destroy($id)
+    public function destroy(EvaluacionDesempeno $evaluaciones_desempeno)
     {
-        $evaluacion = EvaluacionDesempeno::findOrFail($id);
-        // Aunque el usuario pide ocultar el estado, mantenemos el registro pero eliminamos la lógica de desactivación si prefiere eliminación real
-        // O simplemente lo dejamos como hard delete si el estado ya no importa.
-        // Dado el sistema, aplicaremos el soft delete si el modelo lo soporta, o simplemente delete.
-        $evaluacion->delete();
-        return redirect()->route('admin.evaluaciones_desempeno.index')
-            ->with('success', 'Evaluación eliminada correctamente.');
+        $evaluaciones_desempeno->estado = $evaluaciones_desempeno->estado == 1 ? 0 : 1;
+        $evaluaciones_desempeno->save();
+
+        return redirect()
+            ->route('admin.evaluaciones_desempeno.index')
+            ->with('success', 'Estado actualizado correctamente.');
     }
 }

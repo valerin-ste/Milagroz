@@ -141,16 +141,12 @@ class ComunicacionController extends Controller
 
     public function destroy(Comunicacion $comunicacion)
     {
-        foreach ($comunicacion->documentos as $doc) {
-            if (Storage::disk('public')->exists($doc->ruta)) {
-                Storage::disk('public')->delete($doc->ruta);
-            }
-            $doc->delete();
-        }
+        $comunicacion->estado = $comunicacion->estado == 1 ? 0 : 1;
+        $comunicacion->save();
 
-        $comunicacion->delete();
-
-        return back()->with('success', 'Comunicación eliminada correctamente');
+        return redirect()
+            ->route('admin.comunicaciones.index')
+            ->with('success', 'Estado actualizado correctamente.');
     }
 
     public function deleteArchivo($documento)

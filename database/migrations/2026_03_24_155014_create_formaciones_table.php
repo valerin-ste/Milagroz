@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('empleado_id')->constrained('empleados')->onDelete('cascade');
             $table->string('nombre_curso', 150);
-            $table->string('institucion', 150);
             $table->date('fecha_inicio');
             $table->date('fecha_fin')->nullable();
             $table->string('archivo')->nullable(); // Para compatibilidad, aunque usaré relación Documento

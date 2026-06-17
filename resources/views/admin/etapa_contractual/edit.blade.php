@@ -52,16 +52,30 @@
                                 <input type="text" class="form-control bg-light" value="{{ $etapa_contractual->empleado->persona->nombres }} {{ $etapa_contractual->empleado->persona->apellidos }} - {{ $etapa_contractual->empleado->persona->numero_documento }}" readonly disabled>
                             </div>
 
-                            <div class="col-md-12">
-                                <label class="form-label">Tipo de Contrato <span class="text-danger">*</span></label>
-                                <select name="tipo_contrato" id="tipo_contrato" class="form-select" required>
-                                    <option value="Contrato indefinido" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Contrato indefinido' ? 'selected' : '' }}>Contrato indefinido</option>
-                                    <option value="Contrato fijo" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Contrato fijo' ? 'selected' : '' }}>Contrato fijo</option>
-                                    <option value="Obra o labor" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Obra o labor' ? 'selected' : '' }}>Obra o labor</option>
-                                    <option value="Temporal" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Temporal' ? 'selected' : '' }}>Temporal</option>
-                                    <option value="Prestación de servicios" {{ old('tipo_contrato', $etapa_contractual->tipo_contrato) == 'Prestación de servicios' ? 'selected' : '' }}>Prestación de servicios</option>
+
+
+                            <div class="col-md-6">
+                                <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
+                                <select id="tipo_documento_select" class="form-select">
+                                    <option value="" disabled selected>Seleccione</option>
+                                    <option value="Antecedentes Judiciales">Antecedentes Judiciales</option>
+                                    <option value="Rethus">Rethus</option>
+                                    <option value="Vacunas">Vacunas</option>
+                                    <option value="Otros">Otros</option>
                                 </select>
                             </div>
+
+                            <div class="col-md-12" id="div_rethus" style="display:none;">
+                                <label class="form-label">¿Aplica Rethus? <span class="text-danger">*</span></label>
+                                <select id="rethus_select" class="form-select">
+                                    <option value="" disabled selected>Seleccione</option>
+                                    <option value="Aplica">Sí aplica</option>
+                                    <option value="No aplica">No aplica</option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" name="tipo_contrato" id="tipo_contrato_final" required value="{{ old('tipo_contrato', $etapa_contractual->tipo_contrato) }}">
+
 
                             <div class="col-md-6">
                                 <label class="form-label">Fecha de Inicio <span class="text-danger">*</span></label>
@@ -230,13 +244,45 @@
         };
 
         // =========================
-        // 🛡️ LÓGICA FECHA FIN (INDEFINIDO)
+        // 🛡️ LÓGICA FECHA FIN Y TIPOS
         // =========================
-        const selectContrato = document.getElementById('tipo_contrato');
+        const divRethus = document.getElementById('div_rethus');
+        
+        const tipoDocumentoSelect = document.getElementById('tipo_documento_select');
+        const rethusSelect = document.getElementById('rethus_select');
+        const tipoContratoFinal = document.getElementById('tipo_contrato_final');
+
         const inputFechaFin = document.getElementById('fecha_fin');
 
+        tipoDocumentoSelect.addEventListener('change', function() {
+            
+            if (this.value === 'Rethus') {
+                divRethus.style.display = 'block';
+                rethusSelect.required = true;
+            } else {
+                divRethus.style.display = 'none';
+                rethusSelect.required = false;
+            }
+            updateFinalValue();
+        });
+
+        rethusSelect.addEventListener('change', updateFinalValue);
+
+        function updateFinalValue() {
+            if (tipoDocumentoSelect.value) {
+                if (tipoDocumentoSelect.value === 'Rethus') {
+                    tipoContratoFinal.value = rethusSelect.value ? 'Rethus - ' + rethusSelect.value : '';
+                } else {
+                    tipoContratoFinal.value = tipoDocumentoSelect.value;
+                }
+            } else {
+                tipoContratoFinal.value = '';
+            }
+            checkFechaFin();
+        }
+
         function checkFechaFin() {
-            if (selectContrato.value === 'Contrato indefinido') {
+            if (tipoContratoFinal.value === 'Contrato indefinido') {
                 inputFechaFin.value = "";
                 inputFechaFin.disabled = true;
                 inputFechaFin.style.opacity = "0.6";
@@ -246,7 +292,18 @@
             }
         }
 
-        selectContrato.addEventListener('change', checkFechaFin);
+        // Inicializar estado visual si hay valor antiguo
+        if (tipoContratoFinal.value) {
+            let val = tipoContratoFinal.value;
+            if (val.startsWith('Rethus')) {
+                tipoDocumentoSelect.value = 'Rethus';
+                divRethus.style.display = 'block';
+                if(val.includes('Aplica') && !val.includes('No')) rethusSelect.value = 'Aplica';
+                else if(val.includes('No aplica')) rethusSelect.value = 'No aplica';
+            } else {
+                tipoDocumentoSelect.value = val;
+            }
+        }
         checkFechaFin();
     });
 </script>

@@ -140,6 +140,9 @@
                                 <span class="d-block" style="color: #334155; font-weight: 500;">
                                     {{ $f->nombre_curso }}
                                 </span>
+                                <span class="d-block text-muted small mt-1">
+                                    <i class="fas fa-university me-1"></i> {{ $f->institucion }}
+                                </span>
                             </td>
 
                             {{-- FECHA VENCIMIENTO --}}

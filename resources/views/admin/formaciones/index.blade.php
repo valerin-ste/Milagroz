@@ -113,11 +113,14 @@
                                     </div>
                                 </div>
                             </td>
-
+                            
                             {{-- CURSO --}}
                             <td class="py-3">
                                 <span class="d-block" style="color: #334155; font-weight: 500;">
                                     {{ $f->nombre_curso }}
+                                </span>
+                                <span class="d-block text-muted small mt-1">
+                                    <i class="fas fa-university me-1"></i> {{ $f->institucion }}
                                 </span>
                             </td>
 
@@ -154,6 +157,7 @@
                                         <i class="{{ $badge['icon'] }} me-1"></i> {{ $badge['label'] }}
                                     </span>
                                 @endif
+                                <span class="d-block mt-1 text-muted fw-bold small text-capitalize">{{ $f->estado_curso }}</span>
                             </td>
 
                             {{-- ACCIONES --}}
@@ -201,9 +205,6 @@
                                     </div>
                                     <h5 class="fw-bold mb-1" style="color: #64748b;">Sin formaciones registradas</h5>
                                     <p class="mb-0">Registre la primera capacitación o certificado del personal.</p>
-                                    <a href="{{ route('admin.formaciones.create') }}" class="btn btn-orange btn-sm px-4 mt-3 rounded-pill">
-                                        <i class="fas fa-plus mr-1"></i> Nueva Formación
-                                    </a>
                                 </div>
                             </td>
                         </tr>

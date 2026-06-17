@@ -12,7 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('solicitudes', function (Blueprint $table) {
-            $table->dropColumn(['archivo', 'nombre_archivo']);
+            $columns = [];
+            if (Schema::hasColumn('solicitudes', 'archivo')) {
+                $columns[] = 'archivo';
+            }
+            if (Schema::hasColumn('solicitudes', 'nombre_archivo')) {
+                $columns[] = 'nombre_archivo';
+            }
+            if (!empty($columns)) {
+                $table->dropColumn($columns);
+            }
         });
     }
 

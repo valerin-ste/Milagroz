@@ -114,12 +114,16 @@
                                 <span class="d-block" style="color: #334155; font-weight: 500;">
                                     <i class="fas fa-file-alt text-muted me-1"></i> {{ $doc->tipo_documento }}
                                 </span>
+                                <span class="badge bg-light text-muted border px-2 py-1 mt-1" style="font-size: 0.75rem;">
+                                    Periodo {{ \Carbon\Carbon::parse($doc->fecha)->format('Y') }}
+                                </span>
                             </td>
 
                             <td class="py-3" style="color: #475569;">
                                 <div class="mb-1" style="font-size: 0.9rem;">
                                     📅 {{ \Carbon\Carbon::parse($doc->fecha)->format('d M Y') }}
                                 </div>
+                                <small class="text-muted" style="font-size: 0.7rem;">(Última carga)</small>
                             </td>
 
                             <td class="py-3">
@@ -134,57 +138,70 @@
                                 @endif
                             </td>
 
-                            <td class="py-3">
+                             <td class="py-3">
                                 @php $badge = $doc->getStatusBadge($doc->fecha); @endphp
                                 <span class="{{ $badge['class'] }} px-3 py-2 shadow-sm rounded-pill font-weight-bold" style="font-size: 0.8rem; border: 1px solid {{ $badge['color'] }}20;">
                                     <i class="{{ $badge['icon'] }} me-1"></i> {{ strtoupper($badge['label']) }}
                                 </span>
                             </td>
 
-                            <td class="text-center pe-4 py-3">
-                                <div class="d-flex justify-content-center gap-2">
-                                    <a href="{{ route('admin.seguridad_salud_trabajo.edit', $doc) }}"
-                                       class="btn btn-sm btn-icon btn-outline-primary"
-                                       data-toggle="tooltip" data-placement="top" title="Editar">
-                                        <i class="fas fa-pen"></i>
-                                    </a>
+                            <td>
+                    <div class="acciones-btns">
 
-                                    <form action="{{ route('admin.seguridad_salud_trabajo.destroy', $doc) }}" method="POST" class="d-inline">
+                                    <!-- EDITAR -->
+                                    <a href="{{ route('admin.seguridad_salud_trabajo.edit', $doc->id) }}"
+                                        class="btn btn-icon btn-outline-primary">
+                                            <i class="fas fa-pencil-alt"></i>
+                                        </a>
+
+                                    <!-- ACTIVAR / INACTIVAR -->
+                                    <form action="{{ route('admin.seguridad_salud_trabajo.destroy', $doc) }}"
+                                        method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-icon btn-outline-danger"
-                                                data-toggle="tooltip" data-placement="top" title="Eliminar"
-                                                onclick="return confirm('¿Confirma que desea ELIMINAR este registro?');">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <div class="d-flex flex-column align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background-color: rgba(19,182,236,0.1);">
-                                        <i class="fas fa-shield-alt fa-2x" style="color: var(--primary-blue, #13b6ec);"></i>
-                                    </div>
-                                    <h5 class="fw-bold mb-1" style="color: #64748b;">No hay registros de Seguridad y Salud</h5>
-                                    <p class="mb-0">Comience registrando el primer documento.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        @if($documentos->hasPages())
-        <div class="card-footer bg-white border-top border-light py-3 px-4 rounded-bottom-4">
-            {{ $documentos->links() }}
-        </div>
-        @endif
-    </div>
+                                        @if($doc->estado == 1)
+                                            <button type="submit"
+                                                    class="btn btn-icon btn-outline-warning"
+                                                    onclick="return confirm('¿Desea inactivar este registro?')">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        @else
+                                            <button type="submit"
+                                                    class="btn btn-icon btn-outline-success"
+                                                    onclick="return confirm('¿Desea activar este registro?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        @endif
+                                    </form>
+
+                                </div>
+                            </td>
+                                    </tr>
+                                        @empty
+                                    <tr>
+                                            <td colspan="6" class="text-center py-5 text-muted">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background-color: rgba(19,182,236,0.1);">
+                                                        <i class="fas fa-shield-alt fa-2x" style="color: var(--primary-blue, #13b6ec);"></i>
+                                                    </div>
+                                                    <h5 class="fw-bold mb-1" style="color: #64748b;">No hay registros de Seguridad y Salud</h5>
+                                                    <p class="mb-0">Comience registrando el primer documento.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        @if($documentos->hasPages())
+                        <div class="card-footer bg-white border-top border-light py-3 px-4 rounded-bottom-4">
+                            {{ $documentos->links() }}
+                        </div>
+                        @endif
+                    </div>
 
 </div>
 
@@ -251,6 +268,21 @@
 
 @section('css')
 <style>
+    .acciones-btns {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* centra como en tu imagen */
+    gap: 4px; /* espacio pequeño entre botones */
+}
+
+.btn-icon {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .btn-icon:hover {
     transform: scale(1.1);
     transition: 0.2s;

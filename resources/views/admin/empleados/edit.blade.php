@@ -146,6 +146,16 @@
                             </div>
 
                             <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Tipo de Contrato <span class="text-danger">*</span></label>
+                                <select name="tipo_contrato" class="form-select rounded-3" required>
+                                    <option value="Contrato fijo" {{ old('tipo_contrato', $empleado->tipo_contrato) == 'Contrato fijo' ? 'selected' : '' }}>Contrato fijo</option>
+                                    <option value="Contrato indefinido" {{ old('tipo_contrato', $empleado->tipo_contrato) == 'Contrato indefinido' ? 'selected' : '' }}>Contrato indefinido</option>
+                                    <option value="Prestación de servicios" {{ old('tipo_contrato', $empleado->tipo_contrato) == 'Prestación de servicios' ? 'selected' : '' }}>Prestación de servicios</option>
+                                    <option value="Temporal" {{ old('tipo_contrato', $empleado->tipo_contrato) == 'Temporal' ? 'selected' : '' }}>Temporal</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
                                 <label class="form-label text-muted small fw-bold">Fecha Ingreso <span class="text-danger">*</span></label>
                                 <input type="date" name="fecha_ingreso" class="form-control rounded-3" value="{{ old('fecha_ingreso', $empleado->fecha_ingreso) }}" required>
                             </div>

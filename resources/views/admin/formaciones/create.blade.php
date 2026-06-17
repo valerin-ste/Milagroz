@@ -31,14 +31,14 @@
                         <input type="text"
                                id="buscarEmpleado"
                                class="form-control border-light bg-light py-2 px-3 shadow-none"
-                               placeholder="Escriba nombre o cédula..."
+                               placeholder="Escriba nombre o cédula y seleccione de la lista..."
                                autocomplete="off">
 
                         <input type="hidden" name="empleado_id" id="empleado_id"
                                value="{{ old('empleado_id') }}">
 
                         <div id="listaEmpleados"
-                             class="list-group position-absolute w-100"
+                             class="list-group position-absolute w-100 shadow-sm"
                              style="z-index: 999; display:none; max-height: 250px; overflow-y: auto;">
                         </div>
 
@@ -49,7 +49,7 @@
 
                     <div class="row g-4 mb-4">
                         {{-- NOMBRE DEL CURSO --}}
-                        <div class="col-md-8 text-start">
+                        <div class="col-md-12 text-start">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                                 Nombre del Curso / Formación <span class="text-danger">*</span>
                             </label>
@@ -58,20 +58,34 @@
                                    placeholder="Ej: Curso de Alturas, Diplomado en RRHH..."
                                    value="{{ old('nombre_curso') }}" required>
                         </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        {{-- ESTADO CURSO --}}
+                        <div class="col-md-3 text-start">
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                Estado <span class="text-danger">*</span>
+                            </label>
+                            <select name="estado_curso" class="form-control border-light bg-light py-2 px-3 shadow-none" required>
+                                <option value="en curso" {{ old('estado_curso') == 'en curso' ? 'selected' : '' }}>En Curso</option>
+                                <option value="finalizado" {{ old('estado_curso') == 'finalizado' ? 'selected' : '' }}>Finalizado</option>
+                                <option value="pendiente" {{ old('estado_curso') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                            </select>
+                        </div>
 
                         {{-- TIPO DE FORMACIÓN (VENCE) --}}
-                        <div class="col-md-4 text-start">
+                        <div class="col-md-3 text-start">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                                 ¿Vence? <span class="text-danger">*</span>
                             </label>
                             <select name="vence" id="vence" class="form-control border-light bg-light py-2 px-3 shadow-none" required>
                                 <option value="1" {{ old('vence') == '1' ? 'selected' : '' }}>Sí, vence</option>
-                                <option value="0" {{ old('vence') == '0' ? 'selected' : '' }}>No, es permanente</option>
+                                <option value="0" {{ old('vence') == '0' ? 'selected' : '' }}>No, permanente</option>
                             </select>
                         </div>
-                    </div>
+
                         {{-- FECHA INICIO --}}
-                        <div class="col-md-6 mb-4 text-start">
+                        <div class="col-md-3 text-start">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                                 Fecha Inicio <span class="text-danger">*</span>
                             </label>
@@ -81,7 +95,7 @@
                         </div>
 
                         {{-- FECHA FIN --}}
-                        <div class="col-md-6 mb-4 text-start" id="container_fecha_fin">
+                        <div class="col-md-3 text-start" id="container_fecha_fin">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                                 Fecha Fin <span class="text-danger">*</span>
                             </label>
@@ -91,14 +105,25 @@
                         </div>
                     </div>
 
+                    {{-- OBSERVACIONES --}}
+                    <div class="mb-4 text-start">
+                        <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                            Observaciones (Opcional)
+                        </label>
+                        <textarea name="observaciones" rows="3" 
+                                  class="form-control border-light bg-light py-2 px-3 shadow-none" 
+                                  placeholder="Detalles adicionales sobre la formación...">{{ old('observaciones') }}</textarea>
+                    </div>
+
                     {{-- ARCHIVO --}}
                     <div class="mb-4 text-start">
                         <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
-                            Soporte / Diploma (PDF) <span class="text-danger">*</span>
+                            Soporte / Diploma (PDF) - Opcional
                         </label>
-                        <div class="p-3 border rounded border-dashed text-center bg-light-soft">
-                            <input type="file" name="documento" required accept=".pdf"
-                                   class="form-control border-light bg-light py-2 px-3 shadow-none">
+                        <div class="p-4 border rounded border-dashed text-center bg-light-soft position-relative" style="transition: all 0.3s ease;">
+                            <i class="fas fa-file-pdf fa-2x text-muted mb-2"></i>
+                            <input type="file" name="documento" accept=".pdf"
+                                   class="form-control border-light bg-white py-2 px-3 shadow-none" style="max-width: 400px; margin: 0 auto;">
                             <small class="text-muted mt-2 d-block">
                                 Seleccione el archivo soporte en formato PDF (Máx. 2MB).
                             </small>
@@ -107,7 +132,7 @@
 
                     <div class="d-grid mt-5">
                         <button type="submit" class="btn btn-orange text-white py-3 fw-bold rounded shadow-sm">
-                            <i class="fas fa-save me-2"></i> GUARDAR REGISTRO DE FORMACIÓN
+                            <i class="fas fa-save me-2"></i> GUARDAR FORMACIÓN
                         </button>
                     </div>
 

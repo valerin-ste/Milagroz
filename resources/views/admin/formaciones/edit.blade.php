@@ -31,11 +31,23 @@
                     </div>
                     <div class="row g-4 mb-4">
                         {{-- NOMBRE DEL CURSO --}}
-                        <div class="col-md-8 text-start">
+                        <div class="col-md-6 text-start">
                             <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Nombre del Curso / Formación <span class="text-danger">*</span></label>
                             <input type="text" name="nombre_curso" 
                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('nombre_curso') is-invalid @enderror" 
                                    value="{{ old('nombre_curso', $formacion->nombre_curso) }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        {{-- ESTADO CURSO --}}
+                        <div class="col-md-4 text-start">
+                            <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Estado <span class="text-danger">*</span></label>
+                            <select name="estado_curso" class="form-control border-light bg-light py-2 px-3 shadow-none" required>
+                                <option value="en curso" {{ old('estado_curso', $formacion->estado_curso) == 'en curso' ? 'selected' : '' }}>En Curso</option>
+                                <option value="finalizado" {{ old('estado_curso', $formacion->estado_curso) == 'finalizado' ? 'selected' : '' }}>Finalizado</option>
+                                <option value="pendiente" {{ old('estado_curso', $formacion->estado_curso) == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                            </select>
                         </div>
 
                         {{-- TIPO DE FORMACIÓN (VENCE) --}}
@@ -50,7 +62,7 @@
 
                     <div class="row g-4 mb-4">
                         {{-- FECHA INICIO --}}
-                        <div class="col-md-6 text-start">
+                        <div class="col-md-4 text-start">
                             <label for="fecha_inicio" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha Inicio</label>
                             <input type="date" name="fecha_inicio" id="fecha_inicio" 
                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('fecha_inicio') is-invalid @enderror" 
@@ -58,12 +70,19 @@
                         </div>
 
                         {{-- FECHA FIN --}}
-                        <div class="col-md-6 text-start" id="container_fecha_fin">
+                        <div class="col-md-4 text-start" id="container_fecha_fin">
                             <label for="fecha_fin" class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Fecha Fin <span class="text-danger">*</span></label>
                             <input type="date" name="fecha_fin" id="fecha_fin" 
                                    class="form-control border-light bg-light py-2 px-3 shadow-none @error('fecha_fin') is-invalid @enderror" 
                                    value="{{ $formacion->fecha_fin ? $formacion->fecha_fin->format('Y-m-d') : '' }}">
                         </div>
+                    </div>
+
+                    {{-- OBSERVACIONES --}}
+                    <div class="mb-4 text-start">
+                        <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">Observaciones (Opcional)</label>
+                        <textarea name="observaciones" rows="3" 
+                                  class="form-control border-light bg-light py-2 px-3 shadow-none">{{ old('observaciones', $formacion->observaciones) }}</textarea>
                     </div>
 
                     {{-- ARCHIVOS ACTUALES --}}
@@ -165,8 +184,10 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleVence(); // Inicializar
 
     // ==========================================
-    // 🛡️ VALIDACIÓN DE DOCUMENTO OBLIGATORIO
+    // 🛡️ VALIDACIÓN DE DOCUMENTO (REMOVIDA)
     // ==========================================
+    // El documento ahora es opcional según requerimientos
+    /*
     const form = selectVence.closest('form');
     form.addEventListener('submit', function(e) {
         const existingDocs = document.querySelectorAll('[id^="doc-"]').length;
@@ -177,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('El registro de formación debe tener al menos un documento de soporte (PDF).');
         }
     });
+    */
 });
 </script>
 @stop

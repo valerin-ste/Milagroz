@@ -13,12 +13,13 @@ class Formacion extends Model
     protected $fillable = [
         'empleado_id',
         'nombre_curso',
-        'institucion',
         'fecha_inicio',
         'fecha_fin',
         'archivo',
         'estado',
-        'vence'
+        'vence',
+        'observaciones',
+        'estado_curso'
     ];
 
     protected $casts = [
