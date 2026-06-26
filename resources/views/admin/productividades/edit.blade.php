@@ -114,8 +114,11 @@
                         </div>
                     </div>
                     
-                    <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4 text-end">
-                        <a href="{{ route('admin.productividades.index') }}" class="btn btn-light border px-4 me-2 rounded-pill">Cancelar</a>
+                    <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4 d-flex justify-content-end">
+                        <a href="{{ route('admin.productividades.index') }}" class="btn btn-light border px-4 me-2 rounded-pill">
+                            Cancelar
+                        </a>
+
                         <button type="submit" class="btn btn-orange px-4 rounded-pill fw-bold">
                             <i class="fas fa-save me-1"></i> Actualizar Registro
                         </button>

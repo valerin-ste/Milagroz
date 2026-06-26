@@ -238,7 +238,7 @@
                         <a class="nav-link" data-toggle="tab" href="#tab-nomina" role="tab">
                             <i class="fas fa-file-invoice-dollar me-2"></i> Novedades Nómina
                         </a>
-
+    
                         <a class="nav-link" data-toggle="tab" href="#tab-sena" role="tab">
                             <i class="fas fa-users me-2"></i> Planta Personal SENA
                         </a>
@@ -258,7 +258,7 @@
                             <h5 class="fw-bold mb-1">Documentación Precontractual</h5>
                             <p class="text-muted small mb-0">Requisitos y soportes previos a la vinculación oficial.</p>
                         </div>
-                        @forelse($empleado->etapaPrecontractuales as $ep)
+                        @forelse($empleado->etapaPrecontractuales as $ep)    
                             <div class="modern-doc-block mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="doc-date"><i class="far fa-calendar-alt me-2 text-primary"></i> Registrado el {{ \Carbon\Carbon::parse($ep->fecha_registro)->format('d/m/Y') }}</div>
@@ -1664,13 +1664,13 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="file-btn-group">
-                                                                    <a href="{{ route('admin.calidad-documentos.archivo.view', $doc->id) }}"
+                                                                    <a href="{{ route('admin.calidad_documentos.archivo.view', $doc->id) }}"
                                                                     target="_blank"
                                                                     class="file-btn view"
                                                                     title="Ver">
                                                                         <i class="fas fa-eye"></i>
                                                                     </a>
-                                                                    <a href="{{ route('admin.calidad-documentos.archivo.download', $doc->id) }}"
+                                                                    <a href="{{ route('admin.calidad_documentos.archivo.download', $doc->id) }}"
                                                                     class="file-btn download"
                                                                     title="Descargar">
                                                                         <i class="fas fa-download"></i>

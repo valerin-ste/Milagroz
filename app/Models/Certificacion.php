@@ -13,16 +13,17 @@ class Certificacion extends Model
     protected $table = 'certificaciones';
 
         protected $fillable = [
-        'nombre_certificacion',
-        'tipo_certificacion',
-        'institucion',
-        'codigo_certificado',
-        'fecha_expedicion',
-        'fecha_vencimiento',
-        'observaciones',
-        'estado',   
-        'archivo'
-    ];
+            'empleado_id',
+            'nombre_certificacion',
+            'tipo_certificacion',
+            'institucion',
+            'codigo_certificado',
+            'fecha_expedicion',
+            'fecha_vencimiento',
+            'observaciones',
+            'estado',
+            'archivo'
+        ];
 
     protected $casts = [
         'fecha_expedicion' => 'date',

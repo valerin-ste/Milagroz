@@ -39,7 +39,7 @@
             <div class="col-lg-8 mx-auto">
                 <div class="card h-100 shadow-sm border-0 rounded-lg">
                     <div class="card-header pt-4 px-4 pb-3 bg-white border-0">
-                        <h5 class="card-title fw-bold" style="color: var(--primary-blue);">
+                        <h5 class="card-title fw-bold" style="color: #f97316;">
                             <div class="d-inline-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(19, 182, 236, 0.1); border-radius: 10px;">
                                 <i class="fas fa-shield-alt"></i>
                             </div>
@@ -120,15 +120,24 @@
                                 <div id="hiddenDeleteInputs"></div>
 
                                 {{-- INPUT MULTIPLE --}}
-                                <label for="documentos" class="form-label fw-bold small text-uppercase" style="color: #64748b;">
+                                <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                                     Cargar más archivos
                                 </label>
 
-                                <input type="file" name="documentos[]" id="documentos" multiple
-                                    class="form-control border-light bg-light py-2 px-3 shadow-none">
+                                <div class="file-drop-area" id="dropArea">
+                                    <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
+                                    <span class="file-drop-area-text">Arrastra y suelta nuevos archivos aquí</span>
+                                    <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
+                                    <input type="file" name="documentos[]" id="fileInput"
+                                           class="file-input-hidden" multiple
+                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                                </div>
+
+                                <div class="file-list" id="fileList"></div>
 
                                 <small class="text-muted mt-1 d-block">
-                                    Opcional: Suba más documentos para este registro.
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Formatos aceptados: PDF, Word, Excel, JPG, PNG. Máx. 10MB por archivo.
                                 </small>
                             </div>
                         </div>
@@ -161,13 +170,104 @@ function removeExistingDoc(id) {
     if (element) element.remove();
 
     // Agregar el ID al input oculto para que el controlador lo procese
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'eliminar_documentos[]';
-    input.value = id;
-
-    document.getElementById('hiddenDeleteInputs').appendChild(input);
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'eliminar_documentos[]';
+    inp.value = id;
+    document.getElementById('hiddenDeleteInputs').appendChild(inp);
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    // =========================
+    // 📂 DRAG & DROP FILE UPLOAD
+    // =========================
+    const dropArea  = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileList  = document.getElementById('fileList');
+    let selectedFiles = [];
+
+    dropArea.addEventListener('click', (e) => {
+        if (e.target !== fileInput) fileInput.click();
+    });
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+    ['dragenter', 'dragover'].forEach(evt =>
+        dropArea.addEventListener(evt, () => dropArea.classList.add('dragover'), false)
+    );
+    ['dragleave', 'drop'].forEach(evt =>
+        dropArea.addEventListener(evt, () => dropArea.classList.remove('dragover'), false)
+    );
+
+    dropArea.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+    fileInput.addEventListener('change', function () {
+        addFiles(this.files);
+        this.value = '';
+    });
+
+    function addFiles(files) {
+        [...files].forEach(file => {
+            if (file.size > 10 * 1024 * 1024) {
+                alert('El archivo "' + file.name + '" supera los 10MB permitidos.');
+                return;
+            }
+            const allowed = ['pdf','doc','docx','xls','xlsx','jpg','jpeg','png'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowed.includes(ext)) {
+                alert('El archivo "' + file.name + '" no es un formato permitido.');
+                return;
+            }
+            selectedFiles.push(file);
+        });
+        renderFiles();
+    }
+
+    function getFileIcon(ext) {
+        if (ext === 'pdf')                             return 'fa-file-pdf text-danger';
+        if (['jpg','jpeg','png','gif'].includes(ext))  return 'fa-file-image text-primary';
+        if (['doc','docx'].includes(ext))              return 'fa-file-word text-info';
+        if (['xls','xlsx'].includes(ext))              return 'fa-file-excel text-success';
+        return 'fa-file-alt text-secondary';
+    }
+
+    function renderFiles() {
+        const dt = new DataTransfer();
+        fileList.innerHTML = '';
+        selectedFiles.forEach((file, i) => {
+            dt.items.add(file);
+            const ext  = file.name.split('.').pop().toLowerCase();
+            const size = (file.size / 1024 / 1024).toFixed(2);
+            const card = document.createElement('div');
+            card.className = 'file-card';
+            card.innerHTML = `
+                <div class="file-details">
+                    <i class="fas ${getFileIcon(ext)} file-icon"></i>
+                    <div class="file-info">
+                        <span class="file-name" title="${file.name}">${file.name}</span>
+                        <span class="file-size">${size} MB</span>
+                    </div>
+                </div>
+                <button type="button" class="file-remove" onclick="removeNewFile(${i})" title="Eliminar">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            fileList.appendChild(card);
+        });
+        fileInput.files = dt.files;
+    }
+
+    window.removeNewFile = function(index) {
+        selectedFiles.splice(index, 1);
+        renderFiles();
+    };
+
+    // Sincronizar al enviar
+    document.querySelector('form').addEventListener('submit', function () {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+    });
+});
 </script>
 @endsection
 

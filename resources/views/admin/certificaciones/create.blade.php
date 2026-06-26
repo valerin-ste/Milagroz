@@ -148,8 +148,16 @@
                         </div>
                     </div>
 
-                    <div class="d-grid mt-5">
-                        <button type="submit" class="btn btn-orange text-white py-3 fw-bold rounded shadow-sm">
+                    <div class="d-flex justify-content-end gap-2 mt-5">
+                        <a href="{{ route('admin.certificaciones.index') }}"
+                        class="btn btn-light border px-4 fw-bold shadow-sm"
+                        style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
+                            <i class="fas fa-times me-2"></i> CANCELAR
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-orange text-white px-4 fw-bold shadow-sm"
+                                style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
                             <i class="fas fa-save me-2"></i> GUARDAR CERTIFICACIÓN
                         </button>
                     </div>

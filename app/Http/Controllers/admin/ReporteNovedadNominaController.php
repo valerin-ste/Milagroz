@@ -196,7 +196,31 @@ class ReporteNovedadNominaController extends Controller
         if (!$reporte->archivo || !Storage::disk('public')->exists($reporte->archivo)) {
             abort(404, 'Archivo no encontrado');
         }
-        return response()->file(storage_path('app/public/' . $reporte->archivo));
+
+        $path = storage_path('app/public/' . $reporte->archivo);
+        $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        if (in_array($ext, ['xls', 'xlsx', 'doc', 'docx'])) {
+            $publicUrl = Storage::disk('public')->url($reporte->archivo);
+            return redirect('https://view.officeapps.live.com/op/view.aspx?src=' . urlencode($publicUrl));
+        }
+
+        $mimeMap = [
+            'pdf'  => 'application/pdf',
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+
+        $headers = ['Content-Disposition' => 'inline; filename="' . basename($reporte->archivo) . '"'];
+        if (isset($mimeMap[$ext])) {
+            $headers['Content-Type'] = $mimeMap[$ext];
+        }
+
+        while (ob_get_level() > 0) ob_end_clean();
+        return response()->file($path, $headers);
     }
 
     public function downloadArchivo($id)

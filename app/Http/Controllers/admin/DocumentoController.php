@@ -20,9 +20,6 @@ class DocumentoController extends Controller
      */
     public function view($id)
     {
-        // Limpiamos cualquier buffer previo para evitar que corrompa las cabeceras
-        while (ob_get_level() > 0) ob_end_clean();
-
         $documento = Documento::findOrFail($id);
         $path = storage_path('app/public/' . $documento->ruta);
 
@@ -30,9 +27,35 @@ class DocumentoController extends Controller
             abort(404, 'Archivo no encontrado físicamente.');
         }
 
-        return response()->file($path, [
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        if (in_array($ext, ['xls', 'xlsx', 'doc', 'docx'])) {
+            $publicUrl = Storage::disk('public')->url($documento->ruta);
+            $viewerUrl = 'https://view.officeapps.live.com/op/view.aspx?src=' . urlencode($publicUrl);
+            return redirect($viewerUrl);
+        }
+
+        $mimeTypes = [
+            'pdf'  => 'application/pdf',
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'svg'  => 'image/svg+xml',
+        ];
+
+        $headers = [
             'Content-Disposition' => 'inline; filename="' . str_replace('"', '\\"', basename($documento->nombre_original)) . '"'
-        ]);
+        ];
+
+        if (array_key_exists($ext, $mimeTypes)) {
+            $headers['Content-Type'] = $mimeTypes[$ext];
+        }
+
+        while (ob_get_level() > 0) ob_end_clean();
+
+        return response()->file($path, $headers);
     }
 
     /**

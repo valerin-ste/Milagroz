@@ -72,16 +72,23 @@
                             </div>
 
                         </div>
-                    </div>
+                        </div>
+
+                            <div class="d-flex justify-content-end gap-2 pt-4 mt-4 pb-2">
+                                <a href="{{ route('admin.roles.index') }}"
+                                    class="btn btn-light border px-4 fw-bold shadow-sm"
+                                    style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
+                                    <i class="fas fa-times me-2"></i> CANCELAR
+                                </a>
+
+                                <button type="submit"
+                                 class="btn btn-orange text-white px-4 fw-bold shadow-sm"
+                                 style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
+                                     <i class="fas fa-save me-2"></i> GUARDAR ROL
+                                </button>
+                            </div>
                 </div>
             </div>
-        </div>
-
-        <div class="d-flex justify-content-end gap-3 mt-4 mb-5 pb-4 px-2">
-            <a href="{{ route('admin.roles.index') }}" class="btn btn-light-custom px-4">Cancelar</a>
-            <button type="submit" class="btn btn-orange px-5">
-                <i class="fas fa-save me-2"></i> Guardar Rol
-            </button>
         </div>
 
     </form>

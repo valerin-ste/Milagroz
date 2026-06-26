@@ -122,23 +122,30 @@
                                 </select>
                             </div>
 
+                            {{-- BOTONES --}}
+                            <div class="col-12 mt-5">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ route('admin.fechas_especiales.index') }}"
+                                    class="btn btn-light border px-4 fw-bold shadow-sm"
+                                    style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
+                                        <i class="fas fa-times me-2"></i> CANCELAR
+                                    </a>
+
+                                    <button type="submit"
+                                            class="btn btn-orange text-white px-4 fw-bold shadow-sm"
+                                            style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
+                                        <i class="fas fa-save me-2"></i> GUARDAR REGISTRO
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- BOTONES --}}
-        <div class="d-flex justify-content-center gap-3 mt-4 mb-5 pb-4 px-2">
-            <a href="{{ route('admin.fechas_especiales.index') }}"
-               class="btn btn-light border px-4">
-                Cancelar
-            </a>
-            <button type="submit" class="btn btn-orange px-5 text-white fw-bold">
-                <i class="fas fa-save me-2"></i>
-                Guardar Registro
-            </button>
-        </div>
+        
 
     </form>
 </div>

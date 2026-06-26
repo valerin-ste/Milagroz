@@ -202,9 +202,12 @@
                         </div>
                     </div>
 
-                    <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4 text-end">
+                    <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
                         <a href="{{ route('admin.calidad_documentos.index') }}"
-                           class="btn btn-light border px-4 me-2 rounded-pill">Cancelar</a>
+                        class="btn btn-light border px-4 rounded-pill">
+                            Cancelar
+                        </a>
+
                         <button type="submit" class="btn btn-orange px-4 rounded-pill fw-bold">
                             <i class="fas fa-save me-1"></i> Actualizar Documento
                         </button>

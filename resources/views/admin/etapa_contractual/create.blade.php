@@ -104,31 +104,39 @@
 
                             <input type="hidden" name="tipo_contrato" id="tipo_contrato_final" required value="{{ old('tipo_contrato') }}">
 
-                            <div class="col-12 mt-4">
-                                <h5 class="fw-bold mb-3">
-                                    <i class="fas fa-folder-open text-primary me-2"></i> Anexar Documentos
-                                </h5>
+                                <div class="col-12 mt-4">
+                                    <h5 class="fw-bold mb-3">
+                                        <i class="fas fa-folder-open text-primary me-2"></i> Anexar Documentos
+                                    </h5>
 
-                                <div class="file-drop-area" id="dropArea">
-                                    <input type="file" name="documentos[]" id="fileInput" multiple>
+                                    <div class="file-drop-area" id="dropArea">
+                                        <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
+                                        <span class="file-drop-area-text">Arrastra y suelta tus archivos aquí</span>
+                                        <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
+                                        <input type="file" name="documentos[]" id="fileInput"
+                                               class="file-input-hidden" multiple
+                                               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                                    </div>
+
+                                    <div class="file-list" id="fileList"></div>
+
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Formatos aceptados: PDF, Word, Excel, JPG, PNG. Máx. 10MB por archivo.
+                                    </small>
                                 </div>
-
-                                <div class="file-list" id="fileList"></div>
-                            </div>
-
+                        </div>
+                        <div class="d-flex justify-content-end gap-3 mt-4 mb-5 pb-4 px-2">
+                            <a href="{{ route('admin.etapa_contractual.index') }}" class="btn btn-light-custom px-4">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-orange px-5">
+                                Guardar Contrato
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="d-flex justify-content-end gap-3 mt-4 mb-5 pb-4 px-2">
-            <a href="{{ route('admin.etapa_contractual.index') }}" class="btn btn-light-custom px-4">
-                Cancelar
-            </a>
-            <button type="submit" class="btn btn-orange px-5">
-                Guardar Contrato
-            </button>
         </div>
 
     </form>
@@ -274,12 +282,97 @@ document.addEventListener("DOMContentLoaded", function () {
     checkFechaFin();
 
     // =========================
-    // 🔍 VALIDACIÓN PRE-SUBMIT SOLICITADA
+    // 📂 DRAG & DROP FILE UPLOAD
+    // =========================
+    const dropArea  = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileList  = document.getElementById('fileList');
+    let selectedFiles = [];
+
+    // Clic en el área abre el selector de archivos
+    dropArea.addEventListener('click', (e) => {
+        if (e.target !== fileInput) fileInput.click();
+    });
+
+    // Prevenir comportamiento por defecto en drag events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+    ['dragenter', 'dragover'].forEach(evt =>
+        dropArea.addEventListener(evt, () => dropArea.classList.add('dragover'), false)
+    );
+    ['dragleave', 'drop'].forEach(evt =>
+        dropArea.addEventListener(evt, () => dropArea.classList.remove('dragover'), false)
+    );
+
+    dropArea.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+    fileInput.addEventListener('change', function () {
+        addFiles(this.files);
+        this.value = '';
+    });
+
+    function addFiles(files) {
+        [...files].forEach(file => {
+            if (file.size > 10 * 1024 * 1024) {
+                alert('El archivo "' + file.name + '" supera los 10MB permitidos.');
+                return;
+            }
+            const allowed = ['pdf','doc','docx','xls','xlsx','jpg','jpeg','png'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowed.includes(ext)) {
+                alert('El archivo "' + file.name + '" no es un formato permitido.');
+                return;
+            }
+            selectedFiles.push(file);
+        });
+        renderFiles();
+    }
+
+    function getFileIcon(ext) {
+        if (ext === 'pdf')                           return 'fa-file-pdf text-danger';
+        if (['jpg','jpeg','png','gif'].includes(ext)) return 'fa-file-image text-primary';
+        if (['doc','docx'].includes(ext))            return 'fa-file-word text-info';
+        if (['xls','xlsx'].includes(ext))            return 'fa-file-excel text-success';
+        return 'fa-file-alt text-secondary';
+    }
+
+    function renderFiles() {
+        const dt = new DataTransfer();
+        fileList.innerHTML = '';
+        selectedFiles.forEach((file, i) => {
+            dt.items.add(file);
+            const ext  = file.name.split('.').pop().toLowerCase();
+            const size = (file.size / 1024 / 1024).toFixed(2);
+            const card = document.createElement('div');
+            card.className = 'file-card';
+            card.innerHTML = `
+                <div class="file-details">
+                    <i class="fas ${getFileIcon(ext)} file-icon"></i>
+                    <div class="file-info">
+                        <span class="file-name" title="${file.name}">${file.name}</span>
+                        <span class="file-size">${size} MB</span>
+                    </div>
+                </div>
+                <button type="button" class="file-remove" onclick="removeFile(${i})" title="Eliminar">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            fileList.appendChild(card);
+        });
+        fileInput.files = dt.files;
+    }
+
+    window.removeFile = function(index) {
+        selectedFiles.splice(index, 1);
+        renderFiles();
+    };
+
+    // =========================
+    // 🔍 VALIDACIÓN PRE-SUBMIT
     // =========================
     const form = document.getElementById('contratoForm');
     form.addEventListener('submit', function(e) {
         const empleadoHidden = document.getElementById('empleado_id');
-        
+
         // Validar que tenga valor el empleado
         if (!empleadoHidden.value) {
             e.preventDefault();
@@ -288,9 +381,14 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
 
-        // Asegurarnos que los campos deshabilitados (si los hubiese) se envíen
+        // Sincronizar archivos seleccionados al input antes de enviar
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+
+        // Asegurarnos que los campos deshabilitados se envíen
         const disabledInputs = form.querySelectorAll(':disabled');
-        disabledInputs.forEach(input => input.disabled = false);
+        disabledInputs.forEach(inp => inp.disabled = false);
     });
 
 });

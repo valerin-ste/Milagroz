@@ -121,11 +121,35 @@ class EmpleadoController extends Controller
         $fullPath = storage_path('app/public/' . $path);
         if (!file_exists($fullPath)) abort(404);
 
+        $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+
+        if (in_array($ext, ['xls', 'xlsx', 'doc', 'docx'])) {
+            $publicUrl = Storage::disk('public')->url($path);
+            $viewerUrl = 'https://view.officeapps.live.com/op/view.aspx?src=' . urlencode($publicUrl);
+            return redirect($viewerUrl);
+        }
+
+        $mimeTypes = [
+            'pdf'  => 'application/pdf',
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'svg'  => 'image/svg+xml',
+        ];
+
+        $headers = [
+            'Content-Disposition' => 'inline; filename="' . str_replace('"', '\\"', basename($path)) . '"'
+        ];
+
+        if (array_key_exists($ext, $mimeTypes)) {
+            $headers['Content-Type'] = $mimeTypes[$ext];
+        }
+
         while (ob_get_level() > 0) ob_end_clean();
-        
-        return response()->file($fullPath, [
-            'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
-        ]);
+
+        return response()->file($fullPath, $headers);
     }
 
     /**

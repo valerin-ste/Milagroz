@@ -131,7 +131,7 @@
                                     <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
                                     <span class="file-drop-area-text">Arrastra y suelta nuevos archivos aquí</span>
                                     <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
-                                    <input type="file" name="documentos[]" id="fileInput" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                    <input type="file" name="documentos[]" id="fileInput" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
                                 </div>
 
                                 <div class="file-list" id="fileList"></div>
@@ -203,6 +203,7 @@
                 if (fileExt === 'pdf') iconClass = 'fa-file-pdf text-danger';
                 else if (['jpg', 'jpeg', 'png'].includes(fileExt)) iconClass = 'fa-file-image text-primary';
                 else if (['doc', 'docx'].includes(fileExt)) iconClass = 'fa-file-word text-info';
+                else if (['xls', 'xlsx'].includes(fileExt)) iconClass = 'fa-file-excel text-success';
 
                 const fileCard = document.createElement('div');
                 fileCard.className = 'file-card';

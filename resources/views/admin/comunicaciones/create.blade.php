@@ -48,9 +48,9 @@
                 <div class="card h-100 border-0">
 
                     <div class="card-header pt-4 px-4 pb-3">
-                        <h5 class="card-title d-flex align-items-center" style="color: var(--primary-blue);">
+                        <h5 class="card-title d-flex align-items-center mb-0" style="color: #f97316;">
                             <div class="d-flex align-items-center justify-content-center me-3"
-                                style="width: 40px; height: 40px; background-color: rgba(19, 182, 236, 0.1); border-radius: 10px;">
+                                style="width: 40px; height: 40px; background-color: rgba(249, 115, 22, 0.1); border-radius: 10px;">
                                 <i class="fas fa-envelope"></i>
                             </div>
                             Detalles de la Comunicación

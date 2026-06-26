@@ -52,7 +52,7 @@
                 <div class="card shadow-sm border-0 rounded-lg">
 
                     <div class="card-header bg-white border-0 pt-4 px-4 pb-3">
-                        <h5 class="fw-bold" style="color: var(--primary-blue);">
+                        <h5 class="fw-bold" style="color: #f97316;">
                             <i class="fas fa-shield-alt me-2"></i>
                             Detalles del Documento SST
                         </h5>
@@ -139,30 +139,43 @@
                                     Anexar Documentos de Soporte
                                 </h5>
 
-                                <input type="file"
-                                       name="documentos[]"
-                                       class="form-control"
-                                       multiple>
+                                <div class="file-drop-area" id="dropArea">
+                                    <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
+                                    <span class="file-drop-area-text">Arrastra y suelta tus archivos aquí</span>
+                                    <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
+                                    <input type="file" name="documentos[]" id="fileInput"
+                                           class="file-input-hidden" multiple
+                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                                </div>
+
+                                <div class="file-list" id="fileList"></div>
+
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Formatos aceptados: PDF, Word, Excel, JPG, PNG. Máx. 10MB por archivo.
+                                </small>
                             </div>
 
                         </div>
                     </div>
                 </div>
+                {{-- BOTONES --}}
+                <div class="d-flex justify-content-end gap-3 mt-4 mb-5 pb-4">
+                    <a href="{{ route('admin.seguridad_salud_trabajo.index') }}"
+                    class="btn btn-light-custom px-4 border">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-orange px-5">
+                        <i class="fas fa-save me-2"></i>
+                        Guardar Registro
+                    </button>
+                </div>
             </div>
+            
         </div>
 
-        {{-- BOTONES --}}
-        <div class="d-flex justify-content-center gap-3 mt-4 mb-5 pb-4 px-2">
-            <a href="{{ route('admin.seguridad_salud_trabajo.index') }}"
-               class="btn btn-light-custom px-4 border">
-                Cancelar
-            </a>
-
-            <button type="submit" class="btn btn-primary px-5">
-                <i class="fas fa-save me-2"></i>
-                Guardar Registro
-            </button>
-        </div>
+        
 
     </form>
 </div>
@@ -243,8 +256,97 @@ document.addEventListener("DOMContentLoaded", function () {
             errDiv.style.display = "block";
             input.focus();
             input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
         }
+
+        // Sincronizar archivos seleccionados al input antes de enviar
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        document.getElementById('fileInput').files = dt.files;
     });
+
+    // =========================
+    // 📂 DRAG & DROP FILE UPLOAD
+    // =========================
+    const dropArea  = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileList  = document.getElementById('fileList');
+    let selectedFiles = [];
+
+    dropArea.addEventListener('click', (e) => {
+        if (e.target !== fileInput) fileInput.click();
+    });
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        dropArea.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+    ['dragenter', 'dragover'].forEach(evt =>
+        dropArea.addEventListener(evt, () => dropArea.classList.add('dragover'), false)
+    );
+    ['dragleave', 'drop'].forEach(evt =>
+        dropArea.addEventListener(evt, () => dropArea.classList.remove('dragover'), false)
+    );
+
+    dropArea.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+    fileInput.addEventListener('change', function () {
+        addFiles(this.files);
+        this.value = '';
+    });
+
+    function addFiles(files) {
+        [...files].forEach(file => {
+            if (file.size > 10 * 1024 * 1024) {
+                alert('El archivo "' + file.name + '" supera los 10MB permitidos.');
+                return;
+            }
+            const allowed = ['pdf','doc','docx','xls','xlsx','jpg','jpeg','png'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowed.includes(ext)) {
+                alert('El archivo "' + file.name + '" no es un formato permitido.');
+                return;
+            }
+            selectedFiles.push(file);
+        });
+        renderFiles();
+    }
+
+    function getFileIcon(ext) {
+        if (ext === 'pdf')                             return 'fa-file-pdf text-danger';
+        if (['jpg','jpeg','png','gif'].includes(ext))  return 'fa-file-image text-primary';
+        if (['doc','docx'].includes(ext))              return 'fa-file-word text-info';
+        if (['xls','xlsx'].includes(ext))              return 'fa-file-excel text-success';
+        return 'fa-file-alt text-secondary';
+    }
+
+    function renderFiles() {
+        const dt = new DataTransfer();
+        fileList.innerHTML = '';
+        selectedFiles.forEach((file, i) => {
+            dt.items.add(file);
+            const ext  = file.name.split('.').pop().toLowerCase();
+            const size = (file.size / 1024 / 1024).toFixed(2);
+            const card = document.createElement('div');
+            card.className = 'file-card';
+            card.innerHTML = `
+                <div class="file-details">
+                    <i class="fas ${getFileIcon(ext)} file-icon"></i>
+                    <div class="file-info">
+                        <span class="file-name" title="${file.name}">${file.name}</span>
+                        <span class="file-size">${size} MB</span>
+                    </div>
+                </div>
+                <button type="button" class="file-remove" onclick="removeFile(${i})" title="Eliminar">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            fileList.appendChild(card);
+        });
+        fileInput.files = dt.files;
+    }
+
+    window.removeFile = function(index) {
+        selectedFiles.splice(index, 1);
+        renderFiles();
+    };
 
 });
 </script>

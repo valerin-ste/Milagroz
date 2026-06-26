@@ -236,7 +236,36 @@ class CalidadDocumentoController extends Controller
             abort(404, 'Archivo no encontrado.');
         }
 
-        return response()->file(storage_path('app/public/' . $documento->archivo));
+        $path = storage_path('app/public/' . $documento->archivo);
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        if (in_array($ext, ['xls', 'xlsx', 'doc', 'docx'])) {
+            $publicUrl = Storage::disk('public')->url($documento->archivo);
+            $viewerUrl = 'https://view.officeapps.live.com/op/view.aspx?src=' . urlencode($publicUrl);
+            return redirect($viewerUrl);
+        }
+
+        $mimeTypes = [
+            'pdf'  => 'application/pdf',
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'svg'  => 'image/svg+xml',
+        ];
+
+        $headers = [
+            'Content-Disposition' => 'inline; filename="' . str_replace('"', '\\"', basename($documento->archivo)) . '"'
+        ];
+
+        if (array_key_exists($ext, $mimeTypes)) {
+            $headers['Content-Type'] = $mimeTypes[$ext];
+        }
+
+        while (ob_get_level() > 0) ob_end_clean();
+
+        return response()->file($path, $headers);
     }
 
     // ──────────────────────────────────────────

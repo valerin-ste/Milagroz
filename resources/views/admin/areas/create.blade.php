@@ -47,7 +47,7 @@
                         </h5>
                     </div>
 
-                    <div class="card-body px-4 pb-4 pt-2">
+                    <div class="card-body px-4 pb-2 pt-2">
                         <div class="row g-4">
 
                             <div class="col-md-6">
@@ -85,16 +85,18 @@
                             </div>
 
                         </div>
+                        <div class="d-flex justify-content-end gap-3 mt-5 pt-3 mb-5 px-2">
+                            <a href="{{ route('admin.areas.index') }}" class="btn btn-light-custom px-4">
+                                Cancelar
+                            </a>
+
+                            <button type="submit" class="btn btn-orange px-5">
+                                <i class="fas fa-save me-2"></i> Guardar Área
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="d-flex justify-content-end gap-3 mt-4 mb-5 pb-4 px-2">
-            <a href="{{ route('admin.areas.index') }}" class="btn btn-light-custom px-4">Cancelar</a>
-            <button type="submit" class="btn btn-orange px-5">
-                <i class="fas fa-save me-2"></i> Guardar Área
-            </button>
         </div>
 
     </form>
