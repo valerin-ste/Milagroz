@@ -247,7 +247,7 @@
                                    class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center"
                                    style="width:38px;height:38px;">
                                     <i class="fas fa-eye"></i>
-                                </a>
+                                </a>   
 
                                 <a href="{{ asset('storage/'.$fecha->archivo) }}"
                                    download

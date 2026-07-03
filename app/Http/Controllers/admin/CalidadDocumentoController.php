@@ -96,7 +96,8 @@ class CalidadDocumentoController extends Controller
             'fecha_emision'    => 'nullable|date',
             'fecha_vencimiento'=> 'nullable|date|after_or_equal:fecha_emision',
             'archivo'          => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:10240',
-        ], [
+        ], 
+        [
             'empleado_id.required'       => 'Debes seleccionar un empleado.',
             'nombre_documento.required'  => 'El nombre del documento es obligatorio.',
             'categoria.required'         => 'La categoría es obligatoria.',

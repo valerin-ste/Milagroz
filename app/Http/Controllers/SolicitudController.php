@@ -79,8 +79,11 @@ class SolicitudController extends Controller
 
         // 📌 NUEVOS ARCHIVOS
         if ($request->hasFile('archivos')) {
+            $tiposPermitidos = ['Vacaciones', 'Solicitud', 'Ausentismo'];
+            $tipoCarpeta = in_array(ucfirst($data['tipo']), $tiposPermitidos) ? ucfirst($data['tipo']) : 'Otro';
+
             foreach ($request->file('archivos') as $archivo) {
-                $ruta = $archivo->store('solicitudes', 'public');
+                $ruta = $archivo->store('solicitudes/' . $tipoCarpeta, 'public');
 
                 Documento::create([
                     'nombre_original' => $archivo->getClientOriginalName(),
@@ -136,8 +139,11 @@ class SolicitudController extends Controller
 
         // 📌 NUEVOS ARCHIVOS
         if ($request->hasFile('archivos')) {
+            $tiposPermitidos = ['Vacaciones', 'Solicitud', 'Ausentismo'];
+            $tipoCarpeta = in_array(ucfirst($request->tipo), $tiposPermitidos) ? ucfirst($request->tipo) : 'Otro';
+
             foreach ($request->file('archivos') as $archivo) {
-                $ruta = $archivo->store('solicitudes', 'public');
+                $ruta = $archivo->store('solicitudes/' . $tipoCarpeta, 'public');
 
                 Documento::create([
                     'nombre_original' => $archivo->getClientOriginalName(),

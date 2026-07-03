@@ -106,7 +106,7 @@ class ComunicacionController extends Controller
         'fecha' => $request->fecha,
     ]);
 
-    // 📌 NUEVOS ARCHIVOS
+    // NUEVOS ARCHIVOS
     if ($request->hasFile('archivos')) {
         foreach ($request->file('archivos') as $archivo) {
             $ruta = $archivo->store('comunicaciones', 'public');
@@ -121,7 +121,7 @@ class ComunicacionController extends Controller
         }
     }
 
-    // 🔥 ARCHIVOS A ELIMINAR (ESTO ES LO IMPORTANTE)
+    // ARCHIVOS A ELIMINAR (ESTO ES LO IMPORTANTE)
     if ($request->eliminar_documentos) {
         foreach ($request->eliminar_documentos as $id) {
             $doc = Documento::find($id);

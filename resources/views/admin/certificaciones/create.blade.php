@@ -22,7 +22,7 @@
                 <form action="{{ route('admin.certificaciones.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    {{-- 🔥 EMPLEADO AUTOCOMPLETE --}}
+                    {{--  EMPLEADO AUTOCOMPLETE --}}
                     <div class="mb-4 position-relative text-start">
                         <label class="form-label fw-bold small text-uppercase" style="color: #64748b;">
                             Empleado <span class="text-danger">*</span>

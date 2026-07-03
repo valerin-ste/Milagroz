@@ -78,7 +78,8 @@
                                 </div>
                                 <div id="empleadoError"
                                      class="text-danger small mt-1"
-                                     style="display:none;">Debe seleccionar un empleado de la lista.</div>
+                                     style="display:none;">Debe seleccionar un empleado de la lista.
+                                </div>
                             </div>
 
                             {{-- TIPO DE FECHA --}}

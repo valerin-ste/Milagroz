@@ -7,6 +7,8 @@ use App\Models\PlantaPersonalSena;
 use App\Models\Empleado;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\Documento;
+use Illuminate\Support\Facades\Storage;
 
 class PlantaPersonalSenaController extends Controller
 {
@@ -24,7 +26,7 @@ class PlantaPersonalSenaController extends Controller
         $estado = $request->estado;
         $fecha = $request->fecha;
 
-        $registros = PlantaPersonalSena::with(['empleado.persona:id,nombres,apellidos,numero_documento'])
+        $registros = PlantaPersonalSena::with(['empleado.persona:id,nombres,apellidos,numero_documento', 'documentos'])
             ->when($buscar, function($query) use ($buscar) {
                 $query->whereHas('empleado.persona', function($q) use ($buscar) {
                     $q->where('nombres', 'LIKE', "%$buscar%")
@@ -57,6 +59,7 @@ class PlantaPersonalSenaController extends Controller
             'empleado_id' => 'required|exists:empleados,id',
             'fecha_reporte' => 'required|date',
             'observaciones' => 'nullable|string',
+            'archivos.*' => 'nullable|file|max:10240',
         ]);
 
         $data = $request->only([
@@ -67,7 +70,22 @@ class PlantaPersonalSenaController extends Controller
 
         $data['estado'] = 1;
 
-        PlantaPersonalSena::create($data);
+        $registro = PlantaPersonalSena::create($data);
+
+        // 📌 NUEVOS ARCHIVOS
+        if ($request->hasFile('archivos')) {
+            foreach ($request->file('archivos') as $archivo) {
+                $ruta = $archivo->store('planta_personal_sena', 'public');
+
+                Documento::create([
+                    'nombre_original' => $archivo->getClientOriginalName(),
+                    'ruta' => $ruta,
+                    'tipo_documento' => 'planta_personal_sena',
+                    'documentable_id' => $registro->id,
+                    'documentable_type' => PlantaPersonalSena::class,
+                ]);
+            }
+        }
 
         return redirect()
             ->route('admin.planta_personal_sena.index')
@@ -82,7 +100,7 @@ class PlantaPersonalSenaController extends Controller
 
     public function edit($id)
     {
-        $registro = PlantaPersonalSena::with('empleado.persona')->findOrFail($id);
+        $registro = PlantaPersonalSena::with('empleado.persona', 'documentos')->findOrFail($id);
         
         if ($registro->estado == 0) {
             return redirect()->route('admin.planta_personal_sena.index')->with('error', 'No se puede editar un registro inactivo.');
@@ -102,6 +120,7 @@ class PlantaPersonalSenaController extends Controller
             'empleado_id' => 'required|exists:empleados,id',
             'fecha_reporte' => 'required|date',
             'observaciones' => 'nullable|string',
+            'archivos.*' => 'nullable|file|max:10240',
         ]);
 
         $data = $request->only([
@@ -111,6 +130,35 @@ class PlantaPersonalSenaController extends Controller
         ]);
 
         $registro->update($data);
+
+        // 📌 NUEVOS ARCHIVOS
+        if ($request->hasFile('archivos')) {
+            foreach ($request->file('archivos') as $archivo) {
+                $ruta = $archivo->store('planta_personal_sena', 'public');
+
+                Documento::create([
+                    'nombre_original' => $archivo->getClientOriginalName(),
+                    'ruta' => $ruta,
+                    'tipo_documento' => 'planta_personal_sena',
+                    'documentable_id' => $registro->id,
+                    'documentable_type' => PlantaPersonalSena::class,
+                ]);
+            }
+        }
+
+        // 🔥 ARCHIVOS A ELIMINAR
+        if ($request->eliminar_documentos) {
+            foreach ($request->eliminar_documentos as $docId) {
+                $doc = Documento::find($docId);
+
+                if ($doc && $doc->documentable_id == $registro->id && $doc->documentable_type == PlantaPersonalSena::class) {
+                    if (Storage::disk('public')->exists($doc->ruta)) {
+                        Storage::disk('public')->delete($doc->ruta);
+                    }
+                    $doc->delete();
+                }
+            }
+        }
 
         return redirect()->route('admin.planta_personal_sena.index')->with('success', 'Registro actualizado correctamente.');
     }

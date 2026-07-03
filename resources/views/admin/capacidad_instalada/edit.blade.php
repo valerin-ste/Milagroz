@@ -19,11 +19,11 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm" style="border-radius: 20px;">
             <div class="card-body p-4 p-md-5">
-                <form action="{{ route('admin.capacidad_instalada.update', $capacidad->id) }}" method="POST">
+                <form action="{{ route('admin.capacidad_instalada.update', $capacidad->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
-                    {{-- 🔥 EMPLEADO AUTOCOMPLETE --}}
+                    {{--  EMPLEADO AUTOCOMPLETE --}}
                     <div class="mb-4 position-relative text-start">
                         <label class="form-label fw-bold small text-uppercase" style="color: #64748b; letter-spacing: 0.5px;">
                             Empleado <span class="text-danger">*</span>
@@ -135,6 +135,59 @@
                                   style="border-radius: 15px;">{{ old('observaciones', $capacidad->observaciones) }}</textarea>
                     </div>
 
+                    {{-- ARCHIVOS --}}
+                    <div class="col-12 mt-4 text-start">
+                        <div class="card border-0 shadow-sm" style="border-radius:15px; background-color:#f8fafc;">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4" style="color:#1e293b;">
+                                    <i class="fas fa-folder-open text-primary me-2"></i> Archivos Adjuntos
+                                </h5>
+
+                                {{-- ARCHIVOS EXISTENTES --}}
+                                @if(isset($capacidad) && $capacidad->documentos && $capacidad->documentos->count() > 0)
+                                    <h6 class="text-muted fw-bold mb-2 small text-uppercase" style="letter-spacing:0.5px;">Archivos Existentes</h6>
+                                    <div class="row g-3 mb-4">
+                                        @foreach($capacidad->documentos as $doc)
+                                            <div class="col-md-6 col-xl-4" id="doc_card_{{ $doc->id }}">
+                                                <div class="file-card position-relative">
+                                                    <div class="file-details">
+                                                        @php
+                                                            $ext = strtolower(pathinfo($doc->nombre_original, PATHINFO_EXTENSION));
+                                                            $icon = 'fa-file-alt text-secondary';
+                                                            if($ext == 'pdf') $icon = 'fa-file-pdf text-danger';
+                                                            elseif(in_array($ext, ['jpg','jpeg','png'])) $icon = 'fa-file-image text-primary';
+                                                            elseif(in_array($ext, ['doc','docx'])) $icon = 'fa-file-word text-info';
+                                                        @endphp
+                                                        <i class="fas {{ $icon }} file-icon"></i>
+                                                        <div class="file-info">
+                                                            <span class="file-name" title="{{ $doc->nombre_original }}">{{ $doc->nombre_original }}</span>
+                                                            <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="text-decoration-none small text-primary fw-bold mt-1">Ver Archivo <i class="fas fa-external-link-alt ms-1"></i></a>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-check form-switch position-absolute top-50 end-0 translate-middle-y me-3">
+                                                        <input class="form-check-input switch-delete" type="checkbox" role="switch" id="delete_doc_{{ $doc->id }}" name="eliminar_documentos[]" value="{{ $doc->id }}" onchange="toggleDeleteCard({{ $doc->id }})">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                <h6 class="text-muted fw-bold mb-2 mt-4 small text-uppercase" style="letter-spacing:0.5px;">Subir Nuevos Archivos</h6>
+                                
+                                <div class="file-drop-area" id="dropArea">
+                                    <i class="fas fa-cloud-upload-alt file-drop-area-icon"></i>
+                                    <span class="file-drop-area-text">Arrastra y suelta nuevos archivos aquí</span>
+                                    <span class="file-drop-area-hint">o haz clic para explorar en tu computadora</span>
+                                    <small class="text-muted d-block mt-1">PDF, Word, JPG, PNG - Máx 10MB</small>
+                                    <input type="file" name="archivos[]" id="fileInput" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                </div>
+
+                                <div class="file-list" id="fileList"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end gap-2 mt-5">
                         <a href="{{ route('admin.productividades.index') }}"
                         class="btn btn-light border py-3 px-4 fw-bold"
@@ -241,6 +294,97 @@ document.addEventListener("DOMContentLoaded", function () {
             input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
+
+    // 🗑️ ELIMINAR ARCHIVOS EXISTENTES
+    window.toggleDeleteCard = function(id) {
+        const card = document.getElementById('doc_card_' + id);
+        const checkbox = document.getElementById('delete_doc_' + id);
+        if (checkbox.checked) {
+            card.classList.add('opacity-50');
+            card.querySelector('.file-card').style.borderColor = '#ef4444';
+            card.querySelector('.file-card').style.backgroundColor = '#fef2f2';
+        } else {
+            card.classList.remove('opacity-50');
+            card.querySelector('.file-card').style.borderColor = '#e2e8f0';
+            card.querySelector('.file-card').style.backgroundColor = '#fff';
+        }
+    };
+
+    // ==================================
+    // 📎 DRAG & DROP ARCHIVOS
+    // ==================================
+    const dropArea = document.getElementById("dropArea");
+    const fileInput = document.getElementById("fileInput");
+    const fileList = document.getElementById("fileList");
+    let selectedFiles = new DataTransfer();
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+    });
+
+    dropArea.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
+    fileInput.addEventListener('change', function() { handleFiles(this.files); });
+
+    function handleFiles(files) {
+        [...files].forEach(file => {
+            if(file.size > 10 * 1024 * 1024) {
+                alert('El archivo ' + file.name + ' supera los 10MB permitidos.');
+                return;
+            }
+            selectedFiles.items.add(file);
+        });
+        updateDOM();
+    }
+
+    function updateDOM() {
+        fileInput.files = selectedFiles.files;
+        fileList.innerHTML = '';
+        
+        [...selectedFiles.files].forEach((file, index) => {
+            const size = (file.size / 1024 / 1024).toFixed(2);
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            
+            let iconClass = 'fa-file-alt text-secondary';
+            if (fileExt === 'pdf') iconClass = 'fa-file-pdf text-danger';
+            else if (['jpg', 'jpeg', 'png'].includes(fileExt)) iconClass = 'fa-file-image text-primary';
+            else if (['doc', 'docx'].includes(fileExt)) iconClass = 'fa-file-word text-info';
+
+            const fileCard = document.createElement('div');
+            fileCard.className = 'file-card';
+            fileCard.innerHTML = `
+                <div class="file-details">
+                    <i class="fas ${iconClass} file-icon"></i>
+                    <div class="file-info">
+                        <span class="file-name" title="${file.name}">${file.name}</span>
+                        <span class="file-size">${size} MB</span>
+                    </div>
+                </div>
+                <button type="button" class="file-remove" onclick="removeFile(${index})" title="Eliminar archivo">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(fileCard);
+        });
+    }
+
+    window.removeFile = function (index) {
+        let newSelectedFiles = new DataTransfer();
+        let filesArray = Array.from(selectedFiles.files);
+        filesArray.splice(index, 1);
+        filesArray.forEach(file => newSelectedFiles.items.add(file));
+        selectedFiles = newSelectedFiles;
+        updateDOM();
+    };
 });
 </script>
 @stop
@@ -271,5 +415,103 @@ document.addEventListener("DOMContentLoaded", function () {
 .text-primary { color: #ff6a00 !important; }
 
 .rounded-4 { border-radius: 1rem !important; }
+
+/* FILE UPLOAD STYLES */
+.file-drop-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    background-color: #f8fafc;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+.file-drop-area.dragover, .file-drop-area:hover {
+    background-color: #f1f5f9;
+    border-color: #ff6a00;
+}
+.file-drop-area-icon {
+    font-size: 2.5rem;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    transition: color 0.3s;
+}
+.file-drop-area:hover .file-drop-area-icon { color: #ff6a00; }
+.file-drop-area-text {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #475569;
+}
+.file-drop-area-hint {
+    display: block;
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-top: 5px;
+}
+.file-input-hidden {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+.file-list {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.file-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.file-details {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+.file-icon {
+    font-size: 1.5rem;
+    margin-right: 15px;
+}
+.file-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.file-name {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+}
+.file-size {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.file-remove {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 5px;
+    transition: color 0.2s;
+}
+.file-remove:hover { color: #dc2626; }
+.switch-delete:checked { background-color: #ef4444; border-color: #ef4444; }
 </style>
 @endsection

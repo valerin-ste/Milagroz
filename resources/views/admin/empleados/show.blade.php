@@ -991,38 +991,85 @@
 
                     {{-- ■ TAB: SOLICITUDES ■ --}}
                     <div class="tab-pane fade" id="tab-solicitudes" role="tabpanel">
-                        <div class="tab-section-header mb-4"><h5 class="fw-bold mb-1">Solicitudes y Requerimientos</h5><p class="text-muted small mb-0">Estado de vacaciones, permisos y solicitudes.</p></div>
-                        @forelse($empleado->solicitudes->sortByDesc('fecha') as $sol)
-                            @php
-                                $statusConf = [
-                                    'aprobado'  => ['cls'=>'bg-soft-success text-success', 'icon'=>'fa-check-circle'],
-                                    'rechazado' => ['cls'=>'bg-soft-danger text-danger', 'icon'=>'fa-times-circle'],
-                                    'pendiente' => ['cls'=>'bg-soft-warning text-warning', 'icon'=>'fa-clock']
-                                ][strtolower($sol->estado)] ?? ['cls'=>'bg-soft-secondary text-secondary', 'icon'=>'fa-question-circle'];
-                            @endphp
-                            <div class="modern-doc-block mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <span class="type-pill me-2">{{ strtoupper($sol->tipo) }}</span>
-                                        <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($sol->fecha)->format('d/m/Y') }}</small>
+                        <div class="tab-section-header mb-4">
+                            <h5 class="fw-bold mb-1">Solicitudes y Requerimientos</h5>
+                            <p class="text-muted small mb-0">Estado de vacaciones, permisos y solicitudes.</p>
+                        </div>
+                        @php
+                            $tiposSolicitud = ['Vacaciones', 'Solicitud', 'Ausentismo', 'Otro'];
+                            
+                            $solicitudesAgrupadas = collect($tiposSolicitud)->mapWithKeys(function($tipo) {
+                                return [$tipo => collect()];
+                            });
+                            
+                            foreach($empleado->solicitudes->sortByDesc('fecha') as $sol) {
+                                $tipoCarpeta = in_array(ucfirst($sol->tipo), ['Vacaciones', 'Solicitud', 'Ausentismo']) ? ucfirst($sol->tipo) : 'Otro';
+                                $solicitudesAgrupadas[$tipoCarpeta]->push($sol);
+                            }
+                        @endphp
+                        
+                        @foreach($solicitudesAgrupadas as $tipo => $solicitudes)
+                            <div class="folder-container mb-3">
+                                <div class="folder-header collapsed" data-toggle="collapse" data-target="#folder-sol-{{ Str::slug($tipo) }}">
+                                    <div class="folder-info">
+                                        <i class="fas fa-folder folder-icon text-warning"></i>
+                                        <span class="folder-title">{{ $tipo }}</span>
+                                        @php
+                                            $totalFiles = $solicitudes->sum(function($s) { return $s->documentos->count(); });
+                                        @endphp
+                                        <span class="folder-count">{{ $totalFiles }} archivos</span>
                                     </div>
-                                    <span class="badge {{ $statusConf['cls'] }} rounded-pill px-3">
-                                        <i class="fas {{ $statusConf['icon'] }} me-1"></i> {{ ucfirst($sol->estado) }}
-                                    </span>
+                                    <i class="fas fa-chevron-down folder-arrow"></i>
                                 </div>
-                                @foreach($sol->documentos as $doc)
-                                    <div class="file-item-pill">
-                                        <div class="file-info"><i class="fas fa-file-invoice-dollar text-orange me-3"></i><span class="file-name">{{ $doc->nombre_original }}</span></div>
-                                        <div class="file-btn-group">
-                                            <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view"><i class="fas fa-eye"></i></a>
-                                            <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download"><i class="fas fa-download"></i></a>
+                                <div id="folder-sol-{{ Str::slug($tipo) }}" class="collapse folder-content">
+                                    @if($solicitudes->count() > 0)
+                                        @php $hasAnyFile = false; @endphp
+                                        @foreach($solicitudes as $sol)
+                                            @if($sol->documentos->count() > 0)
+                                                @php $hasAnyFile = true; @endphp
+                                                <div class="modern-doc-block border-0 bg-light mb-2 p-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <div>
+                                                            <span class="type-pill me-2">{{ strtoupper($sol->tipo) }}</span>
+                                                            <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ \Carbon\Carbon::parse($sol->fecha)->format('d/m/Y') }}</small>
+                                                        </div>
+                                                        @php
+                                                            $statusConf = [
+                                                                'aprobado'  => ['cls'=>'bg-soft-success text-success', 'icon'=>'fa-check-circle'],
+                                                                'rechazado' => ['cls'=>'bg-soft-danger text-danger', 'icon'=>'fa-times-circle'],
+                                                                'pendiente' => ['cls'=>'bg-soft-warning text-warning', 'icon'=>'fa-clock']
+                                                            ][strtolower($sol->estado)] ?? ['cls'=>'bg-soft-secondary text-secondary', 'icon'=>'fa-question-circle'];
+                                                        @endphp
+                                                        <span class="badge {{ $statusConf['cls'] }} rounded-pill px-3">
+                                                            <i class="fas {{ $statusConf['icon'] }} me-1"></i> {{ ucfirst($sol->estado) }}
+                                                        </span>
+                                                    </div>
+                                                    @foreach($sol->documentos as $doc)
+                                                        <div class="file-item-pill py-2 mt-2">
+                                                            <div class="file-info"><i class="fas fa-file-pdf text-danger me-2"></i><span class="file-name" style="font-size: 0.8rem;">{{ $doc->nombre_original }}</span></div>
+                                                            <div class="file-btn-group">
+                                                                <a href="{{ route('admin.documentos.view', $doc->id) }}" target="_blank" class="file-btn view btn-sm"><i class="fas fa-eye"></i></a>
+                                                                <a href="{{ route('admin.documentos.download', $doc->id) }}" class="file-btn download btn-sm"><i class="fas fa-download"></i></a>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                        
+                                        @if(!$hasAnyFile)
+                                            <div class="text-center py-3 text-muted small italic">
+                                                <i class="fas fa-info-circle me-1"></i> No hay archivos registrados en esta carpeta.
+                                            </div>
+                                        @endif
+                                    @else
+                                        <div class="text-center py-3 text-muted small italic">
+                                            <i class="fas fa-info-circle me-1"></i> No hay archivos registrados en esta carpeta.
                                         </div>
-                                    </div>
-                                @endforeach
+                                    @endif
+                                </div>
                             </div>
-                        @empty
-                            <div class="empty-tab-state"><i class="fas fa-tasks mb-3"></i><p>Sin solicitudes activas.</p></div>
-                        @endforelse
+                        @endforeach
                     </div>
 
                     {{-- ■ TAB: DOTACIÓN ■ --}}

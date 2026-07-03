@@ -110,6 +110,7 @@
                             <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Capacidad (Disp / Util)</th>
                             <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Fecha</th>
                             <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Estado</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Documentos</th>
                             <th class="text-center pe-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Acciones</th>
                         </tr>
                     </thead>
@@ -162,7 +163,7 @@
                                 {{ \Carbon\Carbon::parse($p->fecha)->format('d/m/Y') }}
                             </td>
 
-                            {{-- ESTADO --}}
+                            {{-- ESTADO --}} 
                             <td class="py-3">
                                 @if($p->estado == 1)
                                     <span class="badge bg-success px-2 py-1 rounded-pill" style="font-size: 0.8rem;">Activo</span>
@@ -171,16 +172,25 @@
                                 @endif
                             </td>
 
+                            {{-- DOCUMENTOS --}}
+                            <td class="py-3">
+                                @if($p->documentos->count() > 0)
+                                    <button type="button" 
+                                            class="btn btn-sm btn-light border fw-bold text-primary" 
+                                            data-toggle="modal" 
+                                            data-target="#documentosModal{{ $p->id }}"
+                                            style="border-radius: 10px;">
+                                        📁 Ver documentos ({{ $p->documentos->count() }})
+                                    </button>
+                                @else
+                                    <span class="text-muted small"><i class="fas fa-ban me-1"></i> Sin documentos</span>
+                                @endif
+                            </td>
+
                             {{-- ACCIONES --}}
                             <td class="text-center pe-4 py-3">
                                 <div class="d-flex justify-content-center gap-2">
                                     
-                                    <a href="{{ route('admin.capacidad_instalada.show', $p) }}"
-                                       class="btn btn-sm btn-icon btn-outline-info"
-                                       data-toggle="tooltip" data-placement="top" title="Ver detalle">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-
                                     @if($p->estado == 1)
                                         <a href="{{ route('admin.capacidad_instalada.edit', $p) }}"
                                            class="btn btn-sm btn-icon btn-outline-primary"
@@ -216,7 +226,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <div class="d-flex flex-column align-items-center">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background-color: rgba(255,106,0,0.1);">
                                         <i class="fas fa-chart-pie fa-2x" style="color: #ff6a00;"></i>
@@ -238,6 +248,56 @@
         </div>
         @endif
     </div>
+
+    {{-- MODALES DE DOCUMENTOS --}}
+    @foreach($capacidades as $p)
+        @if($p->documentos->count() > 0)
+        <div class="modal fade" id="documentosModal{{ $p->id }}" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content" style="border-radius: 20px; border: none;">
+                    <div class="modal-header bg-light border-0" style="border-radius: 20px 20px 0 0;">
+                        <h5 class="modal-title fw-bold">Documentos</h5>
+                        <button type="button" class="close border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem; cursor: pointer;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="list-group list-group-flush">
+                        @foreach($p->documentos as $doc)
+                            <div class="list-group-item px-0 border-0 mb-3 bg-transparent">
+                                <div class="d-flex align-items-center justify-content-between p-3" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                    <div class="d-flex align-items-center text-truncate pe-3">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(255,106,0,0.1); color: #ff6a00;">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                        <span class="text-truncate fw-semibold" style="max-width: 200px; color: #334155;">{{ $doc->nombre_original }}</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('admin.documentos.view', $doc->id) }}" 
+                                           target="_blank" 
+                                           class="btn btn-sm btn-light text-primary border shadow-sm"
+                                           title="Ver documento"
+                                           style="border-radius: 8px;">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('admin.documentos.download', $doc->id) }}" 
+                                           class="btn btn-sm btn-light text-success border shadow-sm"
+                                           title="Descargar"
+                                           style="border-radius: 8px;">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+    @endforeach
+
 </div>
 
 @stop

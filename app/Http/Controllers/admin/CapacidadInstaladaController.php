@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\CapacidadInstalada;
 use App\Models\Empleado;
 use Illuminate\Http\Request;
+use App\Models\Documento;
+use Illuminate\Support\Facades\Storage;
 
 class CapacidadInstaladaController extends Controller
 {
@@ -23,7 +25,7 @@ class CapacidadInstaladaController extends Controller
         $estado = $request->estado;
         $fecha = $request->fecha;
 
-        $capacidades = CapacidadInstalada::with(['empleado.persona:id,nombres,apellidos,numero_documento'])
+        $capacidades = CapacidadInstalada::with(['empleado.persona:id,nombres,apellidos,numero_documento', 'documentos'])
             ->when($buscar, function($query) use ($buscar) {
                 $query->whereHas('empleado.persona', function($q) use ($buscar) {
                     $q->where('nombres', 'LIKE', "%$buscar%")
@@ -59,6 +61,7 @@ class CapacidadInstaladaController extends Controller
             'capacidad_utilizada' => 'nullable|integer|min:0',
             'fecha' => 'required|date',
             'observaciones' => 'nullable|string',
+            'archivos.*' => 'nullable|file|max:10240',
         ]);
 
         $data = $request->only([
@@ -72,7 +75,22 @@ class CapacidadInstaladaController extends Controller
 
         $data['estado'] = 1;
 
-        CapacidadInstalada::create($data);
+        $registro = CapacidadInstalada::create($data);
+
+        // 📌 NUEVOS ARCHIVOS
+        if ($request->hasFile('archivos')) {
+            foreach ($request->file('archivos') as $archivo) {
+                $ruta = $archivo->store('capacidad_instalada', 'public');
+
+                Documento::create([
+                    'nombre_original' => $archivo->getClientOriginalName(),
+                    'ruta' => $ruta,
+                    'tipo_documento' => 'capacidad_instalada',
+                    'documentable_id' => $registro->id,
+                    'documentable_type' => CapacidadInstalada::class,
+                ]);
+            }
+        }
 
         return redirect()
             ->route('admin.capacidad_instalada.index')
@@ -81,7 +99,7 @@ class CapacidadInstaladaController extends Controller
 
     public function edit($id)
     {
-        $capacidad = CapacidadInstalada::with('empleado.persona')->findOrFail($id);
+        $capacidad = CapacidadInstalada::with('empleado.persona', 'documentos')->findOrFail($id);
         
         if ($capacidad->estado == 0) {
             return redirect()->route('admin.capacidad_instalada.index')->with('error', 'No se puede editar un registro inactivo.');
@@ -104,6 +122,7 @@ class CapacidadInstaladaController extends Controller
             'capacidad_utilizada' => 'nullable|integer|min:0',
             'fecha' => 'required|date',
             'observaciones' => 'nullable|string',
+            'archivos.*' => 'nullable|file|max:10240',
         ]);
 
         $data = $request->only([
@@ -116,6 +135,35 @@ class CapacidadInstaladaController extends Controller
         ]);
 
         $capacidad->update($data);
+
+        // 📌 NUEVOS ARCHIVOS
+        if ($request->hasFile('archivos')) {
+            foreach ($request->file('archivos') as $archivo) {
+                $ruta = $archivo->store('capacidad_instalada', 'public');
+
+                Documento::create([
+                    'nombre_original' => $archivo->getClientOriginalName(),
+                    'ruta' => $ruta,
+                    'tipo_documento' => 'capacidad_instalada',
+                    'documentable_id' => $capacidad->id,
+                    'documentable_type' => CapacidadInstalada::class,
+                ]);
+            }
+        }
+
+        // 🔥 ARCHIVOS A ELIMINAR
+        if ($request->eliminar_documentos) {
+            foreach ($request->eliminar_documentos as $docId) {
+                $doc = Documento::find($docId);
+
+                if ($doc && $doc->documentable_id == $capacidad->id && $doc->documentable_type == CapacidadInstalada::class) {
+                    if (Storage::disk('public')->exists($doc->ruta)) {
+                        Storage::disk('public')->delete($doc->ruta);
+                    }
+                    $doc->delete();
+                }
+            }
+        }
 
         return redirect()->route('admin.capacidad_instalada.index')->with('success', 'Registro de capacidad instalada actualizado correctamente.');
     }

@@ -47,7 +47,7 @@
                     <div class="card-body px-4 pb-4 pt-2">
                         <div class="row g-4">
 
-                            {{-- 🔥 EMPLEADO CON BUSCADOR (FILA 1) --}}
+                            {{--  EMPLEADO CON BUSCADOR (FILA 1) --}}
                             <div class="col-md-12 position-relative">
                                 <label class="form-label">Empleado / Candidato <span class="text-danger">*</span></label>
 
@@ -70,7 +70,7 @@
                                 </div>
                             </div>
 
-                            {{-- 🔥 FILA 2: TIPO, INICIO, FIN --}}
+                            {{--  FILA 2: TIPO, INICIO, FIN --}}
                             <div class="col-md-4">
                                 <label class="form-label">Tipo de Documento <span class="text-danger">*</span></label>
                                 <select id="tipo_documento_select" class="form-select" required>
@@ -92,7 +92,7 @@
                                 <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="{{ old('fecha_fin') }}">
                             </div>
 
-                            {{-- 🔥 RETHUS --}}
+                            {{--  RETHUS --}}
                             <div class="col-md-12" id="div_rethus" style="display:none;">
                                 <label class="form-label">¿Aplica Rethus? <span class="text-danger">*</span></label>
                                 <select id="rethus_select" class="form-select">
@@ -148,7 +148,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     // =========================
-    // 🔥 EMPLEADOS AUTOCOMPLETE
+    //  EMPLEADOS AUTOCOMPLETE
     // =========================
     const empleados = @json($empleados);
 

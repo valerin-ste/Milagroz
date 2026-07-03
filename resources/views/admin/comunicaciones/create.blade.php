@@ -61,7 +61,7 @@
 
                         <div class="row g-4">
 
-                            {{-- 🔥 EMPLEADO AUTOCOMPLETE --}}
+                            {{--  EMPLEADO AUTOCOMPLETE --}}
                             <div class="col-md-12 position-relative">
 
                                 <label class="form-label">
