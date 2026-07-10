@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $en45d = $now->clone()->addDays(45)->endOfDay();
         $mesAnterior = $now->clone()->subMonth();
 
-        // ── 1. KPIs ──────────────────────────────────────────────
+        // ── 1. KPIs ──  //
         $totalEmpleados   = Empleado::count();
         $activos          = Empleado::where('estado', 1)->count();
         $inactivos        = Empleado::where('estado', 0)->count();

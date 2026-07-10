@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -11,9 +9,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('all_tables', function (Blueprint $table) {
-            //
-        });
+        // Esta migración quedó obsoleta.
+        // No realiza ninguna acción.
     }
 
     /**
@@ -21,8 +18,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('all_tables', function (Blueprint $table) {
-            //
-        });
+        // No realiza ninguna acción.
     }
 };

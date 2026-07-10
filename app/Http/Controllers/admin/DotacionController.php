@@ -24,16 +24,29 @@ class DotacionController extends Controller
         $estado = $request->estado;
 
         $dotaciones = Dotacion::with(['empleado.persona:id,nombres,apellidos', 'documentos'])
-            ->when($buscar, function($query) use ($buscar) {
-                $query->whereHas('empleado.persona', function($q) use ($buscar) {
-                    $q->where('nombres', 'LIKE', "%$buscar%")
-                      ->orWhere('apellidos', 'LIKE', "%$buscar%");
-                })->orWhere('tipo_dotacion', 'LIKE', "%$buscar%")
-                  ->orWhere('talla', 'LIKE', "%$buscar%");
+
+            // Si es empleado, solo ve sus dotaciones
+            ->when(auth()->user()->hasRole('Empleado'), function ($query) {
+                $query->whereHas('empleado', function ($q) {
+                    $q->where('persona_id', auth()->user()->persona_id);
+                });
             })
+
+            ->when($buscar, function($query) use ($buscar) {
+                $query->where(function($q) use ($buscar) {
+                    $q->whereHas('empleado.persona', function($sq) use ($buscar) {
+                        $sq->where('nombres', 'LIKE', "%{$buscar}%")
+                        ->orWhere('apellidos', 'LIKE', "%{$buscar}%");
+                    })
+                    ->orWhere('tipo_dotacion', 'LIKE', "%{$buscar}%")
+                    ->orWhere('talla', 'LIKE', "%{$buscar}%");
+                });
+            })
+
             ->when($estado !== null && $estado !== '', function($query) use ($estado) {
                 $query->where('estado', $estado);
             })
+
             ->latest()
             ->paginate(10)
             ->withQueryString();

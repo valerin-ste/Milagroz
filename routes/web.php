@@ -34,7 +34,16 @@ use App\Http\Controllers\SolicitudController;
 // ----------------------
 // 🔹 REDIRECCIÓN RAÍZ
 // ----------------------
-Route::get('/', fn() => redirect()->route('admin.dashboard'));
+Route::get('/', function () {
+    if (auth()->check()) {
+        if (auth()->user()->hasRole('Empleado')) {
+            return redirect()->route('admin.solicitudes.index');
+        }
+        return redirect()->route('admin.dashboard');
+    }
+    
+    return redirect()->route('login');
+});
 
 // ----------------------
 // 🔹 AUTHENTICATION (NO REGISTRO PÚBLICO)
@@ -47,14 +56,15 @@ Auth::routes(['register' => false]);
 Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () {
 
     // ======================
-    // 🔥 DASHBOARD
+    //  DASHBOARD
     // ======================
     Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
+    ->middleware('permission:ver-dashboard')
+    ->name('dashboard');
 
 
     // ======================
-    // 🔥 TOGGLES (UNIFICADOS 🔥)
+    //  TOGGLES (UNIFICADOS )
     // ======================
     $toggleRoutes = [
         'sedes' => SedeController::class,
@@ -85,7 +95,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
 
 
     // ======================
-    // 🔥 SOLICITUDES (TOGGLE 🔥)
+    //  SOLICITUDES (TOGGLE )
     // ======================
     Route::match(['post', 'patch'], 'solicitudes/{id}/toggle', [SolicitudController::class, 'toggle'])
         ->name('solicitudes.toggle');
@@ -98,14 +108,14 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
 
 
     // ======================
-    // 🔥 CAMBIAR ESTADO SOLICITUD
+    //  CAMBIAR ESTADO SOLICITUD
     // ======================
     Route::post('solicitudes/{id}/estado', [SolicitudController::class, 'cambiarEstado'])
         ->name('solicitudes.estado');
 
 
     // ======================
-    // 🔥 CRUD PRINCIPAL
+    //  CRUD PRINCIPAL
     // ======================
     Route::resource('sedes', SedeController::class);
     Route::resource('areas', AreaController::class);
@@ -144,7 +154,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::get('productividades/{id}/archivo/download', [ProductividadController::class, 'downloadArchivo'])->name('productividades.archivo.download');
 
     // ======================
-    // 🔥 CALIDAD DOCUMENTOS
+    //  CALIDAD DOCUMENTOS
     // ======================
     Route::resource('calidad_documentos', CalidadDocumentoController::class);
 
@@ -155,7 +165,7 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     
 
     // ======================
-    // 🔥 DOCUMENTOS
+    //  DOCUMENTOS
     // ======================
     Route::get('documentos/{id}/view', [DocumentoController::class, 'view'])->name('documentos.view');
     Route::get('test-pdf', [DocumentoController::class, 'testPdf']); // Ruta de prueba
@@ -163,14 +173,14 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::resource('documentos', DocumentoController::class)->only(['destroy']);
 
     // ======================
-    // 🔥 EXPORTACIÓN DE REPORTES (EMPLEADOS)
+    //   EXPORTACIÓN DE REPORTES (EMPLEADOS)
     // ======================
     Route::get('empleados/reporte/pdf', [EmpleadoController::class, 'exportPdf'])->name('empleados.reporte.pdf');
     Route::get('empleados/{id}/file-view/{path}', [EmpleadoController::class, 'viewFile'])->name('empleados.file.view')->where('path', '.*');
     Route::get('empleados/{id}/file-download/{path}', [EmpleadoController::class, 'downloadFile'])->name('empleados.file.download')->where('path', '.*');
 
     // ======================
-    // 🔥 CONFIGURACIÓN / ACCESOS (SEGURIDAD)
+    //  CONFIGURACIÓN / ACCESOS (SEGURIDAD)
     // ======================
     Route::resource('users', UserController::class);
     Route::resource('system_roles', SystemRoleController::class);

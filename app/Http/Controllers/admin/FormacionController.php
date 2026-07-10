@@ -22,24 +22,54 @@ class FormacionController extends Controller
         $buscar = $request->buscar;
         $estado = $request->estado;
 
-        $formaciones = Formacion::with(['empleado.persona:id,nombres,apellidos', 'documentos:id,documentable_id,documentable_type,nombre_original'])
-            ->select('id', 'empleado_id', 'nombre_curso', 'estado_curso', 'fecha_inicio', 'fecha_fin', 'vence', 'estado')
-            ->when($buscar, function($query) use ($buscar) {
-                $query->whereHas('empleado.persona', function($q) use ($buscar) {
-                    $q->where('nombres', 'LIKE', "%$buscar%")
-                      ->orWhere('apellidos', 'LIKE', "%$buscar%");
-                })->orWhere('nombre_curso', 'LIKE', "%$buscar%");
+        $formaciones = Formacion::with([
+                'empleado.persona:id,nombres,apellidos',
+                'documentos:id,documentable_id,documentable_type,nombre_original'
+            ])
+            ->select(
+                'id',
+                'empleado_id',
+                'nombre_curso',
+                'estado_curso',
+                'fecha_inicio',
+                'fecha_fin',
+                'vence',
+                'estado'
+            )
+
+            // Si es empleado, solo ve sus formaciones
+            ->when(auth()->user()->hasRole('Empleado'), function ($query) {
+                $query->whereHas('empleado', function ($q) {
+                    $q->where('persona_id', auth()->user()->persona_id);
+                });
             })
-            ->when($request->vence !== null && $request->vence !== '', function($query) use ($request) {
+
+            ->when($buscar, function ($query) use ($buscar) {
+                $query->where(function ($q) use ($buscar) {
+                    $q->whereHas('empleado.persona', function ($sq) use ($buscar) {
+                        $sq->where('nombres', 'LIKE', "%{$buscar}%")
+                        ->orWhere('apellidos', 'LIKE', "%{$buscar}%");
+                    })
+                    ->orWhere('nombre_curso', 'LIKE', "%{$buscar}%");
+                });
+            })
+
+            ->when($request->vence !== null && $request->vence !== '', function ($query) use ($request) {
                 $query->where('vence', $request->vence);
             })
+
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
         $vence = $request->vence;
 
-        return view('admin.formaciones.index', compact('formaciones', 'buscar', 'estado', 'vence'));
+        return view('admin.formaciones.index', compact(
+            'formaciones',
+            'buscar',
+            'estado',
+            'vence'
+        ));
     }
 
     public function vencimientos(Request $request)
@@ -165,7 +195,7 @@ class FormacionController extends Controller
             }
         }
 
-        // 🔥 ELIMINAR DOCUMENTOS MARCADOS (SISTEMA ESTANDARIZADO)
+        //  ELIMINAR DOCUMENTOS MARCADOS (SISTEMA ESTANDARIZADO)
         if ($request->eliminar_documentos) {
             foreach ($request->eliminar_documentos as $docId) {
                 $doc = \App\Models\Documento::find($docId);

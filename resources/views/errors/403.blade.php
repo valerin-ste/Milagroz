@@ -19,9 +19,16 @@
             <a href="{{ url()->previous() }}" class="btn btn-outline-secondary px-4 rounded-pill">
                 <i class="fas fa-arrow-left me-2"></i> Volver atrás
             </a>
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-danger px-4 rounded-pill shadow-sm">
-                <i class="fas fa-home me-2"></i> Ir al Dashboard
-            </a>
+
+            @if(auth()->user()->hasRole('Empleado'))
+                <a href="{{ route('admin.solicitudes.index') }}" class="btn btn-danger px-4 rounded-pill shadow-sm">
+                    <i class="fas fa-file-alt me-2"></i> Ir a Mis Solicitudes
+                </a>
+            @else
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-danger px-4 rounded-pill shadow-sm">
+                    <i class="fas fa-home me-2"></i> Ir al Dashboard
+                </a>
+            @endif
         </div>
     </div>
 </div>

@@ -15,13 +15,14 @@ class RolePermissionSeeder extends Seeder
 
         // Módulos del sistema y sus sufijos de permisos
         $modulos = [
+            'dashboard' => ['ver'],
             'sedes' => ['ver', 'crear', 'editar', 'eliminar'],
             'areas' => ['ver', 'crear', 'editar', 'eliminar'],
             'perfiles_cargo' => ['ver', 'crear', 'editar', 'eliminar'], // equivale a 'roles' business logic
-            'empleados' => ['ver', 'crear', 'editar', 'eliminar', 'exportar'],
+            'empleados' => ['ver', 'crear', 'editar', 'eliminar', 'exportar', 'ver-perfil'],
             'etapa_precontractual' => ['ver', 'crear', 'editar', 'eliminar'],
             'etapa_contractual' => ['ver', 'crear', 'editar', 'eliminar'],
-            'seguridad_salud_trabajo' => ['ver', 'crear', 'editar', 'eliminar'],
+            'seguridad_salud_trabajo' => ['ver', 'crear', 'editar', 'eliminar'],    
             'comunicaciones' => ['ver', 'crear', 'editar', 'eliminar'],
             'solicitudes' => ['ver', 'crear', 'editar', 'eliminar', 'gestionar_estado'],
             'evaluaciones_desempeno' => ['ver', 'crear', 'editar', 'eliminar'],
@@ -82,7 +83,7 @@ class RolePermissionSeeder extends Seeder
             'ver-documentos', 'descargar-documentos',
             
             // Estructura (solo ver)
-            'ver-sedes', 'ver-areas', 'ver-perfiles_cargo'
+            'ver-sedes', 'ver-areas', 'ver-perfiles_cargo', 'ver-perfil'
         ])->get();
         
         $roleRecursosHumanos->syncPermissions($rhPermissions);
@@ -91,6 +92,7 @@ class RolePermissionSeeder extends Seeder
         $empleadoPermissions = Permission::whereIn('name', [
             'ver-comunicaciones',
             'ver-solicitudes', 'crear-solicitudes',
+            'ver-perfil_empleado',
             'ver-documentos', 'descargar-documentos'
         ])->get();
         

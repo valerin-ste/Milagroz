@@ -23,16 +23,26 @@ class ComunicacionController extends Controller
         $busqueda  = $request->buscar;
         $documento = $request->documento;
 
-        $comunicaciones = Comunicacion::with('empleado.persona', 'documentos')
+        $query = Comunicacion::with('empleado.persona', 'documentos');
+
+        // Si el usuario es Empleado, solo verá sus comunicaciones
+        if (auth()->user()->hasRole('Empleado')) {
+
+            $empleadoId = auth()->user()->persona?->empleado?->id;
+
+            $query->where('empleado_id', $empleadoId);
+        }
+
+        $comunicaciones = $query
             ->when($busqueda, function ($query, $busqueda) {
                 $query->whereHas('empleado.persona', function ($q) use ($busqueda) {
-                    $q->where('nombres', 'like', "%$busqueda%")
-                      ->orWhere('apellidos', 'like', "%$busqueda%");
+                    $q->where('nombres', 'like', "%{$busqueda}%")
+                    ->orWhere('apellidos', 'like', "%{$busqueda}%");
                 });
             })
             ->when($documento, function ($query, $documento) {
                 $query->whereHas('empleado.persona', function ($q) use ($documento) {
-                    $q->where('numero_documento', 'like', "%$documento%");
+                    $q->where('numero_documento', 'like', "%{$documento}%");
                 });
             })
             ->latest()

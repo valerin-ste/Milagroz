@@ -298,17 +298,20 @@ return [
     |
     */
 
-    'menu' => [
+        'menu' => [
+
         [
-            'text'        => 'Panel de Control',
-            'url'         => 'admin/dashboard',
-            'icon'        => 'fas fa-tachometer-alt text-soft-blue',
-            'active'      => ['admin/dashboard*'],
+            'text'   => 'Panel de Control',
+            'url'    => 'admin/dashboard',
+            'icon'   => 'fas fa-tachometer-alt text-soft-blue',
+            'active' => ['admin/dashboard*'],
+            'can'    => 'ver-dashboard',
         ],
 
         [
             'header' => 'MÓDULOS DE GESTIÓN',
         ],
+
 
     [
         'text' => 'Talento Humano',
@@ -374,79 +377,87 @@ return [
     ],
 
     [
-        'header' => 'DOCUMENTOS',
+    'header' => 'DOCUMENTOS',
     ],
+
     [
-        'text' => 'Productividad',
-        'url'  => 'admin/productividades',
-        'icon' => 'fas fa-chart-line text-primary',
-        'classes' => 'text-primary',
-        'can'  => 'ver-productividad',
-        'active' => ['admin/productividades*'],
-    ],
-    [
-        'text' => 'Capacidad Instalada',
-        'url'  => 'admin/capacidad_instalada',
-        'icon' => 'fas fa-chart-pie text-orange',
-        'classes' => 'text-orange',
-        'can'  => 'ver-capacidad_instalada',
-        'active' => ['admin/capacidad_instalada*'],
-    ],
-    [
-        'text' => 'Reportes Novedades Nómina',
-        'url'  => 'admin/reportes-novedades-nomina',
-        'icon' => 'fas fa-file-invoice-dollar text-success',
-        'classes' => 'text-success',
-        'can'  => 'ver-reportes_novedades_nomina',
-        'active' => ['admin/reportes-novedades-nomina*'],
-    ],
-    [
-        'text'    => 'Formación y Capacitación',
-        'url'     => 'admin/formaciones',
-        'icon'    => 'fas fa-graduation-cap text-info',
-        'classes' => 'text-info',
-        'can'     => 'ver-formaciones',
-        'active'  => ['admin/formaciones*'],
-    ],
-    [
-        'text' => 'Calidad',
-        'url'  => 'admin/calidad_documentos',
-        'icon' => 'fas fa-check-circle text-success',
-        'classes' => 'text-success',
-        'can'  => 'ver-calidad',
-        'active' => ['admin/calidad_documentos*'],
-    ],
-    [
-        'text'   => 'Planta Personal SENA',
-        'url'    => 'admin/planta_personal_sena',
-        'icon'   => 'fas fa-users text-purple',
-        'classes'=> 'text-purple',
-        'can'    => 'ver-planta_personal_sena',
-        'active' => ['admin/planta_personal_sena*'],
-    ],
-    [
-        'text' => 'Dotación',
-        'url'  => 'admin/dotaciones',
-        'icon' => 'fas fa-box-open text-warning',
-        'classes' => 'text-warning',
-        'can'  => 'ver-dotaciones',
-        'active' => ['admin/dotaciones*'],
-    ],
-    [
-        'text' => 'Certificaciones',
-        'url'  => 'admin/certificaciones',
-        'icon' => 'fas fa-certificate text-info',
-        'classes' => 'text-info',
-        'can'  => 'ver-certificaciones',
-        'active' => ['admin/certificaciones*'],
-    ],
-    [
-        'text' => 'Fechas Especiales',
-        'url' => 'admin/fechas_especiales',
-        'icon' => 'fas fa-calendar-alt text-danger',
-        'classes' => 'text-danger',
-        'active' => ['admin/fechas_especiales*'],
-        'can' => 'ver-fechas_especiales',
+        'text' => 'Gestión Documental',
+        'icon' => 'fas fa-folder-open text-primary',
+        'submenu' => [
+
+            [
+                'text' => 'Productividad',
+                'url'  => 'admin/productividades',
+                'icon' => 'fas fa-chart-line text-primary',
+                'can'  => 'ver-productividad',
+                'active' => ['admin/productividades*'],
+            ],
+
+            [
+                'text' => 'Capacidad Instalada',
+                'url'  => 'admin/capacidad_instalada',
+                'icon' => 'fas fa-chart-pie text-orange',
+                'can'  => 'ver-capacidad_instalada',
+                'active' => ['admin/capacidad_instalada*'],
+            ],
+
+            [
+                'text' => 'Reportes Novedades Nómina',
+                'url'  => 'admin/reportes-novedades-nomina',
+                'icon' => 'fas fa-file-invoice-dollar text-success',
+                'can'  => 'ver-reportes_novedades_nomina',
+                'active' => ['admin/reportes-novedades-nomina*'],
+            ],
+
+            [
+                'text' => 'Formación y Capacitación',
+                'url'  => 'admin/formaciones',
+                'icon' => 'fas fa-graduation-cap text-info',
+                'can'  => 'ver-formaciones',
+                'active' => ['admin/formaciones*'],
+            ],
+
+            [
+                'text' => 'Calidad',
+                'url'  => 'admin/calidad_documentos',
+                'icon' => 'fas fa-check-circle text-success',
+                'can'  => 'ver-calidad',
+                'active' => ['admin/calidad_documentos*'],
+            ],
+
+            [
+                'text' => 'Planta Personal SENA',
+                'url'    => 'admin/planta_personal_sena',
+                'icon'   => 'fas fa-users text-purple',
+                'can'    => 'ver-planta_personal_sena',
+                'active' => ['admin/planta_personal_sena*'],
+            ],
+
+            [
+                'text' => 'Dotación',
+                'url'  => 'admin/dotaciones',
+                'icon' => 'fas fa-box-open text-warning',
+                'can'  => 'ver-dotaciones',
+                'active' => ['admin/dotaciones*'],
+            ],
+
+            [
+                'text' => 'Certificaciones',
+                'url'  => 'admin/certificaciones',
+                'icon' => 'fas fa-certificate text-info',
+                'can'  => 'ver-certificaciones',
+                'active' => ['admin/certificaciones*'],
+            ],
+
+            [
+                'text' => 'Fechas Especiales',
+                'url'  => 'admin/fechas_especiales',
+                'icon' => 'fas fa-calendar-alt text-danger',
+                'can'  => 'ver-fechas_especiales',
+                'active' => ['admin/fechas_especiales*'],
+            ],
+
+        ],
     ],
 
     [

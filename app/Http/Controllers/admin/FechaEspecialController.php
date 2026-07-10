@@ -24,15 +24,25 @@ class FechaEspecialController extends Controller
         $tipo = $request->tipo;
 
         $fechas = FechaEspecial::with('empleado.persona')
-            ->when($buscar, function ($q) use ($buscar) {
-                $q->whereHas('empleado.persona', function ($sq) use ($buscar) {
-                    $sq->where('nombres', 'like', "%$buscar%")
-                        ->orWhere('apellidos', 'like', "%$buscar%");
+
+            // Si es empleado, solo ve sus registros
+            ->when(auth()->user()->hasRole('Empleado'), function ($query) {
+                $query->whereHas('empleado.persona.user', function ($q) {
+                    $q->where('id', auth()->id());
                 });
             })
-            ->when($tipo, function ($q) use ($tipo) {
-                $q->where('tipo', 'like', "%$tipo%");
+
+            ->when($buscar, function ($q) use ($buscar) {
+                $q->whereHas('empleado.persona', function ($sq) use ($buscar) {
+                    $sq->where('nombres', 'like', "%{$buscar}%")
+                    ->orWhere('apellidos', 'like', "%{$buscar}%");
+                });
             })
+
+            ->when($tipo, function ($q) use ($tipo) {
+                $q->where('tipo', 'like', "%{$tipo}%");
+            })
+
             ->latest()
             ->paginate(10)
             ->withQueryString();

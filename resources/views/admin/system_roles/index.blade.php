@@ -112,7 +112,7 @@
                                                     data-toggle="tooltip" title="Inactivar"
                                                     onclick="return confirm('¿Confirma que desea inactivar este registro?');">
                                                 <i class="fas fa-toggle-off"></i>
-                                            </button>
+                                            </button> 
                                         @else
                                             <button type="submit" class="btn btn-sm btn-icon btn-outline-success"
                                                     data-toggle="tooltip" title="Activar"

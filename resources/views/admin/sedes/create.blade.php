@@ -73,15 +73,43 @@
                                 <input type="text" name="telefono" class="form-control"
                                        value="{{ old('telefono') }}">
                             </div>
+                            
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    Áreas asignadas <span class="text-danger">*</span>
+                                </label>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Áreas</label>
-                                <select name="areas[]" class="form-select" multiple style="min-height: 100px;">
-                                    @foreach(\App\Models\Area::all() as $area)
-                                        <option value="{{ $area->id }}">{{ $area->nombre }}</option>
+                                <div class="row g-3 border rounded-3 p-3 bg-light">
+
+                                    @foreach(\App\Models\Area::orderBy('nombre')->get() as $area)
+
+                                        <div class="col-md-4">
+                                            <div class="form-check border rounded p-2 h-100 bg-white shadow-sm">
+
+                                                <input
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    name="areas[]"
+                                                    value="{{ $area->id }}"
+                                                    id="area{{ $area->id }}"
+                                                    {{ in_array($area->id, old('areas', [])) ? 'checked' : '' }}
+                                                >
+
+                                                <label class="form-check-label ms-2" for="area{{ $area->id }}">
+                                                    {{ $area->nombre }}
+                                                </label>
+
+                                            </div>
+                                        </div>
+
                                     @endforeach
-                                </select>
-                                <small class="text-muted">Ctrl+clic para seleccionar múltiples áreas.</small>
+
+                                </div>
+
+                                <small class="text-muted">
+                                    Seleccione una o varias áreas que pertenecen a esta sede.
+                                </small>
+
                             </div>
 
                         </div>
@@ -89,9 +117,9 @@
                     <div class="card-footer bg-white border-top-0 px-4 pb-4 pt-4">
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('admin.sedes.index') }}"
-                            class="btn btn-light border px-4 fw-bold shadow-sm"
-                            style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
-                                <i class="fas fa-times me-2"></i> CANCELAR
+                                class="btn btn-light border px-4 fw-bold shadow-sm"
+                                style="border-radius:15px; font-size:1.1rem; letter-spacing:0.5px;">
+                                    <i class="fas fa-times me-2"></i> CANCELAR
                             </a>
 
                             <button type="submit"

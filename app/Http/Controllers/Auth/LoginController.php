@@ -57,6 +57,26 @@ class LoginController extends Controller
         ]);
     }
 
+    protected function authenticated(\Illuminate\Http\Request $request, $user)
+    {
+        if ($user->hasRole('Empleado')) {
+            return redirect()->route('admin.solicitudes.index');
+        }
+
+        return redirect()->route('admin.dashboard');
+    }
+
+    /**
+     * The user has logged out of the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return mixed
+     */
+    protected function loggedOut(\Illuminate\Http\Request $request)
+    {
+        return redirect()->route('login');
+    }
+
     /**
      * Where to redirect users after login.
      *

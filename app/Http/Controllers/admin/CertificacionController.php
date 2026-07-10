@@ -23,17 +23,33 @@ class CertificacionController extends Controller
         $buscar = $request->buscar;
         $estado = $request->estado;
 
-        $certificaciones = Certificacion::with(['empleado.persona:id,nombres,apellidos', 'documentos:id,documentable_id,documentable_type,nombre_original'])
-            ->when($buscar, function($query) use ($buscar) {
-                $query->whereHas('empleado.persona', function($q) use ($buscar) {
-                    $q->where('nombres', 'LIKE', "%$buscar%")
-                      ->orWhere('apellidos', 'LIKE', "%$buscar%");
-                })->orWhere('nombre_certificacion', 'LIKE', "%$buscar%")
-                  ->orWhere('institucion', 'LIKE', "%$buscar%");
+        $certificaciones = Certificacion::with([
+                'empleado.persona:id,nombres,apellidos',
+                'documentos:id,documentable_id,documentable_type,nombre_original'
+            ])
+
+            // Si es empleado, solo ve sus certificaciones
+            ->when(auth()->user()->hasRole('Empleado'), function ($query) {
+                $empleadoId = auth()->user()->persona?->empleado?->id;
+
+                $query->where('empleado_id', $empleadoId);
             })
+
+            ->when($buscar, function($query) use ($buscar) {
+                $query->where(function ($q) use ($buscar) {
+                    $q->whereHas('empleado.persona', function($sq) use ($buscar) {
+                        $sq->where('nombres', 'LIKE', "%{$buscar}%")
+                        ->orWhere('apellidos', 'LIKE', "%{$buscar}%");
+                    })
+                    ->orWhere('nombre_certificacion', 'LIKE', "%{$buscar}%")
+                    ->orWhere('institucion', 'LIKE', "%{$buscar}%");
+                });
+            })
+
             ->when($estado !== null && $estado !== '', function($query) use ($estado) {
                 $query->where('estado', $estado);
             })
+
             ->latest()
             ->paginate(10)
             ->withQueryString();

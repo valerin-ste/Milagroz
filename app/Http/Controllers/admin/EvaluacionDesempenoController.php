@@ -20,13 +20,24 @@ class EvaluacionDesempenoController extends Controller
     public function index(Request $request)
     {
         $buscar = $request->buscar;
+
         $evaluaciones = EvaluacionDesempeno::with(['empleado.persona', 'documentos'])
-            ->when($buscar, function($q) use ($buscar) {
-                $q->whereHas('empleado.persona', function($sq) use ($buscar) {
-                    $sq->where('nombres', 'like', "%$buscar%")
-                       ->orWhere('apellidos', 'like', "%$buscar%");
+
+            // Si es empleado, solo ve sus evaluaciones
+            ->when(auth()->user()->hasRole('Empleado'), function ($query) {
+                $query->whereHas('empleado', function ($q) {
+                    $q->where('persona_id', auth()->user()->persona_id);
                 });
             })
+
+            // Búsqueda por nombre
+            ->when($buscar, function ($q) use ($buscar) {
+                $q->whereHas('empleado.persona', function ($sq) use ($buscar) {
+                    $sq->where('nombres', 'like', "%{$buscar}%")
+                    ->orWhere('apellidos', 'like', "%{$buscar}%");
+                });
+            })
+
             ->orderByDesc('fecha')
             ->paginate(10)
             ->withQueryString();

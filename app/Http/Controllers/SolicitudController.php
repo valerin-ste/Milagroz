@@ -18,19 +18,29 @@ class SolicitudController extends Controller
         $this->middleware('permission:eliminar-solicitudes', ['only' => ['destroy', 'toggle']]);
         $this->middleware('permission:gestionar_estado-solicitudes', ['only' => ['cambiarEstado']]);
     }
-    // 📄 LISTADO
+    //  LISTADO
     public function index(Request $request)
     {
         $busqueda = $request->buscar;
         $estado   = $request->estado;
         $tipo     = $request->tipo;
 
-        $solicitudes = Solicitud::with('empleado.persona', 'documentos')
+        $query = Solicitud::with('empleado.persona', 'documentos');
+
+        // Si es empleado, solo puede ver sus solicitudes
+        if (auth()->user()->hasRole('Empleado')) {
+
+            $empleado = auth()->user()->persona->empleado;
+
+            $query->where('empleado_id', $empleado->id);
+        }
+
+        $solicitudes = $query
             ->when($busqueda, function ($query, $busqueda) {
                 $query->whereHas('empleado.persona', function ($q) use ($busqueda) {
-                    $q->where('nombres', 'like', "%$busqueda%")
-                      ->orWhere('apellidos', 'like', "%$busqueda%");
-                })->orWhere('tipo', 'like', "%$busqueda%");
+                    $q->where('nombres', 'like', "%{$busqueda}%")
+                    ->orWhere('apellidos', 'like', "%{$busqueda}%");
+                })->orWhere('tipo', 'like', "%{$busqueda}%");
             })
             ->when($estado, function ($query, $estado) {
                 $query->where('estado', $estado);
@@ -72,7 +82,7 @@ class SolicitudController extends Controller
             'fecha'
         ]);
 
-        // 🔥 por defecto activo
+        //  por defecto activo
         $data['activo'] = 1;
 
         $solicitud = Solicitud::create($data);

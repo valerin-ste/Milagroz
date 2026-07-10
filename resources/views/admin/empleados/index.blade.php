@@ -206,9 +206,9 @@
                             <td class="text-center pe-4 py-3">
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     <a href="{{ route('admin.empleados.show', $e) }}"
-                                       class="btn btn-sm btn-icon btn-outline-info"
-                                       data-toggle="tooltip" title="Ver Perfil">
-                                        <i class="fas fa-eye"></i>
+                                        class="btn btn-sm btn-icon btn-outline-info"
+                                        data-toggle="tooltip" title="Ver Perfil">
+                                            <i class="fas fa-eye"></i>
                                     </a>
 
                                     @if($e->estado == 1)

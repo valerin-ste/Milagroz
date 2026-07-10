@@ -75,17 +75,42 @@
                                        value="{{ $sede->telefono }}">
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Áreas</label>
-                                <select name="areas[]" class="form-select" multiple style="min-height: 100px;">
-                                    @foreach(\App\Models\Area::all() as $area)
-                                        <option value="{{ $area->id }}"
-                                            {{ $sede->areas->contains($area->id) ? 'selected' : '' }}>
-                                            {{ $area->nombre }}
-                                        </option>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    Áreas asignadas
+                                </label>
+
+                                <div class="row g-3 border rounded-3 p-3 bg-light">
+
+                                    @foreach(\App\Models\Area::orderBy('nombre')->get() as $area)
+
+                                        <div class="col-md-4">
+                                            <div class="form-check border rounded p-2 h-100 bg-white shadow-sm">
+
+                                                <input
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    name="areas[]"
+                                                    value="{{ $area->id }}"
+                                                    id="area{{ $area->id }}"
+                                                    {{ $sede->areas->contains($area->id) ? 'checked' : '' }}
+                                                >
+
+                                                <label class="form-check-label ms-2" for="area{{ $area->id }}">
+                                                    {{ $area->nombre }}
+                                                </label>
+
+                                            </div>
+                                        </div>
+
                                     @endforeach
-                                </select>
-                                <small class="text-muted">Ctrl+clic para seleccionar múltiples áreas.</small>
+
+                                </div>
+
+                                <small class="text-muted">
+                                    Marque o desmarque las áreas asociadas a esta sede.
+                                </small>
+
                             </div>
 
                         </div>

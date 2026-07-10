@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SystemRoleSeeder::class,
             RolePermissionSeeder::class,
+            //hay crea el de empleados para que se le ejecute el de calidad
             CalidadDocumentoSeeder::class,
         ]);
     }

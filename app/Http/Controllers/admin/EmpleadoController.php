@@ -17,12 +17,14 @@ class EmpleadoController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:ver-empleados', ['only' => ['index', 'show']]);
+        $this->middleware('permission:ver-empleados', ['only' => ['index']]);
+        $this->middleware('permission:ver-perfil-empleados', ['only' => ['show']]);
         $this->middleware('permission:crear-empleados', ['only' => ['create', 'store']]);
         $this->middleware('permission:editar-empleados', ['only' => ['edit', 'update']]);
         $this->middleware('permission:eliminar-empleados', ['only' => ['destroy', 'toggleStatus']]);
         $this->middleware('permission:exportar-empleados', ['only' => ['exportPdf']]);
     }
+    
     public function index(Request $request)
     {
         $busqueda = $request->buscar;
@@ -31,22 +33,32 @@ class EmpleadoController extends Controller
         $sede_id  = $request->sede_id;
 
         $empleados = Empleado::with(['persona', 'area', 'sede'])
+
+            // Si es empleado, solo puede ver su propio registro
+            ->when(auth()->user()->hasRole('Empleado'), function ($query) {
+                $query->where('persona_id', auth()->user()->persona_id);
+            })
+
             ->when($busqueda, function ($query, $busqueda) {
                 $query->whereHas('persona', function ($q) use ($busqueda) {
-                    $q->where('nombres', 'like', "%$busqueda%")
-                      ->orWhere('apellidos', 'like', "%$busqueda%")
-                      ->orWhere('numero_documento', 'like', "%$busqueda%");
+                    $q->where('nombres', 'like', "%{$busqueda}%")
+                    ->orWhere('apellidos', 'like', "%{$busqueda}%")
+                    ->orWhere('numero_documento', 'like', "%{$busqueda}%");
                 });
             })
+
             ->when($estado !== null && $estado !== '', function ($query) use ($estado) {
                 $query->where('estado', $estado);
             })
+
             ->when($area_id, function ($query, $area_id) {
                 $query->where('area_id', $area_id);
             })
+
             ->when($sede_id, function ($query, $sede_id) {
                 $query->where('sede_id', $sede_id);
             })
+
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -54,7 +66,15 @@ class EmpleadoController extends Controller
         $areas = Area::select('id', 'nombre')->get();
         $sedes = Sede::select('id', 'nombre')->get();
 
-        return view('admin.empleados.index', compact('empleados', 'busqueda', 'estado', 'area_id', 'sede_id', 'areas', 'sedes'));
+        return view('admin.empleados.index', compact(
+            'empleados',
+            'busqueda',
+            'estado',
+            'area_id',
+            'sede_id',
+            'areas',
+            'sedes'
+        ));
     }
 
     public function show(Empleado $empleado)
@@ -202,7 +222,7 @@ class EmpleadoController extends Controller
             'area_id' => $validated['area_id'],
             'sede_id' => $validated['sede_id'],
             'rol_id' => $validated['rol_id'],
-            'cargo' => $validated['cargo'],
+            'cargo' => $validated['cargo'], 
             'tipo_contrato' => $validated['tipo_contrato'],
             'fecha_ingreso' => $validated['fecha_ingreso'],
             'estado' => $validated['estado'],

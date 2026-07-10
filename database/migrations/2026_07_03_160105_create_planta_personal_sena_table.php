@@ -8,19 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('planta_personal_sena', function (Blueprint $table) {
-            $table->increments('id');
-            $table->foreignId('empleado_id')
-                ->constrained('empleados')
-                ->onDelete('cascade');
+        if (!Schema::hasTable('planta_personal_sena')) {
+            Schema::create('planta_personal_sena', function (Blueprint $table) {
+                $table->increments('id');
+                $table->foreignId('empleado_id')
+                    ->constrained('empleados')
+                    ->onDelete('cascade');
 
-            $table->text('observaciones')->nullable();
-            $table->date('fecha_reporte')->nullable();
-            $table->boolean('estado')->default(true);
+                $table->text('observaciones')->nullable();
+                $table->date('fecha_reporte')->nullable();
+                $table->boolean('estado')->default(true);
 
-            $table->softDeletes();
-            $table->timestamps();
-        });
+                $table->softDeletes();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

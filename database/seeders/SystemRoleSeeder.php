@@ -17,19 +17,23 @@ class SystemRoleSeeder extends Seeder
         // Limpiar caché de roles y permisos
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 1. Crear Rol Administrador
-        $roleAdmin = Role::firstOrCreate(['name' => 'Admin']);
+        // Crear Rol Super Admin
+        $roleSuperAdmin = Role::firstOrCreate([
+            'name' => 'Super Admin'
+        ]);
 
         // 2. Crear un usuario administrador por defecto
         $user = User::firstOrCreate(
             ['email' => 'admin@milagroz.com'],
             [
+                'persona_id' => null,
+                'estado' => 1,
                 'name' => 'Super Administrador',
                 'password' => bcrypt('password'),
             ]
         );
 
         // 3. Asignar el rol al usuario
-        $user->assignRole($roleAdmin);
+        $user->assignRole($roleSuperAdmin);
     }
 }
